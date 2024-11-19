@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { type Address } from 'viem'
-import { useWriteContract } from 'wagmi'
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { useDappQL } from './Provider.js'
 import { type MutationConfig } from './types.js'
@@ -49,7 +49,7 @@ export function useMasterMutation<M extends string, Args extends readonly any[]>
   const send = useCallback(
     (...args: NonNullable<Args>) => {
       const sId = submissionId
-      tx.writeContractAsync(
+      tx.writeContract(
         {
           abi: config.getAbi(),
           functionName: config.functionName,
@@ -81,13 +81,17 @@ export function useMasterMutation<M extends string, Args extends readonly any[]>
     [address, tx, config],
   )
 
+  const confirmation = useWaitForTransactionReceipt({ hash: tx.data })
+
   return useMemo(
     () => ({
       ...tx,
+      confirmation,
+      isLoading: tx.isPending || confirmation.isLoading,
       send,
     }),
 
-    [tx, send],
+    [tx, send, confirmation],
   )
 }
 

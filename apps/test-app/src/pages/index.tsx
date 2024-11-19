@@ -1,13 +1,187 @@
+import {
+  Badge,
+  createListCollection,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+  Spinner,
+  Text,
+  Textarea,
+  VStack,
+} from '@chakra-ui/react'
 import { useDappQL } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { Address } from 'viem'
 
 import { calls, useIteratorQuery, useMutation, useQuery } from '~/contracts/collection'
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
+import { PiPlus } from 'react-icons/pi'
+import { Button } from '~/components/ui/button'
 
-const STATUSES = {
-  1: 'Pending',
-  2: 'Doing',
-  4: 'Done',
+const STATUS_IDS = {
+  Pending: 1n,
+  Doing: 2n,
+  Done: 4n,
+}
+
+function useItems(total: bigint, address: Address) {
+  return useIteratorQuery(total, (index: bigint) => calls.ToDo('item', [address, index]), {
+    firstIndex: 1n,
+  })
+}
+
+type ToDoItemList = ReturnType<typeof useItems>['data']
+type ToDoItem = ToDoItemList[number]
+
+const statuses = createListCollection({
+  items: Object.keys(STATUS_IDS).map((status) => ({
+    label: status,
+    value: STATUS_IDS[status as keyof typeof STATUS_IDS].toString(),
+  })),
+})
+
+function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: () => any; defaultStatus?: bigint }) {
+  const [content, setContent] = useState(item?.value.content || '')
+  const [status, setStatus] = useState((defaultStatus || item?.value.status || STATUS_IDS.Pending).toString())
+
+  const addItem = useMutation('ToDo', 'addItem')
+  const updateItem = useMutation('ToDo', 'updateItem')
+  const confirmed = !!(addItem.confirmation.data || updateItem.confirmation.data)
+  useEffect(() => {
+    if (confirmed) {
+      onClose()
+    }
+  }, [confirmed])
+  return (
+    <VStack w="full">
+      <Textarea autoFocus value={content} onChange={(e) => setContent(e.target.value)} maxLength={256} />
+      <SelectRoot collection={statuses} value={[status]} onValueChange={(i) => setStatus(i.value[0])}>
+        <SelectTrigger>
+          <SelectValueText placeholder="Select movie" />
+        </SelectTrigger>
+        <SelectContent>
+          {statuses.items.map((status) => (
+            <SelectItem item={status} key={status.label}>
+              {status.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectRoot>
+      <HStack w="full">
+        <Button
+          disabled={updateItem.isLoading || addItem.isLoading}
+          flex={1}
+          variant="subtle"
+          size="xs"
+          onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          loading={updateItem.isLoading || addItem.isLoading}
+          disabled={!content}
+          flex={1}
+          size="xs"
+          onClick={() => {
+            if (item) {
+              updateItem.send(item.queryIndex, content, BigInt(status))
+            } else {
+              addItem.send(content, BigInt(status))
+            }
+          }}>
+          Confirm
+        </Button>
+      </HStack>
+    </VStack>
+  )
+}
+
+function Item({ item }: { item: ToDoItem }) {
+  const updateStatus = useMutation('ToDo', 'updateStatus')
+  const [editing, setEditing] = useState(false)
+  const [side, setSide] = useState<'left' | 'right'>()
+  return (
+    <HStack bg="colorPalette.900" w="full" p={2} borderRadius={8}>
+      {editing ? (
+        <VStack w="full">
+          <EditItem item={item} onClose={() => setEditing(false)} />
+        </VStack>
+      ) : (
+        <>
+          {item.value.status === STATUS_IDS.Pending ? null : (
+            <IconButton
+              size="xs"
+              variant="ghost"
+              disabled={updateStatus.isLoading}
+              onClick={() => {
+                setSide('left')
+                updateStatus.send(item.queryIndex, item.value.status / 2n)
+              }}>
+              {updateStatus.isLoading && side === 'left' ? <Spinner /> : <IoIosArrowBack />}
+            </IconButton>
+          )}
+          <VStack w="full" p={2} spaceY={2} onClick={() => setEditing(true)} cursor="pointer" alignItems="flex-start">
+            <Text>{item.value.content}</Text>
+          </VStack>
+          {item.value.status === STATUS_IDS.Done ? null : (
+            <IconButton
+              size="xs"
+              padding={0}
+              variant="ghost"
+              disabled={updateStatus.isLoading}
+              onClick={() => {
+                setSide('right')
+                updateStatus.send(item.queryIndex, item.value.status * 2n)
+              }}>
+              {updateStatus.isLoading && side === 'right' ? <Spinner /> : <IoIosArrowForward />}
+            </IconButton>
+          )}
+        </>
+      )}
+    </HStack>
+  )
+}
+
+function List({ list, title, status }: { list: ToDoItemList; title: string; status: bigint }) {
+  const [adding, setAdding] = useState(false)
+  return (
+    <VStack flex={1} spaceY={4} h="full">
+      <HStack>
+        <Heading>{title}</Heading>
+        {list.length ? <Badge>{list.length}</Badge> : null}
+      </HStack>
+      <VStack spaceY={4} w="full" overflowY="auto" flex="1 1 auto" height="100px" p={4}>
+        {adding ? (
+          <HStack bg="colorPalette.900" w="full" p={2} borderRadius={8}>
+            <EditItem key={list.length} onClose={() => setAdding(false)} defaultStatus={status} />
+          </HStack>
+        ) : (
+          <HStack
+            bg="colorPalette.900"
+            w="full"
+            p={2}
+            borderRadius={8}
+            justifyContent="center"
+            onClick={() => setAdding(true)}
+            cursor="pointer">
+            <Icon>
+              <PiPlus />
+            </Icon>
+          </HStack>
+        )}
+        {list.map((i) => {
+          return <Item key={i.queryIndex.toString()} item={i} />
+        })}
+      </VStack>
+    </VStack>
+  )
 }
 
 export default function Home() {
@@ -15,52 +189,56 @@ export default function Home() {
   const { currentBlock } = useDappQL()
 
   const result = useQuery({
-    total: calls.ToDo('numItems', [address], { defaultValue: BigInt(0) }),
+    total: calls.ToDo('numItems', [address], { defaultValue: 0n }),
   })
 
-  const items = useIteratorQuery(result.data.total, (index: bigint) => calls.ToDo('item', [address, index]), {
-    firstIndex: BigInt(1),
-  })
+  const items = useItems(result.data.total, address)
 
-  const addItem = useMutation('ToDo', 'addItem')
-  const updateItem = useMutation('ToDo', 'updateStatus')
+  const classifiedItems = useMemo(
+    () =>
+      items.data
+        .toSorted((i1, i2) => (i1.value.lastUpdated < i2.value.lastUpdated ? 1 : -1))
+        .reduce(
+          (acc, item) => {
+            switch (item.value.status) {
+              case STATUS_IDS.Pending:
+                acc.pending.push(item)
+                break
+              case STATUS_IDS.Doing:
+                acc.doing.push(item)
+                break
+              case STATUS_IDS.Done:
+                acc.done.push(item)
+                break
+            }
+            return acc
+          },
+          {
+            pending: [] as typeof items.data,
+            doing: [] as typeof items.data,
+            done: [] as typeof items.data,
+          },
+        ),
+    [items.data],
+  )
 
   return (
-    <div>
-      <ConnectButton label="Sign in" />
-      <hr />
-      <div>Current Block: {currentBlock.toString()}</div>
-      <div>Total Items (dappql): {result.data.total?.toString()}</div>
-      <hr />
+    <VStack spaceY={4} height="100vh" overflowY="hidden">
+      <HStack w="full" p={4} justifyContent="space-between" borderBottomWidth={1}>
+        <Heading>ToDo List</Heading>
+        <HStack spaceX={4}>
+          <Badge>Current Block: {currentBlock.toString()}</Badge>
+          <ConnectButton label="Connect" showBalance={false} />
+        </HStack>
+      </HStack>
 
-      {items.data.map((i) => {
-        const status = STATUSES[Number(i.value.status) as keyof typeof STATUSES]
-
-        return (
-          <div key={i.queryIndex.toString()}>
-            <div>ID: {i.queryIndex.toString()}</div>
-            <div>Content: {i.value.content}</div>
-            <div>Created at: {new Date(Number(i.value.timestamp) * 1000).toLocaleString()}</div>
-            <div>Updated at: {new Date(Number(i.value.lastUpdated) * 1000).toLocaleString()}</div>
-            <div>Status: {status}</div>
-            {status === 'Done' ? null : (
-              <button
-                onClick={() => {
-                  if (status === 'Pending') {
-                    updateItem.send(i.queryIndex, BigInt(2))
-                  } else {
-                    updateItem.send(i.queryIndex, BigInt(4))
-                  }
-                }}>
-                Update Status
-              </button>
-            )}
-            <hr />
-          </div>
-        )
-      })}
-
-      <button onClick={() => addItem.send('Test', BigInt(1))}>Create Item</button>
-    </div>
+      <VStack flex={1} w="full" spaceY={4}>
+        <HStack spaceX={4} w="full" maxW="1000px" alignItems="flex-start" flex={1}>
+          <List title="Pending" list={classifiedItems.pending} status={STATUS_IDS.Pending} />
+          <List title="Doing" list={classifiedItems.doing} status={STATUS_IDS.Doing} />
+          <List title="Done" list={classifiedItems.done} status={STATUS_IDS.Done} />
+        </HStack>
+      </VStack>
+    </VStack>
   )
 }
