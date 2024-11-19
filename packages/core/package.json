@@ -1,0 +1,58 @@
+{
+  "name": "@dappql/core",
+  "version": "1.0.0",
+  "description": "DappQL core Module",
+  "type": "module",
+  "keywords": [
+    "wagmi",
+    "viem",
+    "typechain",
+    "blockchain",
+    "smart-contracts",
+    "dapp",
+    "hooks",
+    "react hooks",
+    "query"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -b -w",
+    "build": "tsc -b",
+    "ship": "npm run build && npm version patch && git push && npm publish --access public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dappql/cache.git"
+  },
+  "author": "DappQL Team",
+  "bugs": {
+    "url": "https://github.com/dappql/cache/issues"
+  },
+  "homepage": "https://github.com/dappql/cache#readme",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "*"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
+    "eslint": "^8.29.0",
+    "eslint-config-universe": "^11.1.1",
+    "@types/react": "^18.3.12",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.60.2",
+    "viem": "^2.21.45",
+    "wagmi": "^2.12.32"
+  }
+}

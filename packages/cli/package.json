@@ -1,0 +1,55 @@
+{
+  "name": "dappql",
+  "version": "2.0.0",
+  "description": "wagmi extension to easily query smart-contracts",
+  "main": "./lib/index.js",
+  "bin": {
+    "dappql": "bin/dappql"
+  },
+  "keywords": [
+    "wagmi",
+    "viem",
+    "typechain",
+    "blockchain",
+    "smart-contracts",
+    "dapp",
+    "hooks",
+    "react hooks",
+    "query"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./node_modules && rm -rf ./lib && rm -rf ./.turbo",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc -b -w",
+    "build": "tsc -b",
+    "ship": "npm run build && npm version patch && git push && npm publish"
+  },
+  "files": [
+    "/lib",
+    "/bin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dappql/cli.git"
+  },
+  "author": "DappQL Team",
+  "bugs": {
+    "url": "https://github.com/dappql/cli/issues"
+  },
+  "homepage": "https://github.com/dappql/cli#readme",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/figlet": "^1.5.4",
+    "@types/mkdirp": "^1.0.2",
+    "@types/node": "^18.6.4",
+    "ts-lib": "^0.0.5",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.60.2",
+    "figlet": "^1.8.0",
+    "kleur": "^4.1.5",
+    "viem": "^2.21.45",
+    "wagmi": "^2.12.32"
+  }
+}
