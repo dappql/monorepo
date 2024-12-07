@@ -32,11 +32,10 @@ const STATUS_IDS = {
   Done: 4n,
 }
 
-function useItems(total: bigint, address: Address) {
-  return useIteratorQuery(total, (index: bigint) => calls.ToDo('item', [address, index]), {
+const useItems = (total: bigint, address: Address) =>
+  useIteratorQuery(total, (index: bigint) => calls.ToDo.item(address, index), {
     firstIndex: 1n,
   })
-}
 
 type ToDoItemList = ReturnType<typeof useItems>['data']
 type ToDoItem = ToDoItemList[number]
@@ -55,6 +54,7 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
   const addItem = useMutation('ToDo', 'addItem')
   const updateItem = useMutation('ToDo', 'updateItem')
   const confirmed = !!(addItem.confirmation.data || updateItem.confirmation.data)
+
   useEffect(() => {
     if (confirmed) {
       onClose()
@@ -189,7 +189,7 @@ export default function Home() {
   const { currentBlock } = useDappQL()
 
   const result = useQuery({
-    total: calls.ToDo('numItems', [address], { defaultValue: 0n }),
+    total: calls.ToDo.numItems(address).with({ defaultValue: 0n }),
   })
 
   const items = useItems(result.data.total, address)
@@ -225,7 +225,9 @@ export default function Home() {
   return (
     <VStack spaceY={4} height="100vh" overflowY="hidden">
       <HStack w="full" p={4} justifyContent="space-between" borderBottomWidth={1}>
-        <Heading>ToDo List</Heading>
+        <Heading>
+          ToDo <Badge>powered by DappQL</Badge>
+        </Heading>
         <HStack spaceX={4}>
           <Badge>Current Block: {currentBlock.toString()}</Badge>
           <ConnectButton label="Connect" showBalance={false} />

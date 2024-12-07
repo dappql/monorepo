@@ -8,9 +8,16 @@ function createContractFile(contract: ContractConfig & { contractName: string })
   if (!contract.abi) {
     throw new Error('ABI not fetched')
   }
-  const hasRead = !!contract.abi.find(
-    (a) => a.type === 'function' && (a.stateMutability === 'pure' || a.stateMutability === 'view'),
-  )
+
+  const readMethods = contract.abi
+    .filter((a) => a.type === 'function' && (a.stateMutability === 'pure' || a.stateMutability === 'view'))
+    .reduce((acc, a) => {
+      if (acc.includes(a.name)) return acc
+      return [...acc, a.name]
+    }, [] as string[])
+
+  const hasRead = !!readMethods.length
+
   const hasWrite = !!contract.abi.find(
     (a) => a.type === 'function' && (a.stateMutability === 'nonpayable' || a.stateMutability === 'payable'),
   )
@@ -45,8 +52,8 @@ export function {{CONTRACT_NAME}}Call<M extends {{CONTRACT_NAME}}ContractQueries
     const address =
       typeof contractAddressOrOptions === 'string' ? contractAddressOrOptions : contractAddressOrOptions?.contractAddress
     const defaultValue = typeof contractAddressOrOptions === 'string' ? undefined : contractAddressOrOptions?.defaultValue
-    
-    return {
+
+    const call = {
       contractName: '{{CONTRACT_NAME}}' as const,
       method,
       args,
@@ -54,7 +61,14 @@ export function {{CONTRACT_NAME}}Call<M extends {{CONTRACT_NAME}}ContractQueries
       deployAddress,
       defaultValue,
       getAbi: () => abi,
+      with: (options: { contractAddress?: Address; defaultValue?: Awaited<ReturnType<{{CONTRACT_NAME}}Contract['read'][M]>> }) => {
+        call.address = options.contractAddress
+        call.defaultValue = options.defaultValue
+        return call
+      }
     }
+
+    return call
 }`
     : ''
 }
@@ -78,7 +92,13 @@ const {{CONTRACT_NAME}} = {
   deployAddress,
   abi,
   getContract: get{{CONTRACT_NAME}}Contract,
-  ${hasRead ? 'call: {{CONTRACT_NAME}}Call,' : ''}
+  ${
+    hasRead
+      ? `call: {
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractCallArgs<{{CONTRACT_NAME}}Contract['read']['${m}']>) => {{CONTRACT_NAME}}Call('${m}', args),`).join('\n')}
+  },`
+      : ''
+  }
   ${hasWrite ? 'mutation: {{CONTRACT_NAME}}Mutation,' : ''}
 }
 

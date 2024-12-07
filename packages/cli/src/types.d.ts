@@ -1,5 +1,6 @@
 type Address = `0x${string}`
 type AbiFunction = {
+  name: 'string'
   type?: 'function' | 'constructor' | 'event'
   stateMutability?: 'pure' | 'view' | 'nonpayable' | 'payable'
 }

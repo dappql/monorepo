@@ -7,18 +7,18 @@ import { MutationOptions, useMasterMutation } from '@dappql/core'
 
 import ToDo from './ToDo'
 
-export const CONTRACTS = {
-  ToDo,
+const CONTRACTS = {
+  ToDo
 } as const
 
 export type Contracts = typeof CONTRACTS
 
 export const calls = {
-  ToDo: ToDo.call,
+  ToDo: ToDo.call
 } as const
 
 export const mutations = {
-  ToDo: ToDo.mutation,
+  ToDo: ToDo.mutation
 } as const
 
 export function useMutation<C extends keyof typeof mutations, M extends Parameters<(typeof mutations)[C]>[0]>(
