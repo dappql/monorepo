@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "DappQL core Module",
   "type": "module",
   "keywords": [
@@ -40,7 +40,10 @@
   "homepage": "https://github.com/dappql/cache#readme",
   "license": "MIT",
   "peerDependencies": {
-    "react": "*"
+    "react": "*",
+    "@tanstack/react-query": "*",
+    "viem": "*",
+    "wagmi": "*"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.46.1",
@@ -49,10 +52,5 @@
     "eslint-config-universe": "^11.1.1",
     "@types/react": "^18.3.12",
     "typescript": "^5.6.3"
-  },
-  "peerCependencies": {
-    "@tanstack/react-query": "*",
-    "viem": "*",
-    "wagmi": "*"
   }
 }
