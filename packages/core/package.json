@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DappQL core Module",
   "type": "module",
   "keywords": [
@@ -50,9 +50,9 @@
     "@types/react": "^18.3.12",
     "typescript": "^5.6.3"
   },
-  "dependencies": {
-    "@tanstack/react-query": "^5.60.2",
-    "viem": "^2.21.45",
-    "wagmi": "^2.12.32"
+  "peerCependencies": {
+    "@tanstack/react-query": "*",
+    "viem": "*",
+    "wagmi": "*"
   }
 }
