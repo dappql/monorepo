@@ -12,7 +12,7 @@ export type QueryOptions = {
   refetchInterval?: number
 }
 
-export function useMasterQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
+export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
   const { addressResolver, currentBlock } = useDappQL()
 
   const { callKeys, calls } = useMemo(() => {
@@ -114,7 +114,7 @@ export function useIteratorQuery<T>(
     }, {} as FinalQuery)
   }, [total, getItem])
 
-  const result = useMasterQuery(query, queryParams)
+  const result = useQuery(query, queryParams)
 
   const items = useMemo(() => {
     if (result.isLoading || result.error) {

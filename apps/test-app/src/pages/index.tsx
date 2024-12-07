@@ -15,16 +15,16 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import { useDappQL } from '@dappql/core'
+import { useDappQL, useIteratorQuery, useMutation, useQuery } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Address } from 'viem'
 
-import { calls, useIteratorQuery, useMutation, useQuery } from '~/contracts/collection'
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
 import { PiPlus } from 'react-icons/pi'
 import { Button } from '~/components/ui/button'
+import { ToDo } from '~/contracts'
 
 const STATUS_IDS = {
   Pending: 1n,
@@ -33,7 +33,7 @@ const STATUS_IDS = {
 }
 
 const useItems = (total: bigint, address: Address) =>
-  useIteratorQuery(total, (index: bigint) => calls.ToDo.item(address, index), {
+  useIteratorQuery(total, (index: bigint) => ToDo.call.item(address, index), {
     firstIndex: 1n,
   })
 
@@ -51,8 +51,8 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
   const [content, setContent] = useState(item?.value.content || '')
   const [status, setStatus] = useState((defaultStatus || item?.value.status || STATUS_IDS.Pending).toString())
 
-  const addItem = useMutation('ToDo', 'addItem')
-  const updateItem = useMutation('ToDo', 'updateItem')
+  const addItem = useMutation(ToDo.mutation('addItem'))
+  const updateItem = useMutation(ToDo.mutation('updateItem'))
   const confirmed = !!(addItem.confirmation.data || updateItem.confirmation.data)
 
   useEffect(() => {
@@ -104,7 +104,7 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
 }
 
 function Item({ item }: { item: ToDoItem }) {
-  const updateStatus = useMutation('ToDo', 'updateStatus')
+  const updateStatus = useMutation(ToDo.mutation('updateStatus'))
   const [editing, setEditing] = useState(false)
   const [side, setSide] = useState<'left' | 'right'>()
   return (
@@ -189,7 +189,7 @@ export default function Home() {
   const { currentBlock } = useDappQL()
 
   const result = useQuery({
-    total: calls.ToDo.numItems(address).with({ defaultValue: 0n }),
+    total: ToDo.call.numItems(address).with({ defaultValue: 0n }),
   })
 
   const items = useItems(result.data.total, address)

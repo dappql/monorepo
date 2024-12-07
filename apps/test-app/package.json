@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "types": "tsc --noEmit",
     "lint": "next lint"
   },
   "dependencies": {
+    "@myapp/contracts": "*",
     "@chakra-ui/react": "^3.1.2",
     "@dappql/core": "*",
     "@emotion/react": "^11.13.3",

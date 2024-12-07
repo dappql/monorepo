@@ -13,7 +13,7 @@ export type MutationOptions =
     }
   | string
 
-export function useMasterMutation<M extends string, Args extends readonly any[]>(
+export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
 ) {
@@ -95,4 +95,4 @@ export function useMasterMutation<M extends string, Args extends readonly any[]>
   )
 }
 
-export type MasterMutation = ReturnType<typeof useMasterMutation>
+export type Mutation = ReturnType<typeof useMutation>
