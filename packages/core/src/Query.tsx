@@ -56,7 +56,7 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
   }, [result.dataUpdatedAt, result.errorUpdatedAt, callKeys])
 }
 
-export async function masterQuery<T extends RequestCollection>(
+export async function query<T extends RequestCollection>(
   requests: T,
   client: Client,
   addressResolver?: AddressResolverFunction,
