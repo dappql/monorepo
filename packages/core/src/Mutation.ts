@@ -6,13 +6,36 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { useDappQL } from './Provider.js'
 import { type MutationConfig } from './types.js'
 
+/**
+ * Configuration options for mutations
+ * Can be either a string (transaction name) or an object with additional options
+ */
 export type MutationOptions =
   | {
+      /** Human-readable name for the transaction */
       transactionName?: string
+      /** Override the contract address */
       address?: Address
     }
   | string
 
+/**
+ * Hook for executing contract write operations (mutations)
+ * @param config Configuration object containing contract details and ABI
+ * @param optionsOrTransactionName Optional configuration or transaction name
+ * @returns Object containing mutation state and send function
+ *
+ * @example
+ * const mutation = useMutation({
+ *   contractName: 'MyContract',
+ *   functionName: 'setValue',
+ *   getAbi: () => CONTRACT_ABI,
+ *   deployAddress: '0x...'
+ * }, 'Set Value')
+ *
+ * // Execute the mutation
+ * mutation.send(newValue)
+ */
 export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
@@ -95,4 +118,8 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   )
 }
 
+/**
+ * Return type of the useMutation hook
+ * Includes transaction state, confirmation status, and send function
+ */
 export type Mutation = ReturnType<typeof useMutation>

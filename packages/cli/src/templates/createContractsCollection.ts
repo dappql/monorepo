@@ -29,13 +29,12 @@ function createContractFile(contract: ContractConfig & { contractName: string })
 /* @ts-nocheck */
 
 ${hasRead || hasWrite ? `import { ExtractArgs } from '@dappql/core'` : ''}
-import { Address, Client, getContract } from 'viem'
+import { Address } from 'viem'
 
 const abi = ${JSON.stringify(contract.abi, undefined, 4)} as const
 
 const deployAddress: Address | undefined = ${contract.address ? `'${contract.address}'` : 'undefined'}
 
-const get{{CONTRACT_NAME}}Contract = (address: Address, client: Client) => getContract({ client, abi, address })
 ${generateContractTypes(contract.contractName, contract.abi)}
 ${
   hasRead
@@ -71,7 +70,19 @@ export function {{CONTRACT_NAME}}Call<M extends {{CONTRACT_NAME}}ContractQueries
     }
 
     return call
-}`
+}
+
+type {{CONTRACT_NAME}}CallType = {
+  [K in {{CONTRACT_NAME}}ContractQueries]: (
+    ...args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls'][K]>
+  ) => ReturnType<typeof {{CONTRACT_NAME}}Call<K>>
+}
+
+const call = {
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls']['${m}']>) => {{CONTRACT_NAME}}Call('${m}', args),`).join('\n')}
+}
+
+`
     : ''
 }
 ${
@@ -90,17 +101,15 @@ export function {{CONTRACT_NAME}}Mutation<M extends {{CONTRACT_NAME}}ContractMut
     : ''
 }
 
-const {{CONTRACT_NAME}} = {
+const {{CONTRACT_NAME}}: {
+  deployAddress: typeof deployAddress
+  abi: typeof abi
+  ${hasRead ? 'call: {{CONTRACT_NAME}}CallType' : ''}
+  ${hasWrite ? 'mutation: typeof {{CONTRACT_NAME}}Mutation' : ''}
+} = {
   deployAddress,
   abi,
-  getContract: get{{CONTRACT_NAME}}Contract,
-  ${
-    hasRead
-      ? `call: {
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls']['${m}']>) => {{CONTRACT_NAME}}Call('${m}', args),`).join('\n')}
-  },`
-      : ''
-  }
+  ${hasRead ? 'call,' : ''}
   ${hasWrite ? 'mutation: {{CONTRACT_NAME}}Mutation,' : ''}
 }
 

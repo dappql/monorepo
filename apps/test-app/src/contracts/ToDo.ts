@@ -4,7 +4,7 @@
 /* @ts-nocheck */
 
 import { ExtractArgs } from '@dappql/core'
-import { Address, Client, getContract } from 'viem'
+import { Address } from 'viem'
 
 const abi = [
     {
@@ -128,7 +128,6 @@ const abi = [
 
 const deployAddress: Address | undefined = '0x29B63f08aBa4Be48873238C23693a5550bC1E93F'
 
-const getToDoContract = (address: Address, client: Client) => getContract({ client, abi, address })
 export type ToDoContract = {
   calls: {
     numItems: (arg0: `0x${string}`) => Promise<bigint>
@@ -177,6 +176,19 @@ export function ToDoCall<M extends ToDoContractQueries>(
     return call
 }
 
+type ToDoCallType = {
+  [K in ToDoContractQueries]: (
+    ...args: ExtractArgs<ToDoContract['calls'][K]>
+  ) => ReturnType<typeof ToDoCall<K>>
+}
+
+const call = {
+		numItems: (...args: ExtractArgs<ToDoContract['calls']['numItems']>) => ToDoCall('numItems', args),
+		item: (...args: ExtractArgs<ToDoContract['calls']['item']>) => ToDoCall('item', args),
+}
+
+
+
 export type ToDoContractMutations = keyof ToDoContract['mutations']
 export function ToDoMutation<M extends ToDoContractMutations>(functionName: M) {
   return {
@@ -188,14 +200,15 @@ export function ToDoMutation<M extends ToDoContractMutations>(functionName: M) {
   }
 }
 
-const ToDo = {
+const ToDo: {
+  deployAddress: typeof deployAddress
+  abi: typeof abi
+  call: ToDoCallType
+  mutation: typeof ToDoMutation
+} = {
   deployAddress,
   abi,
-  getContract: getToDoContract,
-  call: {
-		numItems: (...args: ExtractArgs<ToDoContract['calls']['numItems']>) => ToDoCall('numItems', args),
-		item: (...args: ExtractArgs<ToDoContract['calls']['item']>) => ToDoCall('item', args),
-  },
+  call,
   mutation: ToDoMutation,
 }
 
