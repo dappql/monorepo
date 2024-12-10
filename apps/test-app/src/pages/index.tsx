@@ -15,7 +15,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import { useDappQL, useIteratorQuery, useMutation, useQuery, useQueryList } from '@dappql/core'
+import { useDappQL, useIteratorQuery, useMutation, useQuery, useQueryList, useSingleQuery } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
@@ -188,11 +188,8 @@ export default function Home() {
   const { address = '0x0' } = useAccount()
   const { currentBlock } = useDappQL()
 
-  const result = useQuery({
-    total: ToDo.call.numItems(address).with({ defaultValue: 0n }),
-  })
-
-  const items = useItems(result.data.total, address)
+  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
+  const items = useItems(total.data, address)
 
   const classifiedItems = useMemo(
     () =>

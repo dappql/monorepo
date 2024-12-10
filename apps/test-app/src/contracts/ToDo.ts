@@ -156,6 +156,8 @@ export type Request<M extends Calls> = {
     contractAddress?: Address
     defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
   }) => Request<M>
+  defaultTo: (defaultValue: Awaited<ReturnType<Contract['calls'][M]>>) => Request<M>
+  at: (address: Address) => Request<M>
 }
 export type CallReturn<M extends Calls> = NonNullable<Request<M>['defaultValue']>
 
@@ -188,6 +190,14 @@ function getRequest<M extends Calls>(
           call.address = options.contractAddress
           call.defaultValue = options.defaultValue
           return call as Request<M>
+      },
+      defaultTo: (defaultValue: Awaited<ReturnType<Contract['calls'][M]>>) => {
+        call.defaultValue = defaultValue
+        return call as Request<M>
+      },
+      at: (address: Address) => {
+        call.address = address
+        return call as Request<M>
       },
     } as Request<M>
 
