@@ -22,4 +22,5 @@ type Config = {
   abiSourcePath?: string
   etherscanApiKey?: string
   etherscanApi?: string
+  isModule?: boolean
 }

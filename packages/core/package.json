@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.10",
+  "version": "1.0.15",
   "description": "DappQL core Module",
   "type": "module",
   "keywords": [
@@ -31,13 +31,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dappql/cache.git"
+    "url": "git+https://github.com/dappql/monorepo.git"
   },
   "author": "DappQL Team",
   "bugs": {
-    "url": "https://github.com/dappql/cache/issues"
+    "url": "https://github.com/dappql/monorepo/issues"
   },
-  "homepage": "https://github.com/dappql/cache#readme",
+  "homepage": "https://github.com/dappql/monorepo#readme",
   "license": "MIT",
   "peerDependencies": {
     "react": "*",

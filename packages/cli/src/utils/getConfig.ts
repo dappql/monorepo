@@ -1,14 +1,18 @@
 import { existsSync } from 'fs'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 
-import { RUNNING_DIRECTORY } from './constants'
+export default async function getConfig() {
+  const CONFIG_PATH = join(process.cwd(), 'dapp.config.js')
+  console.log('Looking for config at:', CONFIG_PATH)
 
-const CONFIG_PATH = join(RUNNING_DIRECTORY, 'dapp.config.js')
-
-export default function getConfig() {
   if (!existsSync(CONFIG_PATH)) {
-    throw new Error('Config file (dapp.config.js) not found!')
+    throw new Error(
+      `Config file not found at ${CONFIG_PATH}\n` +
+        'Please create a dapp.config.js file in your project root directory.',
+    )
   }
 
-  return require(CONFIG_PATH) as Config
+  const configUrl = pathToFileURL(CONFIG_PATH).href
+  return (await import(configUrl)).default as Config
 }

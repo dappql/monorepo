@@ -15,7 +15,7 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import { useDappQL, useIteratorQuery, useMutation, useQuery } from '@dappql/core'
+import { useDappQL, useIteratorQuery, useMutation, useQuery, useQueryList } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'

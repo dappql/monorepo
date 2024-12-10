@@ -3,4 +3,4 @@
 /* eslint-disable */
 /* @ts-nocheck */
   
-export { default as ToDo } from './ToDo'
+export * as ToDo from './ToDo'

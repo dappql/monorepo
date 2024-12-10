@@ -1,9 +1,9 @@
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 
-import { RUNNING_DIRECTORY } from '../utils/constants'
-import touchDirectory from '../utils/touchDir'
-import generateContractTypes from '../utils/generateTypes'
+import { RUNNING_DIRECTORY } from '../utils/constants.js'
+import touchDirectory from '../utils/touchDir.js'
+import generateContractTypes from '../utils/generateTypes.js'
 
 function createContractFile(contract: ContractConfig & { contractName: string }) {
   if (!contract.abi) {
@@ -31,25 +31,40 @@ function createContractFile(contract: ContractConfig & { contractName: string })
 ${hasRead || hasWrite ? `import { ExtractArgs } from '@dappql/core'` : ''}
 import { Address } from 'viem'
 
-const abi = ${JSON.stringify(contract.abi, undefined, 4)} as const
+export const abi = ${JSON.stringify(contract.abi, undefined, 4)} as const
 
-const deployAddress: Address | undefined = ${contract.address ? `'${contract.address}'` : 'undefined'}
+export const deployAddress: Address | undefined = ${contract.address ? `'${contract.address}'` : 'undefined'}
 
-${generateContractTypes(contract.contractName, contract.abi)}
+${generateContractTypes(contract.abi)}
 ${
   hasRead
     ? `
-export type {{CONTRACT_NAME}}ContractQueries = keyof {{CONTRACT_NAME}}Contract['calls']
-export function {{CONTRACT_NAME}}Call<M extends {{CONTRACT_NAME}}ContractQueries>(
+export type Calls = keyof Contract['calls']
+export type Request<M extends Calls> = {
+  contractName: '{{CONTRACT_NAME}}'
+  method: M
+  args: ExtractArgs<Contract['calls'][M]>
+  address: Address | undefined
+  deployAddress: Address | undefined
+  defaultValue: Awaited<ReturnType<Contract['calls'][M]>> | undefined
+  getAbi: () => typeof abi
+  with: (options: {
+    contractAddress?: Address
+    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
+  }) => Request<M>
+}
+export type CallReturn<M extends Calls> = NonNullable<Request<M>['defaultValue']>
+
+function getRequest<M extends Calls>(
   method: M,
-  args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls'][M]>,
+  args: ExtractArgs<Contract['calls'][M]>,
   contractAddressOrOptions?:
   | Address
   | {
     contractAddress?: Address
-    defaultValue?: Awaited<ReturnType<{{CONTRACT_NAME}}Contract['calls'][M]>>
+    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
     },
-  ) {
+  ): Request<M> {
     const address =
       typeof contractAddressOrOptions === 'string' ? contractAddressOrOptions : contractAddressOrOptions?.contractAddress
     const defaultValue = typeof contractAddressOrOptions === 'string' ? undefined : contractAddressOrOptions?.defaultValue
@@ -62,58 +77,46 @@ export function {{CONTRACT_NAME}}Call<M extends {{CONTRACT_NAME}}ContractQueries
       deployAddress,
       defaultValue,
       getAbi: () => abi,
-      with: (options: { contractAddress?: Address; defaultValue?: Awaited<ReturnType<{{CONTRACT_NAME}}Contract['calls'][M]>> }) => {
-        call.address = options.contractAddress
-        call.defaultValue = options.defaultValue
-        return call
-      }
-    }
+      with: (options: {
+        contractAddress?: Address
+        defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
+      }) => {
+          call.address = options.contractAddress
+          call.defaultValue = options.defaultValue
+          return call as Request<M>
+      },
+    } as Request<M>
 
     return call
 }
 
-type {{CONTRACT_NAME}}CallType = {
-  [K in {{CONTRACT_NAME}}ContractQueries]: (
-    ...args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls'][K]>
-  ) => ReturnType<typeof {{CONTRACT_NAME}}Call<K>>
+type CallType = {
+  [K in Calls]: (
+    ...args: ExtractArgs<Contract['calls'][K]>
+  ) => ReturnType<typeof getRequest<K>>
 }
 
-const call = {
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<{{CONTRACT_NAME}}Contract['calls']['${m}']>) => {{CONTRACT_NAME}}Call('${m}', args),`).join('\n')}
+export const call: CallType = {
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => getRequest('${m}', args),`).join('\n')}
 }
-
 `
     : ''
 }
 ${
   hasWrite
     ? `
-export type {{CONTRACT_NAME}}ContractMutations = keyof {{CONTRACT_NAME}}Contract['mutations']
-export function {{CONTRACT_NAME}}Mutation<M extends {{CONTRACT_NAME}}ContractMutations>(functionName: M) {
+export type Mutations = keyof Contract['mutations']
+export function mutation<M extends Mutations>(functionName: M) {
   return {
     contractName: '{{CONTRACT_NAME}}' as const,
     functionName,
     deployAddress,
-    argsType: undefined as ExtractArgs<{{CONTRACT_NAME}}Contract['mutations'][M]> | undefined,
+    argsType: undefined as ExtractArgs<Contract['mutations'][M]> | undefined,
     getAbi: () => abi,
   }
 }`
     : ''
 }
-
-const {{CONTRACT_NAME}}: {
-  deployAddress: typeof deployAddress
-  abi: typeof abi
-  ${hasRead ? 'call: {{CONTRACT_NAME}}CallType' : ''}
-  ${hasWrite ? 'mutation: typeof {{CONTRACT_NAME}}Mutation' : ''}
-} = {
-  deployAddress,
-  abi,
-  ${hasRead ? 'call,' : ''}
-  ${hasWrite ? 'mutation: {{CONTRACT_NAME}}Mutation,' : ''}
-}
-
-export default {{CONTRACT_NAME}}
 `.replaceAll('{{CONTRACT_NAME}}', contract.contractName)
 
   return { content, hasRead, hasWrite }
@@ -122,6 +125,7 @@ export default {{CONTRACT_NAME}}
 export default function createContractsCollection(
   contracts: (ContractConfig & { contractName: string })[],
   target: string,
+  isModule?: boolean,
 ) {
   const collectionPath = join(RUNNING_DIRECTORY, target)
   touchDirectory(collectionPath)
@@ -138,7 +142,7 @@ export default function createContractsCollection(
 /* eslint-disable */
 /* @ts-nocheck */
   
-${generated.map((c) => `export { default as ${c.contractName} } from './${c.contractName}'`).join('\n')}
+${generated.map((c) => `export * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
 `
 
   writeFileSync(join(collectionPath, 'index.ts'), collectionIndex)

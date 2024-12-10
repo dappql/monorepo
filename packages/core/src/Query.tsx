@@ -11,6 +11,12 @@ import { type Request, type RequestCollection } from './types.js'
  * Configuration options for query operations
  */
 export type QueryOptions = {
+  /**
+   * If true, the query will not automatically update when new blocks arrive.
+   * Use this for data that you know won't change, like historical events
+   * or immutable contract state.
+   */
+  isStatic?: boolean
   /** Optional block number to query at a specific block */
   blockNumber?: bigint
   /** Optional interval (in ms) to refetch the data */
@@ -22,6 +28,13 @@ export type QueryOptions = {
  * @param requests Collection of contract requests to execute
  * @param options Query configuration options
  * @returns Object containing query results and status
+ * @example
+ * ```ts
+ * const { data, isLoading } = useQuery({
+ *   value1: contracts.myContract.getValue(1, 2, 3),
+ *   value2: contracts.myOtherContract.getOtherValue(4, 5, 6),
+ * })
+ * ```
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
   const { addressResolver, currentBlock } = useDappQL()
@@ -48,8 +61,10 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
   })
 
   useEffect(() => {
-    if (currentBlock > 0n && !options.blockNumber && !options.refetchInterval) result.refetch()
-  }, [currentBlock, options.blockNumber, options.refetchInterval])
+    if (!options.isStatic && currentBlock > 0n && !options.blockNumber && !options.refetchInterval) {
+      result.refetch()
+    }
+  }, [currentBlock, options.blockNumber, options.refetchInterval, options.isStatic])
 
   return useMemo(() => {
     const data = callKeys.reduce(
@@ -65,6 +80,59 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
 
     return { ...result, data }
   }, [result.dataUpdatedAt, result.errorUpdatedAt, callKeys])
+}
+
+/**
+ * React hook that executes a single contract read call
+ * This is a convenience wrapper around useQuery for when you only need to query one contract method
+ * @param request The contract request to execute
+ * @param options Query configuration options
+ * @returns Object containing the query result and status, with data directly accessible (not nested in an object)
+ * @example
+ * ```ts
+ * const { data, isLoading } = useSingleQuery(
+ *   contracts.myContract.getValue(1, 2, 3)
+ * )
+ * ```
+ */
+export function useSingleQuery<T extends Request>(request: T, options: QueryOptions = {}) {
+  const result = useQuery({ value: request }, options)
+  return useMemo(
+    () => ({
+      ...result,
+      data: result.data.value,
+    }),
+    [result],
+  )
+}
+
+/**
+ * React hook that executes multiple contract read calls in a single multicall
+ * @param requests Collection of contract requests to execute
+ * @param options Query configuration options
+ * @returns Object containing query results and status
+ * @example
+ * ```ts
+ * const { data, isLoading } = useQueryList([
+ *   ["balance", contracts.myContract.getValue(1, 2, 3)],
+ *   ["supply", contracts.myOtherContract.getOtherValue(4, 5, 6)],
+ * ])
+ * ```
+ */
+export function useQueryList<T extends { key: string; request: Request }[]>(
+  requests: [...T],
+  options: QueryOptions = {},
+) {
+  const query = useMemo(() => {
+    return requests.reduce(
+      (acc, { key, request }: T[number]) => {
+        acc[key as T[number]['key']] = request
+        return acc
+      },
+      {} as { [K in T[number]['key']]: Extract<T[number], { key: K }>['request'] },
+    )
+  }, [requests])
+  return useQuery(query, options)
 }
 
 /**
@@ -129,6 +197,10 @@ export type GetItemCallFunction<T> = (index: bigint) => Request & {
  * @param getItem Function that generates the query for a specific index
  * @param options Query configuration options including optional starting index
  * @returns Object containing array of query results and status
+ * @example
+ * ```ts
+ * const { data, isLoading } = useIteratorQuery(10, (i) => contracts.myContract.getValue(i))
+ * ```
  */
 export function useIteratorQuery<T>(
   total: bigint,

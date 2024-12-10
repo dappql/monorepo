@@ -6,7 +6,7 @@
 import { ExtractArgs } from '@dappql/core'
 import { Address } from 'viem'
 
-const abi = [
+export const abi = [
     {
         "type": "function",
         "name": "addItem",
@@ -126,9 +126,9 @@ const abi = [
     }
 ] as const
 
-const deployAddress: Address | undefined = '0x29B63f08aBa4Be48873238C23693a5550bC1E93F'
+export const deployAddress: Address | undefined = '0x29B63f08aBa4Be48873238C23693a5550bC1E93F'
 
-export type ToDoContract = {
+export type Contract = {
   calls: {
     numItems: (arg0: `0x${string}`) => Promise<bigint>
     item: (arg0: `0x${string}`, arg1: bigint) => Promise<{ user: `0x${string}`; timestamp: bigint; content: string; status: bigint; lastUpdated: bigint }>
@@ -143,17 +143,32 @@ export type ToDoContract = {
   }
 }
 
-export type ToDoContractQueries = keyof ToDoContract['calls']
-export function ToDoCall<M extends ToDoContractQueries>(
+export type Calls = keyof Contract['calls']
+export type Request<M extends Calls> = {
+  contractName: 'ToDo'
+  method: M
+  args: ExtractArgs<Contract['calls'][M]>
+  address: Address | undefined
+  deployAddress: Address | undefined
+  defaultValue: Awaited<ReturnType<Contract['calls'][M]>> | undefined
+  getAbi: () => typeof abi
+  with: (options: {
+    contractAddress?: Address
+    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
+  }) => Request<M>
+}
+export type CallReturn<M extends Calls> = NonNullable<Request<M>['defaultValue']>
+
+function getRequest<M extends Calls>(
   method: M,
-  args: ExtractArgs<ToDoContract['calls'][M]>,
+  args: ExtractArgs<Contract['calls'][M]>,
   contractAddressOrOptions?:
   | Address
   | {
     contractAddress?: Address
-    defaultValue?: Awaited<ReturnType<ToDoContract['calls'][M]>>
+    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
     },
-  ) {
+  ): Request<M> {
     const address =
       typeof contractAddressOrOptions === 'string' ? contractAddressOrOptions : contractAddressOrOptions?.contractAddress
     const defaultValue = typeof contractAddressOrOptions === 'string' ? undefined : contractAddressOrOptions?.defaultValue
@@ -166,50 +181,38 @@ export function ToDoCall<M extends ToDoContractQueries>(
       deployAddress,
       defaultValue,
       getAbi: () => abi,
-      with: (options: { contractAddress?: Address; defaultValue?: Awaited<ReturnType<ToDoContract['calls'][M]>> }) => {
-        call.address = options.contractAddress
-        call.defaultValue = options.defaultValue
-        return call
-      }
-    }
+      with: (options: {
+        contractAddress?: Address
+        defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
+      }) => {
+          call.address = options.contractAddress
+          call.defaultValue = options.defaultValue
+          return call as Request<M>
+      },
+    } as Request<M>
 
     return call
 }
 
-type ToDoCallType = {
-  [K in ToDoContractQueries]: (
-    ...args: ExtractArgs<ToDoContract['calls'][K]>
-  ) => ReturnType<typeof ToDoCall<K>>
+type CallType = {
+  [K in Calls]: (
+    ...args: ExtractArgs<Contract['calls'][K]>
+  ) => ReturnType<typeof getRequest<K>>
 }
 
-const call = {
-		numItems: (...args: ExtractArgs<ToDoContract['calls']['numItems']>) => ToDoCall('numItems', args),
-		item: (...args: ExtractArgs<ToDoContract['calls']['item']>) => ToDoCall('item', args),
+export const call: CallType = {
+		numItems: (...args: ExtractArgs<Contract['calls']['numItems']>) => getRequest('numItems', args),
+		item: (...args: ExtractArgs<Contract['calls']['item']>) => getRequest('item', args),
 }
 
 
-
-export type ToDoContractMutations = keyof ToDoContract['mutations']
-export function ToDoMutation<M extends ToDoContractMutations>(functionName: M) {
+export type Mutations = keyof Contract['mutations']
+export function mutation<M extends Mutations>(functionName: M) {
   return {
     contractName: 'ToDo' as const,
     functionName,
     deployAddress,
-    argsType: undefined as ExtractArgs<ToDoContract['mutations'][M]> | undefined,
+    argsType: undefined as ExtractArgs<Contract['mutations'][M]> | undefined,
     getAbi: () => abi,
   }
 }
-
-const ToDo: {
-  deployAddress: typeof deployAddress
-  abi: typeof abi
-  call: ToDoCallType
-  mutation: typeof ToDoMutation
-} = {
-  deployAddress,
-  abi,
-  call,
-  mutation: ToDoMutation,
-}
-
-export default ToDo

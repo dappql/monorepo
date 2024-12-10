@@ -1,22 +1,26 @@
-import { green, yellow, red, white, cyan } from 'kleur'
+import kleur from 'kleur'
+
+const { green, yellow, red, white } = kleur
 
 export enum Severity {
-  success = 'success',
-  warning = 'warning',
-  error = 'error',
-  neutral = 'neutral',
-  info = 'info',
+  error,
+  warning,
+  success,
+  info,
 }
 
-const LOGGERS = {
-  success: green,
-  warning: yellow,
-  error: red,
-  neutral: white,
-  info: cyan,
-}
-
-export default function logger(message: string, severity: Severity = Severity.neutral) {
-  // eslint-disable-next-line no-console
-  console.log(LOGGERS[severity](message))
+export default function logger(message: string, severity: Severity = Severity.info) {
+  switch (severity) {
+    case Severity.error:
+      console.log(red(message))
+      break
+    case Severity.warning:
+      console.log(yellow(message))
+      break
+    case Severity.success:
+      console.log(green(message))
+      break
+    default:
+      console.log(white(message))
+  }
 }

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   'targetPath': './src/contracts',
   "contracts": {
     "ToDo": {
