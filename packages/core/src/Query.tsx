@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { type PublicClient } from 'viem'
 import { multicall } from 'viem/actions'
@@ -191,6 +191,16 @@ export type GetItemCallFunction<T> = (index: bigint) => Request & {
   defaultValue: T
 }
 
+function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
+  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
+  const iterator = Array.from(new Array(Number(total)).keys())
+  return iterator.reduce((acc, index) => {
+    const realIndex = BigInt(index) + firstIndex
+    acc[`item${realIndex}`] = getItem(realIndex)
+    return acc
+  }, {} as FinalQuery)
+}
+
 /**
  * React hook for querying iterable data structures (like arrays) from smart contracts
  * @param total Total number of items to query
@@ -209,37 +219,36 @@ export function useIteratorQuery<T>(
     firstIndex?: bigint
   } = {},
 ) {
-  const { firstIndex = BigInt(0), ...queryParams } = options
+  const { firstIndex = 0n, ...queryParams } = options
 
-  const query = useMemo(() => {
-    type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
-    const iterator = Array.from(new Array(Number(total)).keys())
-    return iterator.reduce((acc, index) => {
-      const realIndex = BigInt(index) + firstIndex
-      acc[`item${realIndex}`] = getItem(realIndex)
-      return acc
-    }, {} as FinalQuery)
-  }, [total, getItem])
+  const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
+
+  const [sItems, setItems] = useState<{ value: NonNullable<T>; queryIndex: bigint }[]>([])
 
   const result = useQuery(query, queryParams)
 
   const items = useMemo(() => {
     if (result.isLoading || result.error) {
-      return []
+      return sItems
     }
-    return Object.keys(result.data)
-      .filter((k) => k.startsWith('item'))
-      .map((k) => ({ value: result.data[k], queryIndex: BigInt(k.replace('item', '')) }))
+    return Object.keys(result.data).map((k) => ({
+      value: result.data[k] as NonNullable<T>,
+      queryIndex: BigInt(k.replace('item', '')),
+    }))
   }, [result])
 
+  useEffect(() => {
+    setItems(items)
+  }, [items])
+
   return useMemo(() => {
-    if (total === BigInt(0)) return { data: items, isLoading: false }
+    if (total === 0n) return { data: sItems, isLoading: false }
     return {
-      data: items,
+      data: sItems,
       isLoading: result.isLoading,
       error: result.error,
     }
-  }, [items, total])
+  }, [sItems, total])
 }
 
 /**
@@ -261,23 +270,12 @@ export async function iteratorQuery<T>(
   } = {},
   addressResolver?: AddressResolverFunction,
 ) {
-  const { firstIndex = BigInt(0), ...queryParams } = options
+  const { firstIndex = 0n, ...queryParams } = options
 
-  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
-  const iterator = Array.from(new Array(Number(total)).keys())
+  const result = await query(client, buildIteratorQuery(total, firstIndex, getItem), queryParams, addressResolver)
 
-  const result = await query(
-    client,
-    iterator.reduce((acc, index) => {
-      const realIndex = BigInt(index) + firstIndex
-      acc[`item${realIndex}`] = getItem(realIndex)
-      return acc
-    }, {} as FinalQuery),
-    options,
-    addressResolver,
-  )
-
-  return Object.keys(result)
-    .filter((k) => k.startsWith('item'))
-    .map((k) => result[k])
+  return Object.keys(result).map((k) => ({
+    value: result[k] as NonNullable<T>,
+    queryIndex: BigInt(k.replace('item', '')),
+  }))
 }
