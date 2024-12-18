@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { type PublicClient } from 'viem'
+import { stringify, type PublicClient } from 'viem'
 import { multicall } from 'viem/actions'
 import { useReadContracts } from 'wagmi'
 
@@ -37,7 +37,7 @@ export type QueryOptions = {
  * ```
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
-  const { addressResolver, currentBlock } = useDappQL()
+  const { addressResolver, onBlockChange } = useDappQL()
 
   const { callKeys, calls } = useMemo(() => {
     const callKeys = Object.keys(requests) as (keyof T)[]
@@ -50,36 +50,40 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
       }
     })
     return { callKeys, calls }
-  }, [requests])
+  }, [stringify(requests)])
 
   const result = useReadContracts({
     blockNumber: options.blockNumber,
     query: {
       refetchInterval: options.refetchInterval,
+      notifyOnChangeProps: ['data', 'error'],
     },
     contracts: calls,
   })
 
+  const shouldRefetchOnBlockChange = !options.isStatic && !options.blockNumber && !options.refetchInterval
   useEffect(() => {
-    if (!options.isStatic && currentBlock > 0n && !options.blockNumber && !options.refetchInterval) {
-      result.refetch()
+    if (!options.isStatic && !options.blockNumber && !options.refetchInterval) {
+      onBlockChange((blockNumber) => {
+        if (blockNumber > 0n) {
+          result.refetch()
+        }
+      })
     }
-  }, [currentBlock, options.blockNumber, options.refetchInterval, options.isStatic])
+  }, [shouldRefetchOnBlockChange])
 
   return useMemo(() => {
     const data = callKeys.reduce(
       (acc, k, index) => {
         acc[k] = result.data?.[index]?.result ?? requests?.[k]?.defaultValue!
-
         return acc
       },
       {} as {
         [K in keyof T]: NonNullable<T[K]['defaultValue']>
       },
     )
-
     return { ...result, data }
-  }, [result.dataUpdatedAt, result.errorUpdatedAt, callKeys])
+  }, [stringify(result.data), callKeys])
 }
 
 /**
@@ -96,14 +100,12 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
  * ```
  */
 export function useSingleQuery<T extends Request>(request: T, options: QueryOptions = {}) {
-  const result = useQuery({ value: request }, options)
-  return useMemo(
-    () => ({
-      ...result,
-      data: result.data.value,
-    }),
-    [result],
-  )
+  const memoizedRequest = useMemo(() => ({ value: request }), [stringify(request)])
+  const result = useQuery(memoizedRequest, options)
+
+  return useMemo(() => {
+    return { ...result, data: result.data.value }
+  }, [result])
 }
 
 /**

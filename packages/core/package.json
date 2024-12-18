@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "DappQL core Module",
   "type": "module",
   "keywords": [

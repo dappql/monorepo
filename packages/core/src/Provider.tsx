@@ -1,8 +1,9 @@
-import { type ComponentType, createContext, useContext, useState } from 'react'
+import { type ComponentType, createContext, useContext, useMemo, useState } from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { AbiFunction, Address } from 'viem'
-import { type ResolvedRegister, useBlockNumber, WagmiProvider } from 'wagmi'
+import { type ResolvedRegister, WagmiProvider } from 'wagmi'
+import { BlockSubscriptionManager, useBlockNumberSubscriber } from './blocksHandler.js'
 
 /**
  * Basic information about a contract mutation (write operation)
@@ -80,6 +81,8 @@ export type AddressResolverProps = {
  */
 type ProviderProps = {
   children: any
+  /** Optional interval in seconds to get the block number */
+  blocksInterval?: number
   /** Optional function to resolve contract addresses */
   addressResolver?: AddressResolverFunction
   /** Optional component to handle address resolution */
@@ -89,9 +92,9 @@ type ProviderProps = {
 const Context = createContext<
   {
     addressResolver?: AddressResolverFunction
-    currentBlock: bigint
+    onBlockChange: BlockSubscriptionManager['subscribe']
   } & MutationCallbacks
->({ currentBlock: 0n })
+>({ onBlockChange: () => () => false })
 
 const queryClient = new QueryClient()
 
@@ -111,17 +114,20 @@ function Provider({
     resolver: AddressResolverFunction | undefined
   }>({ resolver: addressResolver })
 
-  const { data: currentBlock = 0n } = useBlockNumber({ watch: true })
+  const onBlockChange = useBlockNumberSubscriber()
+  const value = useMemo(
+    () => ({
+      onBlockChange,
+      onMutationSubmit,
+      onMutationError,
+      onMutationSuccess,
+      addressResolver: addressResolverState.resolver,
+    }),
+    [onBlockChange, onMutationSubmit, onMutationError, onMutationSuccess, addressResolverState.resolver],
+  )
 
   return (
-    <Context.Provider
-      value={{
-        currentBlock,
-        onMutationSubmit,
-        onMutationSuccess,
-        onMutationError,
-        addressResolver: addressResolverState.resolver,
-      }}>
+    <Context.Provider value={value}>
       {AddressResolverComponent ? (
         <AddressResolverComponent
           onResolved={(resolver) => {

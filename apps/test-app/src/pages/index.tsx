@@ -15,11 +15,11 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import { useDappQL, useIteratorQuery, useMutation, useQuery, useQueryList, useSingleQuery } from '@dappql/core'
+import { useIteratorQuery, useMutation, useSingleQuery } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
-import { Address } from 'viem'
+import { Address, zeroAddress } from 'viem'
 
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io'
 import { PiPlus } from 'react-icons/pi'
@@ -185,8 +185,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
 }
 
 export default function Home() {
-  const { address = '0x0' } = useAccount()
-  const { currentBlock } = useDappQL()
+  const { address = zeroAddress } = useAccount()
 
   const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
   const items = useItems(total.data, address)
@@ -226,7 +225,7 @@ export default function Home() {
           ToDo <Badge>powered by DappQL</Badge>
         </Heading>
         <HStack spaceX={4}>
-          <Badge>Current Block: {currentBlock.toString()}</Badge>
+          {/* <Badge>Current Block: {currentBlock.toString()}</Badge> */}
           <ConnectButton label="Connect" showBalance={false} />
         </HStack>
       </HStack>
