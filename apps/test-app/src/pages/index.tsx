@@ -189,7 +189,6 @@ export default function Home() {
 
   const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
   const items = useItems(total.data, address)
-
   const classifiedItems = useMemo(
     () =>
       items.data

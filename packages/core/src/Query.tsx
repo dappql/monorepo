@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { stringify, type PublicClient } from 'viem'
 import { multicall } from 'viem/actions'
@@ -38,7 +38,6 @@ export type QueryOptions = {
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
   const { addressResolver, onBlockChange } = useDappQL()
-
   const { callKeys, calls } = useMemo(() => {
     const callKeys = Object.keys(requests) as (keyof T)[]
     const calls = Object.values(requests).map((req) => {
@@ -51,6 +50,19 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
     })
     return { callKeys, calls }
   }, [stringify(requests)])
+
+  type ResultData = { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
+
+  const defaultData = useMemo(
+    () =>
+      callKeys.reduce((acc, k) => {
+        acc[k] = requests[k].defaultValue!
+        return acc
+      }, {} as ResultData),
+    [callKeys],
+  )
+
+  const previousData = useRef<ResultData>(defaultData)
 
   const result = useReadContracts({
     blockNumber: options.blockNumber,
@@ -72,18 +84,30 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
     }
   }, [shouldRefetchOnBlockChange])
 
+  const data = useMemo(() => {
+    if (!result.error) {
+      const newData = callKeys.reduce(
+        (acc, k, index) => {
+          acc[k] = result.data?.[index]?.result ?? previousData.current[k] ?? requests?.[k]?.defaultValue!
+          return acc
+        },
+        {} as {
+          [K in keyof T]: NonNullable<T[K]['defaultValue']>
+        },
+      )
+      previousData.current = newData
+      return newData
+    }
+    // During error, merge previous data with new default values
+    return callKeys.reduce((acc, k) => {
+      acc[k] = previousData.current[k] ?? requests[k].defaultValue!
+      return acc
+    }, {} as ResultData)
+  }, [stringify(result.data), result.error, defaultData])
+
   return useMemo(() => {
-    const data = callKeys.reduce(
-      (acc, k, index) => {
-        acc[k] = result.data?.[index]?.result ?? requests?.[k]?.defaultValue!
-        return acc
-      },
-      {} as {
-        [K in keyof T]: NonNullable<T[K]['defaultValue']>
-      },
-    )
     return { ...result, data }
-  }, [stringify(result.data), callKeys])
+  }, [result.error, result.isLoading, data])
 }
 
 /**
@@ -225,32 +249,24 @@ export function useIteratorQuery<T>(
 
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
 
-  const [sItems, setItems] = useState<{ value: NonNullable<T>; queryIndex: bigint }[]>([])
-
   const result = useQuery(query, queryParams)
 
-  const items = useMemo(() => {
-    if (result.isLoading || result.error) {
-      return sItems
-    }
-    return Object.keys(result.data).map((k) => ({
-      value: result.data[k] as NonNullable<T>,
-      queryIndex: BigInt(k.replace('item', '')),
-    }))
-  }, [result])
-
-  useEffect(() => {
-    setItems(items)
-  }, [items])
-
+  type Result = { value: NonNullable<T>; queryIndex: bigint }[]
   return useMemo(() => {
-    if (total === 0n) return { data: sItems, isLoading: false }
+    if (total === 0n) return { data: [] as Result, isLoading: false }
+    const items = Object.keys(result.data)
+      .map((k) => ({
+        value: result.data[k] as NonNullable<T>,
+        queryIndex: BigInt(k.replace('item', '')),
+      }))
+      .filter((i) => !!i.value) as Result
+
     return {
-      data: sItems,
+      data: items,
       isLoading: result.isLoading,
       error: result.error,
     }
-  }, [sItems, total])
+  }, [result.data, result.isLoading, result.error, total])
 }
 
 /**

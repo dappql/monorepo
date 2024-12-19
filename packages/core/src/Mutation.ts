@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { type Address } from 'viem'
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { useDappQL } from './Provider.js'
 import { type MutationConfig } from './types.js'
@@ -42,6 +42,8 @@ export function useMutation<M extends string, Args extends readonly any[]>(
 ) {
   const { addressResolver, onMutationSubmit, onMutationSuccess, onMutationError } = useDappQL()
 
+  const { chain, address: account } = useAccount()
+
   const tx = useWriteContract()
 
   const address = useMemo(
@@ -72,6 +74,16 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   const send = useCallback(
     (...args: NonNullable<Args>) => {
       const sId = submissionId
+      if (!account || !chain?.id) {
+        const error = !account ? 'No account connected' : 'Invalid chain'
+        onMutationError?.({
+          ...mutationInfo,
+          submissionId: sId,
+          error: new Error(error),
+          variables: args,
+        })
+        return
+      }
       tx.writeContract(
         {
           abi: config.getAbi(),
@@ -101,7 +113,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
       onMutationSubmit?.({ ...mutationInfo, submissionId: sId, args })
       setSubmissionId((id) => id + 1)
     },
-    [address, tx, config],
+    [address, tx, config, account, chain?.id],
   )
 
   const confirmation = useWaitForTransactionReceipt({ hash: tx.data })
