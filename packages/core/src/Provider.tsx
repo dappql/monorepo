@@ -34,7 +34,7 @@ export type AddressResolverProps = {
 type ProviderProps = {
   children: any
   /** How many blocks to wait before refecthing queries*/
-  blocksInterval?: number
+  blocksRefetchInterval?: number
   /** Optional function to resolve contract addresses */
   addressResolver?: AddressResolverFunction
   /** Optional component to handle address resolution */
@@ -43,11 +43,11 @@ type ProviderProps = {
 
 const Context = createContext<
   {
-    blocksInterval: number
+    blocksRefetchInterval: number
     addressResolver?: AddressResolverFunction
     onBlockChange: BlockSubscriptionManager['subscribe']
   } & MutationCallbacks
->({ onBlockChange: () => () => false, blocksInterval: 1 })
+>({ onBlockChange: () => () => false, blocksRefetchInterval: 1 })
 
 const queryClient = new QueryClient()
 
@@ -60,7 +60,7 @@ function Provider({
   AddressResolverComponent,
   addressResolver,
   onMutationUpdate,
-  blocksInterval = 1,
+  blocksRefetchInterval = 1,
 }: ProviderProps) {
   const [addressResolverState, setAddressResolver] = useState<{
     resolver: AddressResolverFunction | undefined
@@ -74,9 +74,9 @@ function Provider({
       onBlockChange,
       onMutationUpdate: handleMutationUpdate,
       addressResolver: addressResolverState.resolver,
-      blocksInterval,
+      blocksRefetchInterval,
     }),
-    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksInterval],
+    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksRefetchInterval],
   )
 
   return (

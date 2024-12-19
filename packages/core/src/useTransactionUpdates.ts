@@ -5,12 +5,12 @@ import { usePublicClient } from 'wagmi'
 export type MutationInfo = {
   id: string
   status: 'submitted' | 'signed' | 'success' | 'error'
-  account?: string
-  address: string
+  account?: Address
+  address: Address
   contractName: string
   functionName: string
   transactionName?: string
-  txHash?: string
+  txHash?: Address
   args?: readonly any[]
   error?: Error
   receipt?: TransactionReceipt
@@ -24,7 +24,7 @@ class TransactionWatcher {
   private client: PublicClient
   private onUpdate: (info: MutationInfo) => void
 
-  constructor(client: PublicClient, onUpdate: (info: MutationInfo) => void) {
+  constructor(client: PublicClient, onUpdate: (info: MutationInfo) => any) {
     this.client = client
     this.onUpdate = onUpdate
 
@@ -65,7 +65,7 @@ class TransactionWatcher {
           error: receipt.status === 'success' ? undefined : new Error('Transaction failed'),
           receipt,
         }
-        handleMutationUpdate(mutationUpdate, this.client, this.onUpdate)
+        handleMutationUpdate(mutationUpdate, this.onUpdate)
       }
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -93,7 +93,7 @@ class TransactionWatcher {
 
 let globalWatcher: TransactionWatcher | null = null
 
-function handleMutationUpdate(mutation: MutationInfo, client: PublicClient, onUpdate: (info: MutationInfo) => void) {
+function handleMutationUpdate(mutation: MutationInfo, onUpdate: (info: MutationInfo) => any) {
   onUpdate(mutation)
 
   if (!mutation.txHash) return
@@ -142,7 +142,7 @@ export default function useTransactionUpdates(onUpdate?: (info: MutationInfo) =>
   return useCallback(
     (mutation: MutationInfo) => {
       if (!client || !onUpdate) return
-      handleMutationUpdate(mutation, client, onUpdate)
+      handleMutationUpdate(mutation, onUpdate)
     },
     [client, onUpdate],
   )
