@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
+import { Address, PublicClient, TransactionReceipt } from 'viem'
 import { usePublicClient } from 'wagmi'
-import { TransactionReceipt } from 'viem'
-import { useStorageStringList } from './useStorageStringList.js'
 
 export type MutationInfo = {
   id: string
@@ -16,99 +15,135 @@ export type MutationInfo = {
   error?: Error
   receipt?: TransactionReceipt
 }
+// Store refs for watching state outside the effect
+const storageKey = 'pending-transactions'
 
-export function useTransactionUpdates(onUpdate?: (mutation: MutationInfo) => any) {
-  const { items, addItem, removeItem } = useStorageStringList('pending-transactions', [])
-  const client = usePublicClient()
+class TransactionWatcher {
+  private watchingTransactions = new Set<string>()
+  private abortControllers = new Map<string, AbortController>()
+  private client: PublicClient
+  private onUpdate: (info: MutationInfo) => void
 
-  // Keep track of which transactions we're already watching
-  const watchingTransactions = useRef(new Set<string>())
-  // Store abort controllers for each transaction
-  const abortControllers = useRef(new Map<string, AbortController>())
+  constructor(client: PublicClient, onUpdate: (info: MutationInfo) => void) {
+    this.client = client
+    this.onUpdate = onUpdate
 
-  // Handle new transaction submissions and updates
-  const handleMutationUpdate = useCallback(
-    (mutation: MutationInfo) => {
-      onUpdate?.(mutation)
+    window.addEventListener('storage', this.handleStorageChange)
+    this.processExistingTransactions()
+  }
 
-      if (!mutation.txHash) return
+  private handleStorageChange = (e: StorageEvent) => {
+    if (e.key !== storageKey || !e.newValue) return
+    this.processTransactions(JSON.parse(e.newValue))
+  }
 
-      const txInfo = JSON.stringify({
-        id: mutation.id,
-        txHash: mutation.txHash,
-        account: mutation.account,
-        address: mutation.address,
-        contractName: mutation.contractName,
-        functionName: mutation.functionName,
-        transactionName: mutation.transactionName,
+  private processExistingTransactions() {
+    const existingData = localStorage.getItem(storageKey)
+    if (existingData) {
+      this.processTransactions(JSON.parse(existingData))
+    }
+  }
+
+  private async processTransaction(txInfo: MutationInfo) {
+    const txHash = txInfo.txHash as Address
+
+    if (!txHash || this.watchingTransactions.has(txHash)) return
+
+    this.watchingTransactions.add(txHash)
+    const controller = new AbortController()
+    this.abortControllers.set(txHash, controller)
+
+    try {
+      const receipt = await this.client.waitForTransactionReceipt({
+        hash: txHash,
       })
 
-      switch (mutation.status) {
-        case 'signed':
-          addItem(txInfo)
-          break
-        case 'success':
-        case 'error':
-          removeItem(txInfo)
-          // Cleanup the watching state and abort controller
-          watchingTransactions.current.delete(mutation.txHash)
-          abortControllers.current.get(mutation.txHash)?.abort()
-          abortControllers.current.delete(mutation.txHash)
-          break
-      }
-    },
-    [addItem, removeItem, onUpdate],
-  )
-
-  // Watch for new transactions
-  useEffect(() => {
-    if (!client || items.length === 0) return
-
-    items.forEach(async (item) => {
-      const txInfo = JSON.parse(item)
-      const txHash = txInfo.txHash as `0x${string}`
-
-      // Skip if we're already watching this transaction
-      if (watchingTransactions.current.has(txHash)) return
-
-      // Mark this transaction as being watched
-      watchingTransactions.current.add(txHash)
-
-      // Create an abort controller for this transaction
-      const controller = new AbortController()
-      abortControllers.current.set(txHash, controller)
-
-      try {
-        const receipt = await client.waitForTransactionReceipt({
-          hash: txHash,
-        })
-
-        // Only update if still watching this transaction
-        if (watchingTransactions.current.has(txHash)) {
-          const mutationUpdate = {
-            ...txInfo,
-            status: receipt.status === 'success' ? 'success' : 'error',
-            error: receipt.status === 'success' ? undefined : new Error('Transaction failed'),
-            receipt,
-          }
-          handleMutationUpdate(mutationUpdate)
+      if (this.watchingTransactions.has(txHash)) {
+        const mutationUpdate: MutationInfo = {
+          ...txInfo,
+          status: receipt.status === 'success' ? 'success' : 'error',
+          error: receipt.status === 'success' ? undefined : new Error('Transaction failed'),
+          receipt,
         }
-      } catch (error) {
-        // Only log error if it's not due to the abort
-        if (!controller.signal.aborted) {
-          console.error(`Error watching transaction ${txHash}:`, error)
-        }
+        handleMutationUpdate(mutationUpdate, this.client, this.onUpdate)
       }
-    })
-
-    // Cleanup function
-    return () => {
-      // Abort all pending transaction watchers
-      abortControllers.current.forEach((controller) => controller.abort())
-      abortControllers.current.clear()
-      watchingTransactions.current.clear()
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        console.error(`Error watching transaction ${txHash}:`, error)
+      }
     }
-  }, [items, client, handleMutationUpdate])
+  }
 
-  return handleMutationUpdate
+  private processTransactions(transactions: string[]) {
+    transactions.forEach((item) => {
+      const txInfo = JSON.parse(item)
+      this.processTransaction(txInfo)
+    })
+  }
+
+  watchTransaction(txInfo: any) {
+    this.processTransaction(txInfo)
+  }
+
+  cleanup() {
+    window.removeEventListener('storage', this.handleStorageChange)
+    this.abortControllers.forEach((controller) => controller.abort())
+  }
+}
+
+let globalWatcher: TransactionWatcher | null = null
+
+function handleMutationUpdate(mutation: MutationInfo, client: PublicClient, onUpdate: (info: MutationInfo) => void) {
+  onUpdate(mutation)
+
+  if (!mutation.txHash) return
+
+  const txInfo = JSON.stringify({
+    id: mutation.id,
+    txHash: mutation.txHash,
+    account: mutation.account,
+    address: mutation.address,
+    contractName: mutation.contractName,
+    functionName: mutation.functionName,
+    transactionName: mutation.transactionName,
+  })
+
+  const currentData = localStorage.getItem(storageKey)
+  const transactions = currentData ? JSON.parse(currentData) : []
+
+  switch (mutation.status) {
+    case 'signed':
+      // Add to storage and start watching
+      const newTransactions = [...transactions, txInfo]
+      localStorage.setItem(storageKey, JSON.stringify(newTransactions))
+      globalWatcher?.watchTransaction(JSON.parse(txInfo))
+      break
+    case 'success':
+    case 'error':
+      // Remove from storage
+      localStorage.setItem(storageKey, JSON.stringify(transactions.filter((t: string) => t !== txInfo)))
+      break
+  }
+}
+
+export default function useTransactionUpdates(onUpdate?: (info: MutationInfo) => any) {
+  const client = usePublicClient()
+
+  useEffect(() => {
+    if (!client || !onUpdate) return
+
+    globalWatcher = new TransactionWatcher(client, onUpdate)
+    return () => {
+      globalWatcher?.cleanup()
+      globalWatcher = null
+    }
+  }, [client, onUpdate])
+
+  return useCallback(
+    (mutation: MutationInfo) => {
+      if (!client || !onUpdate) return
+      handleMutationUpdate(mutation, client, onUpdate)
+    },
+    [client, onUpdate],
+  )
 }

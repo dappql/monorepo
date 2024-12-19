@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Address } from 'viem'
 import { type ResolvedRegister, WagmiProvider } from 'wagmi'
 import { BlockSubscriptionManager, useBlockNumberSubscriber } from './blocksHandler.js'
-import { MutationInfo, useTransactionUpdates } from './useTransactionUpdates.js'
+import useTransactionUpdates, { MutationInfo } from './useTransactionUpdates.js'
 export { MutationInfo } from './useTransactionUpdates.js'
 
 /**

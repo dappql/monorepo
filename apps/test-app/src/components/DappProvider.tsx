@@ -58,6 +58,7 @@ export default function DappProvider({ children }: { children: React.ReactNode }
               : 'Transaction signed!',
       description: (e.transactionName || e.contractName + '.' + e.functionName) + ' ' + (e.error?.message || ''),
       type: e.status === 'error' ? 'error' : 'success',
+      duration: 10000,
     })
   }, [])
 
