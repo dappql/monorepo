@@ -21,6 +21,8 @@ export type QueryOptions = {
   blockNumber?: bigint
   /** Optional interval (in ms) to refetch the data */
   refetchInterval?: number
+  /** How many blocks to wait before refetching queries */
+  blocksInterval?: number
 }
 
 /**
@@ -37,7 +39,7 @@ export type QueryOptions = {
  * ```
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
-  const { addressResolver, onBlockChange } = useDappQL()
+  const { addressResolver, onBlockChange, blocksInterval } = useDappQL()
   const { callKeys, calls } = useMemo(() => {
     const callKeys = Object.keys(requests) as (keyof T)[]
     const calls = Object.values(requests).map((req) => {
@@ -74,15 +76,21 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
   })
 
   const shouldRefetchOnBlockChange = !options.isStatic && !options.blockNumber && !options.refetchInterval
+  const refetchInterval = options.blocksInterval ?? blocksInterval
   useEffect(() => {
+    let lastBlockFetched = 0n
     if (!options.isStatic && !options.blockNumber && !options.refetchInterval) {
-      onBlockChange((blockNumber) => {
-        if (blockNumber > 0n) {
+      const unsubscribe = onBlockChange((blockNumber) => {
+        if (blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)) {
           result.refetch()
+          lastBlockFetched = blockNumber
         }
       })
+      return () => {
+        unsubscribe()
+      }
     }
-  }, [shouldRefetchOnBlockChange])
+  }, [shouldRefetchOnBlockChange, refetchInterval])
 
   const data = useMemo(() => {
     if (!result.error) {

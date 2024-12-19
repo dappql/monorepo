@@ -1,66 +1,18 @@
 import { type ComponentType, createContext, useContext, useMemo, useState } from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { AbiFunction, Address } from 'viem'
+import type { Address } from 'viem'
 import { type ResolvedRegister, WagmiProvider } from 'wagmi'
 import { BlockSubscriptionManager, useBlockNumberSubscriber } from './blocksHandler.js'
-
-/**
- * Basic information about a contract mutation (write operation)
- */
-type MutationInfo = {
-  /** Connected wallet address */
-  account?: string
-  /** Contract address */
-  address: Address
-  /** Name of the contract */
-  contractName: string
-  /** Name of the function being called */
-  functionName: AbiFunction['name']
-  /** Optional human-readable name for the transaction */
-  transactionName?: string
-  /** Unique identifier for the submission */
-  submissionId: number
-}
-
-/**
- * Information provided when a mutation is submitted
- */
-export type MutationSubmitInfo = MutationInfo & {
-  /** Arguments passed to the contract function */
-  args: readonly any[]
-}
-
-/**
- * Information provided when a mutation succeeds
- */
-export type MutationSuccessInfo = MutationInfo & {
-  /** Transaction hash or other success data */
-  data: Address
-  /** Variables used in the mutation */
-  variables: unknown
-}
-
-/**
- * Information provided when a mutation fails
- */
-export type MutationErrorInfo = MutationInfo & {
-  /** Error that occurred */
-  error: Error
-  /** Variables used in the mutation */
-  variables: unknown
-}
+import { MutationInfo, useTransactionUpdates } from './useTransactionUpdates.js'
+export { MutationInfo } from './useTransactionUpdates.js'
 
 /**
  * Callback functions for different mutation states
  */
 export type MutationCallbacks = {
-  /** Called when a mutation is submitted to the network */
-  onMutationSubmit?: (info: MutationSubmitInfo) => any
-  /** Called when a mutation successfully completes */
-  onMutationSuccess?: (info: MutationSuccessInfo) => any
-  /** Called when a mutation fails */
-  onMutationError?: (info: MutationErrorInfo) => any
+  /** Called when a mutation changes state */
+  onMutationUpdate?: (info: MutationInfo) => any
 }
 
 /**
@@ -81,7 +33,7 @@ export type AddressResolverProps = {
  */
 type ProviderProps = {
   children: any
-  /** Optional interval in seconds to get the block number */
+  /** How many blocks to wait before refecthing queries*/
   blocksInterval?: number
   /** Optional function to resolve contract addresses */
   addressResolver?: AddressResolverFunction
@@ -91,10 +43,11 @@ type ProviderProps = {
 
 const Context = createContext<
   {
+    blocksInterval: number
     addressResolver?: AddressResolverFunction
     onBlockChange: BlockSubscriptionManager['subscribe']
   } & MutationCallbacks
->({ onBlockChange: () => () => false })
+>({ onBlockChange: () => () => false, blocksInterval: 1 })
 
 const queryClient = new QueryClient()
 
@@ -106,24 +59,24 @@ function Provider({
   children,
   AddressResolverComponent,
   addressResolver,
-  onMutationSubmit,
-  onMutationSuccess,
-  onMutationError,
+  onMutationUpdate,
+  blocksInterval = 1,
 }: ProviderProps) {
   const [addressResolverState, setAddressResolver] = useState<{
     resolver: AddressResolverFunction | undefined
   }>({ resolver: addressResolver })
 
   const onBlockChange = useBlockNumberSubscriber()
+  const handleMutationUpdate = useTransactionUpdates(onMutationUpdate)
+
   const value = useMemo(
     () => ({
       onBlockChange,
-      onMutationSubmit,
-      onMutationError,
-      onMutationSuccess,
+      onMutationUpdate: handleMutationUpdate,
       addressResolver: addressResolverState.resolver,
+      blocksInterval,
     }),
-    [onBlockChange, onMutationSubmit, onMutationError, onMutationSuccess, addressResolverState.resolver],
+    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksInterval],
   )
 
   return (

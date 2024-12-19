@@ -187,7 +187,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
 export default function Home() {
   const { address = zeroAddress } = useAccount()
 
-  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
+  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n), { blocksInterval: 10 })
   const items = useItems(total.data, address)
   const classifiedItems = useMemo(
     () =>

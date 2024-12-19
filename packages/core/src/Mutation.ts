@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { type Address } from 'viem'
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
-import { useDappQL } from './Provider.js'
+import { MutationInfo, useDappQL } from './Provider.js'
 import { type MutationConfig } from './types.js'
 
 /**
@@ -40,7 +40,9 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
 ) {
-  const { addressResolver, onMutationSubmit, onMutationSuccess, onMutationError } = useDappQL()
+  const ref = useRef<{ id: string }>({ id: '' })
+
+  const { addressResolver, onMutationUpdate } = useDappQL()
 
   const { chain, address: account } = useAccount()
 
@@ -54,8 +56,6 @@ export function useMutation<M extends string, Args extends readonly any[]>(
     [config.contractName, addressResolver, JSON.stringify(optionsOrTransactionName)],
   )
 
-  const [submissionId, setSubmissionId] = useState(0)
-
   const options = useMemo(
     () =>
       typeof optionsOrTransactionName === 'string'
@@ -65,6 +65,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   )
 
   const mutationInfo = {
+    account,
     address,
     contractName: config.contractName,
     functionName: config.functionName,
@@ -73,14 +74,17 @@ export function useMutation<M extends string, Args extends readonly any[]>(
 
   const send = useCallback(
     (...args: NonNullable<Args>) => {
-      const sId = submissionId
+      const now = Date.now()
+      const id = mutationInfo.address + mutationInfo.functionName + now.toString()
       if (!account || !chain?.id) {
         const error = !account ? 'No account connected' : 'Invalid chain'
-        onMutationError?.({
+
+        onMutationUpdate?.({
           ...mutationInfo,
-          submissionId: sId,
           error: new Error(error),
-          variables: args,
+          args,
+          id,
+          status: 'error',
         })
         return
       }
@@ -92,26 +96,26 @@ export function useMutation<M extends string, Args extends readonly any[]>(
           args,
         },
         {
-          onSuccess: (data, variables) => {
-            onMutationSuccess?.({
+          onSettled(data, error) {
+            const status: MutationInfo['status'] = error ? 'error' : 'signed'
+            onMutationUpdate?.({
               ...mutationInfo,
-              submissionId: sId,
-              data,
-              variables,
-            })
-          },
-          onError: (error, variables) => {
-            onMutationError?.({
-              ...mutationInfo,
-              submissionId: sId,
-              error: new Error(error.message),
-              variables,
+              id,
+              args,
+              error: error ? new Error(error.message) : undefined,
+              status,
+              txHash: data,
             })
           },
         },
       )
-      onMutationSubmit?.({ ...mutationInfo, submissionId: sId, args })
-      setSubmissionId((id) => id + 1)
+
+      onMutationUpdate?.({
+        ...mutationInfo,
+        id,
+        args,
+        status: 'submitted',
+      })
     },
     [address, tx, config, account, chain?.id],
   )

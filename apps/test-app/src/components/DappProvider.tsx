@@ -1,4 +1,4 @@
-import { DappQLProvider, MutationErrorInfo } from '@dappql/core'
+import { DappQLProvider, MutationInfo } from '@dappql/core'
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
 import {
@@ -44,16 +44,25 @@ const config = createConfig({
 })
 
 export default function DappProvider({ children }: { children: React.ReactNode }) {
-  const onError = useCallback((e: MutationErrorInfo) => {
+  const onMutationUpdate = useCallback((e: MutationInfo) => {
     console.log(e)
     toaster.create({
-      title: 'Something went wrong!',
-      description: e.error.message,
-      type: 'error',
+      id: e.id,
+      title:
+        e.status === 'error'
+          ? 'Something went wrong!'
+          : e.status === 'submitted'
+            ? 'Transaction submitted!'
+            : e.status === 'success'
+              ? 'Transaction confirmed!'
+              : 'Transaction signed!',
+      description: (e.transactionName || e.contractName + '.' + e.functionName) + ' ' + (e.error?.message || ''),
+      type: e.status === 'error' ? 'error' : 'success',
     })
   }, [])
+
   return (
-    <DappQLProvider config={config} onMutationError={onError}>
+    <DappQLProvider config={config} onMutationUpdate={onMutationUpdate}>
       <RainbowKitProvider
         modalSize="wide"
         showRecentTransactions
