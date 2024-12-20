@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react'
 import { useIteratorQuery, useMutation, useSingleQuery } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Address, zeroAddress } from 'viem'
 
@@ -32,10 +32,11 @@ const STATUS_IDS = {
   Done: 4n,
 }
 
-const useItems = (total: bigint, address: Address) =>
-  useIteratorQuery(total, (index: bigint) => ToDo.call.item(address, index), {
+const useItems = (total: bigint, address: Address) => {
+  return useIteratorQuery(total, (index: bigint) => ToDo.call.item(address, index), {
     firstIndex: 1n,
   })
+}
 
 type ToDoItemList = ReturnType<typeof useItems>['data']
 type ToDoItem = ToDoItemList[number]
@@ -184,7 +185,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
   )
 }
 
-export default function Home() {
+export function HomeData() {
   const { address = zeroAddress } = useAccount()
 
   const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
@@ -238,4 +239,17 @@ export default function Home() {
       </VStack>
     </VStack>
   )
+}
+
+export default function Home() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
+  return <HomeData />
 }

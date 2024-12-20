@@ -30,15 +30,6 @@ export function useBlockNumberSubscriber() {
         manager.onBlockUptated(blockNumber)
       },
     })
-    // let currentBlock = 0n
-    // const timer = setInterval(async () => {
-    //   const blockNumber = await getBlockNumber()
-    //   if (blockNumber !== currentBlock) {
-    //     manager.onBlockUptated(blockNumber)
-    //   }
-    //   currentBlock = blockNumber
-    // }, blockInterval * 1000)
-    // return () => clearInterval(timer)
   }, [client, manager])
 
   return useCallback(

@@ -35,6 +35,8 @@ type ProviderProps = {
   children: any
   /** How many blocks to wait before refecthing queries*/
   blocksRefetchInterval?: number
+  /** Default batch size for multicalls */
+  defaultBatchSize?: number
   /** Optional function to resolve contract addresses */
   addressResolver?: AddressResolverFunction
   /** Optional component to handle address resolution */
@@ -44,10 +46,11 @@ type ProviderProps = {
 const Context = createContext<
   {
     blocksRefetchInterval: number
+    defaultBatchSize: number
     addressResolver?: AddressResolverFunction
     onBlockChange: BlockSubscriptionManager['subscribe']
   } & MutationCallbacks
->({ onBlockChange: () => () => false, blocksRefetchInterval: 1 })
+>({ onBlockChange: () => () => false, blocksRefetchInterval: 1, defaultBatchSize: 1024 })
 
 const queryClient = new QueryClient()
 
@@ -61,6 +64,7 @@ function Provider({
   addressResolver,
   onMutationUpdate,
   blocksRefetchInterval = 1,
+  defaultBatchSize = 1024,
 }: ProviderProps) {
   const [addressResolverState, setAddressResolver] = useState<{
     resolver: AddressResolverFunction | undefined
@@ -75,8 +79,9 @@ function Provider({
       onMutationUpdate: handleMutationUpdate,
       addressResolver: addressResolverState.resolver,
       blocksRefetchInterval,
+      defaultBatchSize,
     }),
-    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksRefetchInterval],
+    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksRefetchInterval, defaultBatchSize],
   )
 
   return (

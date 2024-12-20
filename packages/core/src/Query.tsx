@@ -23,7 +23,13 @@ export type QueryOptions = {
   refetchInterval?: number
   /** How many blocks to wait before refetching the query */
   blocksRefetchInterval?: number
+  /** Optional batch size for multicalls */
+  batchSize?: number
+  /** If true, the query will be paused. */
+  paused?: boolean
 }
+
+const MIN_FETCH_INTERVAL = 2000
 
 /**
  * React hook that executes multiple contract read calls in a single multicall
@@ -39,8 +45,13 @@ export type QueryOptions = {
  * ```
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
-  const { addressResolver, onBlockChange, blocksRefetchInterval } = useDappQL()
+  const { addressResolver, onBlockChange, blocksRefetchInterval, defaultBatchSize } = useDappQL()
+  const lastFetchTime = useRef(0)
+  const requestsChanged = useRef(false)
+  const lastRequest = useRef<string>('')
   const { callKeys, calls } = useMemo(() => {
+    requestsChanged.current = lastRequest.current !== stringify(requests)
+    lastRequest.current = stringify(requests)
     const callKeys = Object.keys(requests) as (keyof T)[]
     const calls = Object.values(requests).map((req) => {
       return {
@@ -65,32 +76,56 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
   )
 
   const previousData = useRef<ResultData>(defaultData)
+  const batchSize = options.batchSize ?? defaultBatchSize
+  const enabled =
+    !options.paused && (requestsChanged.current || Date.now() - lastFetchTime.current > MIN_FETCH_INTERVAL)
 
+  console.log('---useQuery')
+  console.log({ enabled, requestsChanged: requestsChanged.current, lastFetchTime: lastFetchTime.current })
   const result = useReadContracts({
     blockNumber: options.blockNumber,
     query: {
+      enabled,
       refetchInterval: options.refetchInterval,
       notifyOnChangeProps: ['data', 'error'],
     },
     contracts: calls,
+    batchSize,
   })
+
+  useEffect(() => {
+    if (!result.isLoading) {
+      requestsChanged.current = false
+    }
+  }, [result.isLoading])
 
   const shouldRefetchOnBlockChange = !options.isStatic && !options.blockNumber && !options.refetchInterval
   const refetchInterval = options.blocksRefetchInterval ?? blocksRefetchInterval
   useEffect(() => {
-    let lastBlockFetched = 0n
-    if (!options.isStatic && !options.blockNumber && !options.refetchInterval) {
+    if (lastFetchTime.current === 0) {
+      lastFetchTime.current = Date.now()
+    }
+    if (!options.paused && !options.isStatic && !options.blockNumber && !options.refetchInterval) {
+      let lastBlockFetched = 0n
       const unsubscribe = onBlockChange((blockNumber) => {
-        if (blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)) {
+        const timeSinceLastFetch = Date.now() - lastFetchTime.current
+        const shouldRefetch =
+          timeSinceLastFetch > MIN_FETCH_INTERVAL &&
+          blockNumber > 0n &&
+          blockNumber >= lastBlockFetched + BigInt(refetchInterval)
+        console.log('---onBlockChange')
+        console.log({ shouldRefetch, lastFetchTime, timeSinceLastFetch, blockNumber, lastBlockFetched })
+        if (shouldRefetch) {
           result.refetch()
           lastBlockFetched = blockNumber
+          lastFetchTime.current = Date.now()
         }
       })
       return () => {
         unsubscribe()
       }
     }
-  }, [shouldRefetchOnBlockChange, refetchInterval])
+  }, [shouldRefetchOnBlockChange, refetchInterval, options.paused])
 
   const data = useMemo(() => {
     if (!result.error) {
@@ -132,41 +167,11 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
  * ```
  */
 export function useSingleQuery<T extends Request>(request: T, options: QueryOptions = {}) {
-  const memoizedRequest = useMemo(() => ({ value: request }), [stringify(request)])
-  const result = useQuery(memoizedRequest, options)
+  const result = useQuery({ value: request }, options)
 
   return useMemo(() => {
     return { ...result, data: result.data.value }
   }, [result])
-}
-
-/**
- * React hook that executes multiple contract read calls in a single multicall
- * @param requests Collection of contract requests to execute
- * @param options Query configuration options
- * @returns Object containing query results and status
- * @example
- * ```ts
- * const { data, isLoading } = useQueryList([
- *   ["balance", contracts.myContract.getValue(1, 2, 3)],
- *   ["supply", contracts.myOtherContract.getOtherValue(4, 5, 6)],
- * ])
- * ```
- */
-export function useQueryList<T extends { key: string; request: Request }[]>(
-  requests: [...T],
-  options: QueryOptions = {},
-) {
-  const query = useMemo(() => {
-    return requests.reduce(
-      (acc, { key, request }: T[number]) => {
-        acc[key as T[number]['key']] = request
-        return acc
-      },
-      {} as { [K in T[number]['key']]: Extract<T[number], { key: K }>['request'] },
-    )
-  }, [requests])
-  return useQuery(query, options)
 }
 
 /**
@@ -256,9 +261,7 @@ export function useIteratorQuery<T>(
   const { firstIndex = 0n, ...queryParams } = options
 
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
-
-  const result = useQuery(query, queryParams)
-
+  const result = useQuery(query, { ...queryParams, paused: queryParams.paused || total === 0n })
   type Result = { value: NonNullable<T>; queryIndex: bigint }[]
   return useMemo(() => {
     if (total === 0n) return { data: [] as Result, isLoading: false }

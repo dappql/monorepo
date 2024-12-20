@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { type Address } from 'viem'
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
@@ -40,8 +40,6 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
 ) {
-  const ref = useRef<{ id: string }>({ id: '' })
-
   const { addressResolver, onMutationUpdate } = useDappQL()
 
   const { chain, address: account } = useAccount()

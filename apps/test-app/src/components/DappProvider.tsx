@@ -63,7 +63,11 @@ export default function DappProvider({ children }: { children: React.ReactNode }
   }, [])
 
   return (
-    <DappQLProvider config={config} onMutationUpdate={onMutationUpdate}>
+    <DappQLProvider
+      config={config}
+      onMutationUpdate={onMutationUpdate}
+      defaultBatchSize={5000}
+      blocksRefetchInterval={3}>
       <RainbowKitProvider
         modalSize="wide"
         showRecentTransactions
