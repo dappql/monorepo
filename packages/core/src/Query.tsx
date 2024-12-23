@@ -46,12 +46,8 @@ const MIN_FETCH_INTERVAL = 2000
  */
 export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
   const { addressResolver, onBlockChange, blocksRefetchInterval, defaultBatchSize } = useDappQL()
-  const lastFetchTime = useRef(0)
-  const requestsChanged = useRef(false)
-  const lastRequest = useRef<string>('')
+
   const { callKeys, calls } = useMemo(() => {
-    requestsChanged.current = lastRequest.current !== stringify(requests)
-    lastRequest.current = stringify(requests)
     const callKeys = Object.keys(requests) as (keyof T)[]
     const calls = Object.values(requests).map((req) => {
       return {
@@ -77,15 +73,11 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
 
   const previousData = useRef<ResultData>(defaultData)
   const batchSize = options.batchSize ?? defaultBatchSize
-  const enabled =
-    !options.paused && (requestsChanged.current || Date.now() - lastFetchTime.current > MIN_FETCH_INTERVAL)
 
-  console.log('---useQuery')
-  console.log({ enabled, requestsChanged: requestsChanged.current, lastFetchTime: lastFetchTime.current })
   const result = useReadContracts({
     blockNumber: options.blockNumber,
     query: {
-      enabled,
+      enabled: !options.paused,
       refetchInterval: options.refetchInterval,
       notifyOnChangeProps: ['data', 'error'],
     },
@@ -93,32 +85,20 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
     batchSize,
   })
 
-  useEffect(() => {
-    if (!result.isLoading) {
-      requestsChanged.current = false
-    }
-  }, [result.isLoading])
-
   const shouldRefetchOnBlockChange = !options.isStatic && !options.blockNumber && !options.refetchInterval
   const refetchInterval = options.blocksRefetchInterval ?? blocksRefetchInterval
   useEffect(() => {
-    if (lastFetchTime.current === 0) {
-      lastFetchTime.current = Date.now()
-    }
     if (!options.paused && !options.isStatic && !options.blockNumber && !options.refetchInterval) {
       let lastBlockFetched = 0n
       const unsubscribe = onBlockChange((blockNumber) => {
-        const timeSinceLastFetch = Date.now() - lastFetchTime.current
-        const shouldRefetch =
-          timeSinceLastFetch > MIN_FETCH_INTERVAL &&
-          blockNumber > 0n &&
-          blockNumber >= lastBlockFetched + BigInt(refetchInterval)
-        console.log('---onBlockChange')
-        console.log({ shouldRefetch, lastFetchTime, timeSinceLastFetch, blockNumber, lastBlockFetched })
+        if (lastBlockFetched === 0n && blockNumber > 0n) {
+          lastBlockFetched = blockNumber - 1n
+        }
+        const shouldRefetch = blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)
+
         if (shouldRefetch) {
           result.refetch()
           lastBlockFetched = blockNumber
-          lastFetchTime.current = Date.now()
         }
       })
       return () => {
@@ -261,7 +241,7 @@ export function useIteratorQuery<T>(
   const { firstIndex = 0n, ...queryParams } = options
 
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
-  const result = useQuery(query, { ...queryParams, paused: queryParams.paused || total === 0n })
+  const result = useQuery(query, queryParams)
   type Result = { value: NonNullable<T>; queryIndex: bigint }[]
   return useMemo(() => {
     if (total === 0n) return { data: [] as Result, isLoading: false }

@@ -188,7 +188,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
 export function HomeData() {
   const { address = zeroAddress } = useAccount()
 
-  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n))
+  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n), { paused: address === zeroAddress })
   const items = useItems(total.data, address)
   const classifiedItems = useMemo(
     () =>
@@ -242,7 +242,7 @@ export function HomeData() {
 }
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(true)
   useEffect(() => {
     setMounted(true)
   }, [])
