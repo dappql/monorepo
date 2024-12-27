@@ -28,20 +28,43 @@ export type AddressResolverProps = {
   onResolved: (resolver: AddressResolverFunction) => any
 }
 
+export const ADDRESS_RESOLVER_ERROR =
+  'Cannot provide both AddressResolverComponent and addressResolver. Please use only one of these props.'
+
 /**
  * Props for the Provider component
  */
-type ProviderProps = {
+type BaseProviderProps = {
   children: any
+  /** Whether to update queries on new blocks */
+  watchBlocks?: boolean
   /** How many blocks to wait before refecthing queries*/
   blocksRefetchInterval?: number
   /** Default batch size for multicalls */
   defaultBatchSize?: number
-  /** Optional function to resolve contract addresses */
-  addressResolver?: AddressResolverFunction
-  /** Optional component to handle address resolution */
-  AddressResolverComponent?: ComponentType<AddressResolverProps>
 } & MutationCallbacks
+
+type ProviderProps = BaseProviderProps &
+  (
+    | {
+        /** Function to resolve contract addresses */
+        addressResolver: AddressResolverFunction
+        /** Component to handle address resolution - cannot be used with addressResolver */
+        AddressResolverComponent?: never
+      }
+    | {
+        /** Function to resolve contract addresses - cannot be used with AddressResolverComponent */
+        addressResolver?: never
+        /** Component to handle address resolution */
+        AddressResolverComponent: ComponentType<AddressResolverProps>
+      }
+    | {
+        /** Function to resolve contract addresses - optional if no resolution needed */
+        addressResolver?: never
+        /** Component to handle address resolution - optional if no resolution needed */
+        AddressResolverComponent?: never
+      }
+  )
 
 const Context = createContext<
   {
@@ -49,6 +72,7 @@ const Context = createContext<
     defaultBatchSize: number
     addressResolver?: AddressResolverFunction
     onBlockChange: BlockSubscriptionManager['subscribe']
+    watchBlocks?: boolean
   } & MutationCallbacks
 >({ onBlockChange: () => () => false, blocksRefetchInterval: 1, defaultBatchSize: 1024 })
 
@@ -63,13 +87,17 @@ function Provider({
   AddressResolverComponent,
   addressResolver,
   onMutationUpdate,
+  watchBlocks,
   blocksRefetchInterval = 1,
   defaultBatchSize = 1024,
 }: ProviderProps) {
+  if (AddressResolverComponent && addressResolver) {
+    throw new Error(ADDRESS_RESOLVER_ERROR)
+  }
+
   const [addressResolverState, setAddressResolver] = useState<{
     resolver: AddressResolverFunction | undefined
   }>({ resolver: addressResolver })
-
   const onBlockChange = useBlockNumberSubscriber()
   const handleMutationUpdate = useTransactionUpdates(onMutationUpdate)
 
@@ -80,8 +108,16 @@ function Provider({
       addressResolver: addressResolverState.resolver,
       blocksRefetchInterval,
       defaultBatchSize,
+      watchBlocks,
     }),
-    [onBlockChange, handleMutationUpdate, addressResolverState.resolver, blocksRefetchInterval, defaultBatchSize],
+    [
+      onBlockChange,
+      handleMutationUpdate,
+      addressResolverState.resolver,
+      blocksRefetchInterval,
+      defaultBatchSize,
+      watchBlocks,
+    ],
   )
 
   return (

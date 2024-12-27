@@ -21,12 +21,14 @@ export type QueryOptions = {
   blockNumber?: bigint
   /** Optional interval (in ms) to refetch the data */
   refetchInterval?: number
-  /** How many blocks to wait before refetching the query */
-  blocksRefetchInterval?: number
   /** Optional batch size for multicalls */
   batchSize?: number
   /** If true, the query will be paused. */
   paused?: boolean
+  /** If true, the query will be refetched on new blocks */
+  watchBlocks?: boolean
+  /** How many blocks to wait before refetching the query */
+  blocksRefetchInterval?: number
 }
 
 const MIN_FETCH_INTERVAL = 2000
@@ -44,8 +46,13 @@ const MIN_FETCH_INTERVAL = 2000
  * })
  * ```
  */
-export function useQuery<T extends RequestCollection>(requests: T, options: QueryOptions = {}) {
-  const { addressResolver, onBlockChange, blocksRefetchInterval, defaultBatchSize } = useDappQL()
+export function useQuery<T extends RequestCollection>(
+  requests: T,
+  options: QueryOptions = {},
+): Omit<ReturnType<typeof useReadContracts>, 'data'> & {
+  data: { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
+} {
+  const { addressResolver, onBlockChange, blocksRefetchInterval, defaultBatchSize, watchBlocks } = useDappQL()
 
   const { callKeys, calls } = useMemo(() => {
     const callKeys = Object.keys(requests) as (keyof T)[]
@@ -85,25 +92,30 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
     batchSize,
   })
 
-  const shouldRefetchOnBlockChange = !options.isStatic && !options.blockNumber && !options.refetchInterval
+  const shouldRefetchOnBlockChange =
+    (options.watchBlocks ?? watchBlocks) &&
+    !options.paused &&
+    !options.isStatic &&
+    !options.blockNumber &&
+    !options.refetchInterval
   const refetchInterval = options.blocksRefetchInterval ?? blocksRefetchInterval
   useEffect(() => {
-    if (!options.paused && !options.isStatic && !options.blockNumber && !options.refetchInterval) {
-      let lastBlockFetched = 0n
-      const unsubscribe = onBlockChange((blockNumber) => {
-        if (lastBlockFetched === 0n && blockNumber > 0n) {
-          lastBlockFetched = blockNumber - 1n
-        }
-        const shouldRefetch = blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)
+    if (!shouldRefetchOnBlockChange) return
 
-        if (shouldRefetch) {
-          result.refetch()
-          lastBlockFetched = blockNumber
-        }
-      })
-      return () => {
-        unsubscribe()
+    let lastBlockFetched = 0n
+    const unsubscribe = onBlockChange((blockNumber) => {
+      if (lastBlockFetched === 0n && blockNumber > 0n) {
+        lastBlockFetched = blockNumber - 1n
       }
+      const shouldRefetch = blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)
+
+      if (shouldRefetch) {
+        result.refetch()
+        lastBlockFetched = blockNumber
+      }
+    })
+    return () => {
+      unsubscribe()
     }
   }, [shouldRefetchOnBlockChange, refetchInterval, options.paused])
 
@@ -146,7 +158,10 @@ export function useQuery<T extends RequestCollection>(requests: T, options: Quer
  * )
  * ```
  */
-export function useSingleQuery<T extends Request>(request: T, options: QueryOptions = {}) {
+export function useSingleQuery<T extends Request>(
+  request: T,
+  options: QueryOptions = {},
+): Omit<ReturnType<typeof useQuery>, 'data'> & { data: NonNullable<T['defaultValue']> } {
   const result = useQuery({ value: request }, options)
 
   return useMemo(() => {
@@ -179,7 +194,7 @@ export async function query<T extends RequestCollection>(
   })
 
   const results = await multicall(client, { contracts: calls, blockNumber: options.blockNumber })
-  const error = results.find((r) => r.error)
+  const error = results.find((r) => r.error)?.error
 
   if (error) {
     throw error
@@ -237,7 +252,7 @@ export function useIteratorQuery<T>(
   options: QueryOptions & {
     firstIndex?: bigint
   } = {},
-) {
+): { data: { value: NonNullable<T>; queryIndex: bigint }[]; isLoading: boolean; error?: Error | null } {
   const { firstIndex = 0n, ...queryParams } = options
 
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
@@ -280,6 +295,8 @@ export async function iteratorQuery<T>(
   addressResolver?: AddressResolverFunction,
 ) {
   const { firstIndex = 0n, ...queryParams } = options
+
+  if (total === 0n) return [] as { value: NonNullable<T>; queryIndex: bigint }[]
 
   const result = await query(client, buildIteratorQuery(total, firstIndex, getItem), queryParams, addressResolver)
 

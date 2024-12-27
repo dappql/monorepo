@@ -39,7 +39,11 @@ export type MutationOptions =
 export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
-) {
+): ReturnType<typeof useWriteContract> & {
+  confirmation: ReturnType<typeof useWaitForTransactionReceipt>
+  isLoading: boolean
+  send: (...args: Args) => void
+} {
   const { addressResolver, onMutationUpdate } = useDappQL()
 
   const { chain, address: account } = useAccount()

@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest --coverage",
+    "test:watch": "vitest watch --coverage",
     "dev": "tsc -b -w",
     "build": "tsc -b",
     "ship": "npm run build && npm version patch && git push && npm publish --access public"
@@ -40,17 +41,24 @@
   "homepage": "https://github.com/dappql/monorepo#readme",
   "license": "MIT",
   "peerDependencies": {
-    "react": "*",
     "@tanstack/react-query": "*",
+    "react": "*",
     "viem": "*",
     "wagmi": "*"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^18.3.12",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "2.1.8",
     "eslint": "^8.29.0",
     "eslint-config-universe": "^11.1.1",
-    "@types/react": "^18.3.12",
-    "typescript": "^5.6.3"
+    "happy-dom": "^15.11.7",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
   }
 }
