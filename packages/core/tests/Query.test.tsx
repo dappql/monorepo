@@ -266,7 +266,7 @@ describe('useQuery', () => {
     ;(useReadContracts as any).mockImplementation(() => mockState)
 
     // Render hook with watchBlocks enabled
-    const { result, rerender } = renderHook(
+    const { result } = renderHook(
       () =>
         useQuery(
           {

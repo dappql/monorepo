@@ -31,6 +31,6 @@ vi.mock('wagmi', async () => {
     usePublicClient: vi.fn(() => mockPublicClient),
     useWaitForTransactionReceipt: vi.fn(),
     useWriteContract: vi.fn(),
-    useReadContracts: vi.fn(),
+    useReadContracts: vi.fn(() => ({ refetch: vi.fn() })),
   }
 })

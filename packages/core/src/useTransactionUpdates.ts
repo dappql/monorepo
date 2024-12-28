@@ -1,20 +1,7 @@
 import { useCallback, useEffect } from 'react'
-import { Address, PublicClient, TransactionReceipt } from 'viem'
+import { Address, PublicClient } from 'viem'
 import { usePublicClient } from 'wagmi'
-
-export type MutationInfo = {
-  id: string
-  status: 'submitted' | 'signed' | 'success' | 'error'
-  account?: Address
-  address: Address
-  contractName: string
-  functionName: string
-  transactionName?: string
-  txHash?: Address
-  args?: readonly any[]
-  error?: Error
-  receipt?: TransactionReceipt
-}
+import { MutationInfo } from './types.js'
 // Store refs for watching state outside the effect
 const storageKey = 'pending-transactions'
 

@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import { ADDRESS_RESOLVER_ERROR, DappQLProvider, useDappQL } from '../src/Provider'
+import { ADDRESS_RESOLVER_ERROR, DappQLProvider } from '../src/Provider'
+import { useDappQL } from '../src/Context'
 
 describe('DappQLProvider', () => {
   it('provides default context values', async () => {
