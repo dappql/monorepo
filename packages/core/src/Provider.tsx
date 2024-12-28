@@ -4,7 +4,7 @@ import { useBlockNumberSubscriber } from './blocksHandler.js'
 import useTransactionUpdates from './useTransactionUpdates.js'
 import { MutationCallbacks, AddressResolverFunction, AddressResolverProps } from './types.js'
 import { DappQLContext } from './Context.js'
-import GlobalQueryContext from './GlobalQuery.js'
+import GlobalQueryContext from './GlobalQueryManager.js'
 
 export const ADDRESS_RESOLVER_ERROR =
   'Cannot provide both AddressResolverComponent and addressResolver. Please use only one of these props.'

@@ -82,9 +82,10 @@ export type AddressResolverProps = {
 }
 
 export type ReadContractsResult = {
-  isLoading: boolean
-  isError: boolean
-  data:
+  isLoading?: boolean
+  isError?: boolean
+  error?: Error | null
+  data?:
     | (
         | {
             error?: undefined
@@ -98,5 +99,11 @@ export type ReadContractsResult = {
           }
       )[]
     | undefined
-  error: Error | null
+}
+
+/**
+ * Function type for generating item queries at specific indices
+ */
+export type GetItemCallFunction<T> = (index: bigint) => Request & {
+  defaultValue: T
 }

@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
-import { ReadContractsResult, RequestCollection } from './types.js'
 import { stringify } from 'viem'
+import { GetItemCallFunction, ReadContractsResult, RequestCollection } from './types.js'
 
 export function useRequestString<T extends RequestCollection>(requests: T) {
   return useMemo(() => stringify(requests), [stringify(requests)])
@@ -51,4 +51,42 @@ export function useResultData<T extends RequestCollection>(
       return acc
     }, {} as ResultData)
   }, [stringify(result.data), result.error, defaultData])
+}
+
+export function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
+  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
+  const iterator = Array.from(new Array(Number(total)).keys())
+  return iterator.reduce((acc, index) => {
+    const realIndex = BigInt(index) + firstIndex
+    acc[`item${realIndex}`] = getItem(realIndex)
+    return acc
+  }, {} as FinalQuery)
+}
+
+export type IteratorQueryResultData<T> = { value: NonNullable<T>; queryIndex: bigint }[]
+export type IteratorQueryResult<T> = { data: IteratorQueryResultData<T>; isLoading?: boolean; error?: Error | null }
+export function useIteratorQueryData<T>(
+  total: bigint,
+  result: {
+    isLoading?: boolean
+    isError?: boolean
+    error?: Error | null
+    data: Record<string, T>
+  },
+) {
+  return useMemo(() => {
+    if (total === 0n) return { data: [] as IteratorQueryResultData<T>, isLoading: false }
+    const items = Object.keys(result.data)
+      .map((k) => ({
+        value: result.data[k] as NonNullable<T>,
+        queryIndex: BigInt(k.replace('item', '')),
+      }))
+      .filter((i) => !!i.value) as IteratorQueryResultData<T>
+
+    return {
+      data: items,
+      isLoading: result.isLoading,
+      error: result.error,
+    }
+  }, [result.data, result.isLoading, result.error, total])
 }

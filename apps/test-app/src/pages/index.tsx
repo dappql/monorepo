@@ -15,7 +15,13 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import { useIteratorQuery, useMutation, useSingleQuery } from '@dappql/core'
+import {
+  useIteratorGlobalQuery,
+  useIteratorQuery,
+  useMutation,
+  useSingleGlobalQuery,
+  useSingleQuery,
+} from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
@@ -33,9 +39,7 @@ const STATUS_IDS = {
 }
 
 const useItems = (total: bigint, address: Address) => {
-  return useIteratorQuery(total, (index: bigint) => ToDo.call.item(address, index), {
-    firstIndex: 1n,
-  })
+  return useIteratorGlobalQuery(total, (index: bigint) => ToDo.call.item(address, index), 1n)
 }
 
 type ToDoItemList = ReturnType<typeof useItems>['data']
@@ -188,7 +192,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
 export function HomeData() {
   const { address = zeroAddress } = useAccount()
 
-  const total = useSingleQuery(ToDo.call.numItems(address).defaultTo(0n), { paused: address === zeroAddress })
+  const total = useSingleGlobalQuery(ToDo.call.numItems(address).defaultTo(0n))
   const items = useItems(total.data, address)
   const classifiedItems = useMemo(
     () =>

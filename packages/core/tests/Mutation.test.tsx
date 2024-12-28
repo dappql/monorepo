@@ -1,8 +1,8 @@
+import * as React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, waitFor, cleanup } from '@testing-library/react'
 import { useMutation } from '../src/Mutation'
 import { DappQLProvider } from '../src/Provider'
-import * as React from 'react'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { mockPublicClient } from './setup'
 
