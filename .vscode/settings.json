@@ -8,8 +8,7 @@
     }
   ],
   "workbench.colorCustomizations": {
-    "statusBar.background": "#3f3f3f",
-    "statusBar.foreground": "#dde628"
+    "tab.activeBackground": "#4864a470"
   },
   "apc.stylesheet": {
     ".nostatusbar": "border-bottom: 2px solid #16b22170; box-sizing: border-box;"
