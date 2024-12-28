@@ -42,6 +42,8 @@ type BaseProviderProps = {
   blocksRefetchInterval?: number
   /** Default batch size for multicalls */
   defaultBatchSize?: number
+  /** Whether to simulate mutations before sending them */
+  simulateMutations?: boolean
 } & MutationCallbacks
 
 type ProviderProps = BaseProviderProps &
@@ -73,6 +75,7 @@ const Context = createContext<
     addressResolver?: AddressResolverFunction
     onBlockChange: BlockSubscriptionManager['subscribe']
     watchBlocks?: boolean
+    simulateMutations?: boolean
   } & MutationCallbacks
 >({ onBlockChange: () => () => false, blocksRefetchInterval: 1, defaultBatchSize: 1024 })
 
@@ -85,11 +88,12 @@ const queryClient = new QueryClient()
 function Provider({
   children,
   AddressResolverComponent,
-  addressResolver,
-  onMutationUpdate,
-  watchBlocks,
   blocksRefetchInterval = 1,
   defaultBatchSize = 1024,
+  watchBlocks,
+  simulateMutations,
+  addressResolver,
+  onMutationUpdate,
 }: ProviderProps) {
   if (AddressResolverComponent && addressResolver) {
     throw new Error(ADDRESS_RESOLVER_ERROR)
@@ -109,6 +113,7 @@ function Provider({
       blocksRefetchInterval,
       defaultBatchSize,
       watchBlocks,
+      simulateMutations,
     }),
     [
       onBlockChange,
@@ -117,6 +122,7 @@ function Provider({
       blocksRefetchInterval,
       defaultBatchSize,
       watchBlocks,
+      simulateMutations,
     ],
   )
 

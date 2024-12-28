@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "clean": "rm -rf ./node_modules && rm -rf ./.next && rm -rf ./.turbo",
     "build": "next build",
     "start": "next start",
     "types": "tsc --noEmit",
     "lint": "next lint"
   },
   "dependencies": {
+    "@dappql/core": "workspace:*",
     "@chakra-ui/react": "^3.1.2",
-    "@dappql/core": "*",
     "@emotion/react": "^11.13.3",
     "@rainbow-me/rainbowkit": "^2.2.0",
     "next": "14.2.18",

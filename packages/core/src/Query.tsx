@@ -17,6 +17,8 @@ export type QueryOptions = {
    * or immutable contract state.
    */
   isStatic?: boolean
+  /** If true, the query will be refetched on new blocks */
+  watchBlocks?: boolean
   /** Optional block number to query at a specific block */
   blockNumber?: bigint
   /** Optional interval (in ms) to refetch the data */
@@ -25,8 +27,6 @@ export type QueryOptions = {
   batchSize?: number
   /** If true, the query will be paused. */
   paused?: boolean
-  /** If true, the query will be refetched on new blocks */
-  watchBlocks?: boolean
   /** How many blocks to wait before refetching the query */
   blocksRefetchInterval?: number
 }
@@ -209,6 +209,22 @@ export async function query<T extends RequestCollection>(
       [K in keyof T]: NonNullable<T[K]['defaultValue']>
     },
   )
+}
+
+/**
+ * Executes a single contract read call (non-hook version)
+ * @param client Viem public client instance
+ * @param request The contract request to execute
+ * @param options Query configuration options
+ * @returns Promise containing the query result
+ */
+export async function singleQuery<T extends Request>(
+  client: PublicClient,
+  request: T,
+  options: { blockNumber?: bigint } = {},
+): Promise<NonNullable<T['defaultValue']>> {
+  const result = await query(client, { value: request }, options)
+  return result.value
 }
 
 /**

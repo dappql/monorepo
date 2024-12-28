@@ -5,14 +5,20 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "types": "turbo types",
-    "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.next"
+    "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.turbo"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
     "turbo": "^2.3.0"
   },
-  "packageManager": "pnpm@9.0.1"
+  "packageManager": "pnpm@9.0.1",
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.11",
+    "viem": "^2.21.57",
+    "wagmi": "^2.14.6"
+  }
 }

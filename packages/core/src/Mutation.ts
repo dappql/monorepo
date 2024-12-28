@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 
 import { type Address } from 'viem'
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { MutationInfo, useDappQL } from './Provider.js'
 import { type MutationConfig } from './types.js'
@@ -16,6 +16,8 @@ export type MutationOptions =
       transactionName?: string
       /** Override the contract address */
       address?: Address
+      /** Whether to simulate the transaction before sending */
+      simulate?: boolean
     }
   | string
 
@@ -44,11 +46,12 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   isLoading: boolean
   send: (...args: Args) => void
 } {
-  const { addressResolver, onMutationUpdate } = useDappQL()
+  const { addressResolver, onMutationUpdate, simulateMutations } = useDappQL()
 
   const { chain, address: account } = useAccount()
 
   const tx = useWriteContract()
+  const client = usePublicClient()
 
   const address = useMemo(
     () =>
@@ -90,36 +93,62 @@ export function useMutation<M extends string, Args extends readonly any[]>(
         })
         return
       }
-      tx.writeContract(
-        {
-          abi: config.getAbi(),
-          functionName: config.functionName,
-          address,
+
+      const sendTx = () => {
+        tx.writeContract(
+          {
+            abi: config.getAbi(),
+            functionName: config.functionName,
+            address,
+            args,
+          },
+          {
+            onSettled(data, error) {
+              const status: MutationInfo['status'] = error ? 'error' : 'signed'
+              onMutationUpdate?.({
+                ...mutationInfo,
+                id,
+                args,
+                error: error ? new Error(error.message) : undefined,
+                status,
+                txHash: data,
+              })
+            },
+          },
+        )
+
+        onMutationUpdate?.({
+          ...mutationInfo,
+          id,
           args,
-        },
-        {
-          onSettled(data, error) {
-            const status: MutationInfo['status'] = error ? 'error' : 'signed'
+          status: 'submitted',
+        })
+      }
+
+      if ((options?.simulate ?? simulateMutations) && client) {
+        client
+          .simulateContract({
+            abi: config.getAbi(),
+            functionName: config.functionName,
+            address,
+            args,
+            account,
+          })
+          .then(sendTx)
+          .catch((error) => {
             onMutationUpdate?.({
               ...mutationInfo,
               id,
               args,
-              error: error ? new Error(error.message) : undefined,
-              status,
-              txHash: data,
+              error: new Error(error.message),
+              status: 'error',
             })
-          },
-        },
-      )
-
-      onMutationUpdate?.({
-        ...mutationInfo,
-        id,
-        args,
-        status: 'submitted',
-      })
+          })
+      } else {
+        sendTx()
+      }
     },
-    [address, tx, config, account, chain?.id],
+    [address, tx, config, account, chain?.id, options?.simulate, simulateMutations, client],
   )
 
   const confirmation = useWaitForTransactionReceipt({ hash: tx.data })

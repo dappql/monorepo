@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { useQuery, useSingleQuery, useIteratorQuery } from '../src/Query'
+import { useQuery, useSingleQuery, useIteratorQuery, singleQuery } from '../src/Query'
 import { DappQLProvider } from '../src/Provider'
 import { createConfig } from 'wagmi'
 import { http } from 'viem'
@@ -447,6 +447,12 @@ describe('Query', () => {
           ],
         }),
       )
+    })
+
+    it('singleQuery returns unwrapped data', async () => {
+      const mockClient = {} as any
+      const result = await singleQuery(mockClient, REQUEST_BALANCE)
+      expect(result).toBe(100n)
     })
 
     it('throws error if multicall fails', async () => {

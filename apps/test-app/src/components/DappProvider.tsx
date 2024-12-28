@@ -67,7 +67,8 @@ export default function DappProvider({ children }: { children: React.ReactNode }
       config={config}
       onMutationUpdate={onMutationUpdate}
       defaultBatchSize={5000}
-      blocksRefetchInterval={1}>
+      watchBlocks
+      simulateMutations>
       <RainbowKitProvider
         modalSize="wide"
         showRecentTransactions
