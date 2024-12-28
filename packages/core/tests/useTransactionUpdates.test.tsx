@@ -4,11 +4,6 @@ import useTransactionUpdates, { MutationInfo } from '../src/useTransactionUpdate
 import { usePublicClient } from 'wagmi'
 import { type Address } from 'viem'
 
-// Mock wagmi
-vi.mock('wagmi', () => ({
-  usePublicClient: vi.fn(),
-}))
-
 // Mock localStorage
 const mockLocalStorage = (() => {
   let store: { [key: string]: string } = {}

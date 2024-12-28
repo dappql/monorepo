@@ -2,23 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, renderHook, waitFor, cleanup } from '@testing-library/react'
 import { useMutation } from '../src/Mutation'
 import { DappQLProvider } from '../src/Provider'
-import { createConfig } from 'wagmi'
-import { http } from 'viem'
-import { mainnet } from 'viem/chains'
 import * as React from 'react'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
-
-// Mock wagmi hooks
-vi.mock('wagmi', async () => {
-  const actual = await vi.importActual('wagmi')
-  return {
-    ...actual,
-    useAccount: vi.fn(),
-    usePublicClient: vi.fn(),
-    useWaitForTransactionReceipt: vi.fn(),
-    useWriteContract: vi.fn(),
-  }
-})
 
 // Mock blocksHandler
 vi.mock('../src/blocksHandler.js', () => ({
@@ -28,14 +13,6 @@ vi.mock('../src/blocksHandler.js', () => ({
     onBlockUptated: vi.fn(),
   })),
 }))
-
-// Mock config for testing
-const mockConfig = createConfig({
-  chains: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-})
 
 const MUTATION_CONFIG = {
   contractName: 'TestContract',
@@ -82,7 +59,7 @@ describe('useMutation', () => {
 
   it('initializes with correct default state', () => {
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
-      wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
     expect(result.current.isLoading).toBe(false)
@@ -99,11 +76,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockOnMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockOnMutationUpdate}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -146,7 +119,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, { simulate: true }), {
-      wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -177,11 +150,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockOnMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockOnMutationUpdate}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -208,11 +177,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} addressResolver={mockAddressResolver}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider addressResolver={mockAddressResolver}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -249,11 +214,7 @@ describe('useMutation', () => {
     })
 
     const { result, rerender } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockOnMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockOnMutationUpdate}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -298,11 +259,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockOnMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockOnMutationUpdate}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -330,11 +287,7 @@ describe('useMutation', () => {
     })
 
     const { result } = renderHook(() => useMutation(MUTATION_CONFIG, { simulate: true }), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockOnMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockOnMutationUpdate}>{children}</DappQLProvider>,
     })
 
     // Trigger mutation
@@ -374,11 +327,7 @@ describe('useMutation', () => {
           transactionName: 'Custom Address Test',
         }),
       {
-        wrapper: ({ children }) => (
-          <DappQLProvider config={mockConfig} addressResolver={mockAddressResolver}>
-            {children}
-          </DappQLProvider>
-        ),
+        wrapper: ({ children }) => <DappQLProvider addressResolver={mockAddressResolver}>{children}</DappQLProvider>,
       },
     )
 

@@ -2,31 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { useQuery, useSingleQuery, useIteratorQuery, singleQuery } from '../src/Query'
 import { DappQLProvider } from '../src/Provider'
-import { createConfig } from 'wagmi'
-import { http } from 'viem'
-import { mainnet } from 'viem/chains'
 import * as React from 'react'
 import { useReadContracts } from 'wagmi'
 import { useBlockNumberSubscriber } from '../src/blocksHandler'
 import { query, iteratorQuery } from '../src/Query'
 import { multicall } from 'viem/actions'
-
-// Mock wagmi hooks
-vi.mock('wagmi', async () => {
-  const actual = await vi.importActual('wagmi')
-  return {
-    ...actual,
-    useReadContracts: vi.fn(),
-  }
-})
-
-// Mock config for testing
-const mockConfig = createConfig({
-  chains: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-})
 
 const REQUEST_BALANCE = {
   address: '0x123' as `0x${string}`,
@@ -86,7 +66,7 @@ describe('useQuery', () => {
           balance: REQUEST_BALANCE,
         }),
       {
-        wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+        wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
       },
     )
 
@@ -132,7 +112,7 @@ describe('useQuery', () => {
     ;(useReadContracts as any).mockImplementation(() => mockState)
 
     const { result, rerender } = renderHook(() => useSingleQuery(REQUEST_BALANCE), {
-      wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
     // Initial state should show default value and loading
@@ -184,7 +164,7 @@ describe('useQuery', () => {
     })
 
     const { result, rerender } = renderHook(() => useIteratorQuery(3n, getItem), {
-      wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
     // Initial state should show empty array and loading
@@ -227,7 +207,7 @@ describe('useQuery', () => {
     })
 
     const { result } = renderHook(() => useIteratorQuery(0n, getItem), {
-      wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
     // Should return empty array immediately without loading
@@ -256,7 +236,7 @@ describe('useQuery', () => {
           { watchBlocks: true },
         ),
       {
-        wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+        wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
       },
     )
 
@@ -295,11 +275,7 @@ describe('useQuery', () => {
           { watchBlocks: false },
         ),
       {
-        wrapper: ({ children }) => (
-          <DappQLProvider config={mockConfig} watchBlocks>
-            {children}
-          </DappQLProvider>
-        ),
+        wrapper: ({ children }) => <DappQLProvider watchBlocks>{children}</DappQLProvider>,
       },
     )
 
@@ -334,11 +310,7 @@ describe('useQuery', () => {
           balance: REQUEST_BALANCE,
         }),
       {
-        wrapper: ({ children }) => (
-          <DappQLProvider config={mockConfig} watchBlocks={false}>
-            {children}
-          </DappQLProvider>
-        ),
+        wrapper: ({ children }) => <DappQLProvider watchBlocks={false}>{children}</DappQLProvider>,
       },
     )
 
@@ -373,11 +345,7 @@ describe('useQuery', () => {
           { watchBlocks: true },
         ),
       {
-        wrapper: ({ children }) => (
-          <DappQLProvider config={mockConfig} watchBlocks>
-            {children}
-          </DappQLProvider>
-        ),
+        wrapper: ({ children }) => <DappQLProvider watchBlocks>{children}</DappQLProvider>,
       },
     )
 

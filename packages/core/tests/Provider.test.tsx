@@ -2,23 +2,12 @@ import * as React from 'react'
 import { describe, it, expect, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { ADDRESS_RESOLVER_ERROR, DappQLProvider, useDappQL } from '../src/Provider'
-import { createConfig } from 'wagmi'
-import { http } from 'viem'
-import { mainnet } from 'viem/chains'
-
-// Mock config for testing
-const mockConfig = createConfig({
-  chains: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-})
 
 describe('DappQLProvider', () => {
   it('provides default context values', async () => {
     try {
       const { result } = renderHook(() => useDappQL(), {
-        wrapper: ({ children }) => <DappQLProvider config={mockConfig}>{children}</DappQLProvider>,
+        wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
       })
 
       expect(result.current.blocksRefetchInterval).toBe(1)
@@ -34,7 +23,7 @@ describe('DappQLProvider', () => {
   it('accepts custom props', async () => {
     const { result } = renderHook(() => useDappQL(), {
       wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} blocksRefetchInterval={5} defaultBatchSize={2048} watchBlocks={true}>
+        <DappQLProvider blocksRefetchInterval={5} defaultBatchSize={2048} watchBlocks={true}>
           {children}
         </DappQLProvider>
       ),
@@ -61,11 +50,7 @@ describe('DappQLProvider', () => {
 
     const { result } = renderHook(() => useDappQL(), {
       wrapper: ({ children }) => {
-        return (
-          <DappQLProvider config={mockConfig} AddressResolverComponent={AddressResolver}>
-            {children}
-          </DappQLProvider>
-        )
+        return <DappQLProvider AddressResolverComponent={AddressResolver}>{children}</DappQLProvider>
       },
     })
 
@@ -86,11 +71,7 @@ describe('DappQLProvider', () => {
     const mockResolver = vi.fn((contractName: string) => '0x123' as `0x${string}`)
 
     const { result } = renderHook(() => useDappQL(), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} addressResolver={mockResolver}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider addressResolver={mockResolver}>{children}</DappQLProvider>,
     })
 
     expect(result.current.addressResolver).toBe(mockResolver)
@@ -100,11 +81,7 @@ describe('DappQLProvider', () => {
     const mockMutationUpdate = vi.fn()
 
     const { result } = renderHook(() => useDappQL(), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} onMutationUpdate={mockMutationUpdate}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider onMutationUpdate={mockMutationUpdate}>{children}</DappQLProvider>,
     })
 
     expect(typeof result.current.onMutationUpdate).toBe('function')
@@ -131,7 +108,7 @@ describe('DappQLProvider', () => {
 
     renderHook(() => useDappQL(), {
       wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} AddressResolverComponent={AddressResolver}>
+        <DappQLProvider AddressResolverComponent={AddressResolver}>
           <TestChild />
         </DappQLProvider>
       ),
@@ -154,11 +131,7 @@ describe('DappQLProvider', () => {
 
   it('handles block subscription changes', async () => {
     const { result } = renderHook(() => useDappQL(), {
-      wrapper: ({ children }) => (
-        <DappQLProvider config={mockConfig} watchBlocks={true}>
-          {children}
-        </DappQLProvider>
-      ),
+      wrapper: ({ children }) => <DappQLProvider watchBlocks={true}>{children}</DappQLProvider>,
     })
 
     const unsubscribe = result.current.onBlockChange(() => {})
@@ -185,10 +158,7 @@ describe('DappQLProvider', () => {
       renderHook(() => useDappQL(), {
         wrapper: ({ children }) => (
           // @ts-expect-error - Testing runtime error when TypeScript check is bypassed
-          <DappQLProvider
-            config={mockConfig}
-            addressResolver={directResolver}
-            AddressResolverComponent={AddressResolver}>
+          <DappQLProvider addressResolver={directResolver} AddressResolverComponent={AddressResolver}>
             {children}
           </DappQLProvider>
         ),

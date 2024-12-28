@@ -1,8 +1,6 @@
 import { type ComponentType, createContext, useContext, useMemo, useState } from 'react'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Address } from 'viem'
-import { type ResolvedRegister, WagmiProvider } from 'wagmi'
 import { BlockSubscriptionManager, useBlockNumberSubscriber } from './blocksHandler.js'
 import useTransactionUpdates, { MutationInfo } from './useTransactionUpdates.js'
 export { MutationInfo } from './useTransactionUpdates.js'
@@ -79,13 +77,11 @@ const Context = createContext<
   } & MutationCallbacks
 >({ onBlockChange: () => () => false, blocksRefetchInterval: 1, defaultBatchSize: 1024 })
 
-const queryClient = new QueryClient()
-
 /**
  * Core provider component for DappQL
  * Manages contract address resolution and mutation callbacks
  */
-function Provider({
+export function DappQLProvider({
   children,
   AddressResolverComponent,
   blocksRefetchInterval = 1,
@@ -137,28 +133,6 @@ function Provider({
       ) : null}
       {!AddressResolverComponent || addressResolverState.resolver ? children : null}
     </Context.Provider>
-  )
-}
-
-/**
- * Main DappQL provider that wraps necessary providers (Wagmi, React Query)
- * @param config Wagmi configuration
- * @param props Other provider props
- */
-export function DappQLProvider({
-  config,
-  ...props
-}: {
-  config: ResolvedRegister['config']
-} & ProviderProps) {
-  return (
-    <>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <Provider {...props} />
-        </QueryClientProvider>
-      </WagmiProvider>
-    </>
   )
 }
 

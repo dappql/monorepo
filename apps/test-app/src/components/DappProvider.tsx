@@ -1,4 +1,5 @@
 import { DappQLProvider, MutationInfo } from '@dappql/core'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
 import {
@@ -13,9 +14,11 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets'
 import { useCallback } from 'react'
-import { createConfig, http } from 'wagmi'
+import { createConfig, http, WagmiProvider } from 'wagmi'
 import { sepolia } from 'wagmi/chains'
 import { toaster } from '~/components/ui/toaster'
+
+const queryClient = new QueryClient()
 
 const connectors = connectorsForWallets(
   [
@@ -63,18 +66,17 @@ export default function DappProvider({ children }: { children: React.ReactNode }
   }, [])
 
   return (
-    <DappQLProvider
-      config={config}
-      onMutationUpdate={onMutationUpdate}
-      defaultBatchSize={5000}
-      watchBlocks
-      simulateMutations>
-      <RainbowKitProvider
-        modalSize="wide"
-        showRecentTransactions
-        theme={darkTheme({ accentColor: 'white', accentColorForeground: 'black' })}>
-        {children}
-      </RainbowKitProvider>
-    </DappQLProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <DappQLProvider onMutationUpdate={onMutationUpdate} defaultBatchSize={5000} watchBlocks simulateMutations>
+          <RainbowKitProvider
+            modalSize="wide"
+            showRecentTransactions
+            theme={darkTheme({ accentColor: 'white', accentColorForeground: 'black' })}>
+            {children}
+          </RainbowKitProvider>
+        </DappQLProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
