@@ -31,8 +31,8 @@ importers:
         specifier: ^3.1.2
         version: 3.2.3(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@dappql/core':
-        specifier: workspace:*
-        version: link:../../packages/core
+        specifier: '*'
+        version: 1.0.29(@tanstack/react-query@5.62.11(react@18.3.1))(react@18.3.1)(typescript@5.7.2)(viem@2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10))(wagmi@2.14.6(@tanstack/query-core@5.62.9)(@tanstack/react-query@5.62.11(react@18.3.1))(@types/react@18.3.18)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(viem@2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)))
       '@emotion/react':
         specifier: ^11.13.3
         version: 11.14.0(@types/react@18.3.18)(react@18.3.1)
@@ -270,6 +270,15 @@ packages:
 
   '@coinbase/wallet-sdk@4.2.3':
     resolution: {integrity: sha512-BcyHZ/Ec84z0emORzqdXDv4P0oV+tV3a0OirfA8Ko1JGBIAVvB+hzLvZzCDvnuZx7MTK+Dd8Y9Tjlo446BpCIg==}
+
+  '@dappql/core@1.0.29':
+    resolution: {integrity: sha512-ZuczGi5wVmxtq+O0j0BFEpwQxRS+JSDOflL+T2yJAIYxSC/ye81aOs+dX5y4JbKzqp27POrB7ISxZ02BgEgd3w==}
+    peerDependencies:
+      '@tanstack/react-query': '>=5.0.0'
+      react: '>=18'
+      typescript: '>=5.0.4'
+      viem: 2.x
+      wagmi: ^2
 
   '@ecies/ciphers@0.2.2':
     resolution: {integrity: sha512-ylfGR7PyTd+Rm2PqQowG08BCKA22QuX8NzrL+LxAAvazN10DMwdJ2fWwAzRj05FI/M8vNFGm3cv9Wq/GFWCBLg==}
@@ -4305,6 +4314,14 @@ snapshots:
       clsx: 1.2.1
       eventemitter3: 5.0.1
       preact: 10.25.3
+
+  '@dappql/core@1.0.29(@tanstack/react-query@5.62.11(react@18.3.1))(react@18.3.1)(typescript@5.7.2)(viem@2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10))(wagmi@2.14.6(@tanstack/query-core@5.62.9)(@tanstack/react-query@5.62.11(react@18.3.1))(@types/react@18.3.18)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(viem@2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)))':
+    dependencies:
+      '@tanstack/react-query': 5.62.11(react@18.3.1)
+      react: 18.3.1
+      typescript: 5.7.2
+      viem: 2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)
+      wagmi: 2.14.6(@tanstack/query-core@5.62.9)(@tanstack/react-query@5.62.11(react@18.3.1))(@types/react@18.3.18)(bufferutil@4.0.9)(react@18.3.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(viem@2.21.57(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10))
 
   '@ecies/ciphers@0.2.2(@noble/ciphers@1.1.3)':
     dependencies:

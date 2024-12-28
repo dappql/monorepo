@@ -21,8 +21,6 @@
     "clean": {
       "cache": false
     },
-    "db:push": {},
-    "db:reset": {},
     "lint": {
       "outputs": []
     },

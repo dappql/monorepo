@@ -9,7 +9,9 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "types": "turbo types",
-    "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.turbo"
+    "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.turbo",
+    "ship:core": "turbo run ship --filter=@dappql/core",
+    "ship:cli": "turbo run ship --filter=dappql"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.26",
+  "version": "1.0.30",
   "description": "Streamlined smart contract data fetching library for React dApps with TypeScript support",
   "author": "DappQL Team",
   "type": "module",
@@ -19,9 +19,11 @@
     "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
     "test": "vitest --coverage",
     "test:watch": "vitest watch --coverage",
-    "dev": "tsc -b -w",
-    "build": "tsc -b",
-    "ship": "npm run build && npm version patch && git push && npm publish --access public"
+    "dev": "pnpm exec tsc -b -w",
+    "build": "pnpm exec tsc -b",
+    "version:bump": "npm --no-git-tag-version version patch",
+    "publish:npm": "pnpm publish --access public --no-workspace-root",
+    "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
