@@ -1,6 +1,6 @@
 {
   "name": "dappql",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "description": "wagmi extension to easily query smart-contracts",
   "main": "./lib/index.js",
   "bin": {
@@ -20,9 +20,11 @@
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./lib && rm -rf ./.turbo",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsc -b -w",
-    "build": "tsc -b",
-    "ship": "npm run build && npm version patch && git push && npm publish"
+    "dev": "pnpm exec tsc -b -w",
+    "build": "pnpm exec tsc -b",
+    "version:bump": "bump patch --commit --push",
+    "publish:npm": "pnpm publish --access public --no-workspace-root",
+    "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm --no-git-checks --access public"
   },
   "files": [
     "/lib",
