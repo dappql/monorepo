@@ -10,12 +10,13 @@
     "lint": "turbo lint",
     "types": "turbo types",
     "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.turbo",
-    "ship:core": "turbo run ship --filter=@dappql/core",
-    "ship:cli": "turbo run ship --filter=dappql"
+    "ship:core": "cd packages/core && pnpm ship",
+    "ship:cli": "cd packages/cli && pnpm ship"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
-    "turbo": "^2.3.0"
+    "turbo": "^2.3.0",
+    "version-bump-prompt": "^6.1.0"
   },
   "packageManager": "pnpm@9.0.1",
   "dependencies": {
