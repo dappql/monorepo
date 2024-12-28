@@ -9,6 +9,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "types": "turbo types",
+    "test": "turbo test",
     "clean": "turbo clean && rm -rf ./node_modules && rm -rf ./.turbo",
     "ship:core": "cd packages/core && pnpm ship",
     "ship:cli": "cd packages/cli && pnpm ship"

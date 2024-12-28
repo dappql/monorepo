@@ -17,8 +17,8 @@
   ],
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
-    "test": "vitest --coverage",
-    "test:watch": "vitest watch --coverage",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest --coverage",
     "dev": "pnpm exec tsc -b -w",
     "build": "pnpm exec tsc -b",
     "version:bump": "bump patch --commit --push",

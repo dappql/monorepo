@@ -19,7 +19,6 @@
   ],
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./lib && rm -rf ./.turbo",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "pnpm exec tsc -b -w",
     "build": "pnpm exec tsc -b",
     "version:bump": "bump patch --commit --push",

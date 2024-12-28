@@ -11,6 +11,13 @@ export const mockConfig = createConfig({
   },
 })
 
+// Mock public client with required methods
+export const mockPublicClient = {
+  waitForTransactionReceipt: vi.fn().mockResolvedValue({ status: 'success' }),
+  watchBlockNumber: vi.fn(),
+  simulateContract: vi.fn(),
+}
+
 // Setup global wagmi mocks
 vi.mock('wagmi', async () => {
   const actual = await vi.importActual('wagmi')
@@ -21,7 +28,7 @@ vi.mock('wagmi', async () => {
       address: '0x456',
       chain: { id: 1 },
     })),
-    usePublicClient: vi.fn(),
+    usePublicClient: vi.fn(() => mockPublicClient),
     useWaitForTransactionReceipt: vi.fn(),
     useWriteContract: vi.fn(),
     useReadContracts: vi.fn(),

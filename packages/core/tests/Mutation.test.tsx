@@ -4,6 +4,7 @@ import { useMutation } from '../src/Mutation'
 import { DappQLProvider } from '../src/Provider'
 import * as React from 'react'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { mockPublicClient } from './setup'
 
 // Mock blocksHandler
 vi.mock('../src/blocksHandler.js', () => ({
@@ -39,9 +40,8 @@ describe('useMutation', () => {
       address: '0x456',
       chain: { id: 1 },
     })
-    ;(usePublicClient as any).mockReturnValue({
-      simulateContract: vi.fn(),
-    })
+    mockPublicClient.simulateContract = vi.fn()
+    ;(usePublicClient as any).mockReturnValue(mockPublicClient)
     ;(useWaitForTransactionReceipt as any).mockReturnValue({
       isLoading: false,
       data: null,
