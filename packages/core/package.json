@@ -1,6 +1,6 @@
 {
   "name": "@dappql/core",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Streamlined smart contract data fetching library for React dApps with TypeScript support",
   "author": "DappQL Team",
   "type": "module",
@@ -21,7 +21,7 @@
     "test:watch": "vitest watch --coverage",
     "dev": "pnpm exec tsc -b -w",
     "build": "pnpm exec tsc -b",
-    "version:bump": "npm --no-git-tag-version version patch",
+    "version:bump": "bump patch --commit --push",
     "publish:npm": "pnpm publish --access public --no-workspace-root",
     "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm"
   },
