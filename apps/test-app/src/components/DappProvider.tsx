@@ -44,6 +44,7 @@ const config = createConfig({
     [sepolia.id]: http(process.env.NEXT_PUBLIC_CHAIN_URL),
   },
   ssr: true,
+  pollingInterval: 10000,
 })
 
 export default function DappProvider({ children }: { children: React.ReactNode }) {
@@ -68,7 +69,7 @@ export default function DappProvider({ children }: { children: React.ReactNode }
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <DappQLProvider onMutationUpdate={onMutationUpdate} defaultBatchSize={5000} watchBlocks simulateMutations>
+        <DappQLProvider onMutationUpdate={onMutationUpdate} defaultBatchSize={100_000} watchBlocks simulateMutations>
           <RainbowKitProvider
             modalSize="wide"
             showRecentTransactions

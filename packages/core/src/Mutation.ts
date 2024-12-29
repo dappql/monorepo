@@ -3,8 +3,8 @@ import { useCallback, useMemo } from 'react'
 import { type Address } from 'viem'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
-import { MutationInfo, useDappQL } from './Provider.js'
-import { type MutationConfig } from './types.js'
+import { MutationInfo, type MutationConfig } from './types.js'
+import { useDappQL } from './Context.js'
 
 /**
  * Configuration options for mutations

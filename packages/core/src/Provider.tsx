@@ -1,30 +1,10 @@
-import { type ComponentType, createContext, useContext, useMemo, useState } from 'react'
+import { type ComponentType, useMemo, useState } from 'react'
 
-import type { Address } from 'viem'
-import { BlockSubscriptionManager, useBlockNumberSubscriber } from './blocksHandler.js'
-import useTransactionUpdates, { MutationInfo } from './useTransactionUpdates.js'
-export { MutationInfo } from './useTransactionUpdates.js'
-
-/**
- * Callback functions for different mutation states
- */
-export type MutationCallbacks = {
-  /** Called when a mutation changes state */
-  onMutationUpdate?: (info: MutationInfo) => any
-}
-
-/**
- * Function type for resolving contract names to addresses
- */
-export type AddressResolverFunction = (contractName: string) => Address
-
-/**
- * Props for the AddressResolver component
- */
-export type AddressResolverProps = {
-  /** Callback when resolver is ready */
-  onResolved: (resolver: AddressResolverFunction) => any
-}
+import { useBlockNumberSubscriber } from './blocksHandler.js'
+import useTransactionUpdates from './useTransactionUpdates.js'
+import { MutationCallbacks, AddressResolverFunction, AddressResolverProps } from './types.js'
+import { DappQLContext } from './Context.js'
+import GlobalQueryContext from './GlobalQueryManager.js'
 
 export const ADDRESS_RESOLVER_ERROR =
   'Cannot provide both AddressResolverComponent and addressResolver. Please use only one of these props.'
@@ -44,7 +24,7 @@ type BaseProviderProps = {
   simulateMutations?: boolean
 } & MutationCallbacks
 
-type ProviderProps = BaseProviderProps &
+export type ProviderProps = BaseProviderProps &
   (
     | {
         /** Function to resolve contract addresses */
@@ -65,17 +45,6 @@ type ProviderProps = BaseProviderProps &
         AddressResolverComponent?: never
       }
   )
-
-const Context = createContext<
-  {
-    blocksRefetchInterval: number
-    defaultBatchSize: number
-    addressResolver?: AddressResolverFunction
-    onBlockChange: BlockSubscriptionManager['subscribe']
-    watchBlocks?: boolean
-    simulateMutations?: boolean
-  } & MutationCallbacks
->({ onBlockChange: () => () => false, blocksRefetchInterval: 1, defaultBatchSize: 1024 })
 
 /**
  * Core provider component for DappQL
@@ -123,7 +92,7 @@ export function DappQLProvider({
   )
 
   return (
-    <Context.Provider value={value}>
+    <DappQLContext.Provider value={value}>
       {AddressResolverComponent ? (
         <AddressResolverComponent
           onResolved={(resolver) => {
@@ -131,15 +100,9 @@ export function DappQLProvider({
           }}
         />
       ) : null}
-      {!AddressResolverComponent || addressResolverState.resolver ? children : null}
-    </Context.Provider>
+      {!AddressResolverComponent || addressResolverState.resolver ? (
+        <GlobalQueryContext>{children}</GlobalQueryContext>
+      ) : null}
+    </DappQLContext.Provider>
   )
-}
-
-/**
- * Hook to access DappQL context
- * @returns Context containing current block number, address resolver, and mutation callbacks
- */
-export function useDappQL() {
-  return useContext(Context)
 }

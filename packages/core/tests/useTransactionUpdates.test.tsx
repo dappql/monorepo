@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import useTransactionUpdates, { MutationInfo } from '../src/useTransactionUpdates'
+import useTransactionUpdates from '../src/useTransactionUpdates'
 import { usePublicClient } from 'wagmi'
 import { type Address } from 'viem'
+import { MutationInfo } from '../src/types'
 
 // Mock localStorage
 const mockLocalStorage = (() => {

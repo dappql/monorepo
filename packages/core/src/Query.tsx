@@ -1,37 +1,26 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 
-import { stringify, type PublicClient } from 'viem'
+import { type PublicClient } from 'viem'
 import { multicall } from 'viem/actions'
 import { useReadContracts } from 'wagmi'
 
-import { type AddressResolverFunction, useDappQL } from './Provider.js'
-import { type Request, type RequestCollection } from './types.js'
-
-/**
- * Configuration options for query operations
- */
-export type QueryOptions = {
-  /**
-   * If true, the query will not automatically update when new blocks arrive.
-   * Use this for data that you know won't change, like historical events
-   * or immutable contract state.
-   */
-  isStatic?: boolean
-  /** If true, the query will be refetched on new blocks */
-  watchBlocks?: boolean
-  /** Optional block number to query at a specific block */
-  blockNumber?: bigint
-  /** Optional interval (in ms) to refetch the data */
-  refetchInterval?: number
-  /** Optional batch size for multicalls */
-  batchSize?: number
-  /** If true, the query will be paused. */
-  paused?: boolean
-  /** How many blocks to wait before refetching the query */
-  blocksRefetchInterval?: number
-}
-
-const MIN_FETCH_INTERVAL = 2000
+import {
+  AddressResolverFunction,
+  GetItemCallFunction,
+  QueryOptions,
+  type Request,
+  type RequestCollection,
+} from './types.js'
+import { useDappQL, useRefetchOnBlockChange } from './Context.js'
+import {
+  buildIteratorQuery,
+  IteratorQueryResult,
+  useDefaultData,
+  useIteratorQueryData,
+  useResultData,
+} from './queryHooks.js'
+import { useCallKeys } from './queryHooks.js'
+import { useRequestString } from './queryHooks.js'
 
 /**
  * React hook that executes multiple contract read calls in a single multicall
@@ -52,11 +41,12 @@ export function useQuery<T extends RequestCollection>(
 ): Omit<ReturnType<typeof useReadContracts>, 'data'> & {
   data: { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
 } {
-  const { addressResolver, onBlockChange, blocksRefetchInterval, defaultBatchSize, watchBlocks } = useDappQL()
+  const { addressResolver, blocksRefetchInterval, defaultBatchSize, watchBlocks } = useDappQL()
 
-  const { callKeys, calls } = useMemo(() => {
-    const callKeys = Object.keys(requests) as (keyof T)[]
-    const calls = Object.values(requests).map((req) => {
+  const requestString = useRequestString(requests)
+  const callKeys = useCallKeys(requests, requestString)
+  const calls = useMemo(() => {
+    return Object.values(requests).map((req) => {
       return {
         abi: req.getAbi(),
         functionName: req.method,
@@ -64,23 +54,8 @@ export function useQuery<T extends RequestCollection>(
         address: req.address || addressResolver?.(req.contractName) || req.deployAddress!,
       }
     })
-    return { callKeys, calls }
-  }, [stringify(requests)])
-
-  type ResultData = { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
-
-  const defaultData = useMemo(
-    () =>
-      callKeys.reduce((acc, k) => {
-        acc[k] = requests[k].defaultValue!
-        return acc
-      }, {} as ResultData),
-    [callKeys],
-  )
-
-  const previousData = useRef<ResultData>(defaultData)
-  const batchSize = options.batchSize ?? defaultBatchSize
-
+  }, [requestString])
+  const defaultData = useDefaultData(requests, callKeys)
   const result = useReadContracts({
     blockNumber: options.blockNumber,
     query: {
@@ -89,56 +64,19 @@ export function useQuery<T extends RequestCollection>(
       notifyOnChangeProps: ['data', 'error'],
     },
     contracts: calls,
-    batchSize,
+    batchSize: options.batchSize ?? defaultBatchSize,
   })
+  const data = useResultData(requests, callKeys, result, defaultData)
 
-  const shouldRefetchOnBlockChange =
+  useRefetchOnBlockChange(
+    result.refetch,
     (options.watchBlocks ?? watchBlocks) &&
-    !options.paused &&
-    !options.isStatic &&
-    !options.blockNumber &&
-    !options.refetchInterval
-  const refetchInterval = options.blocksRefetchInterval ?? blocksRefetchInterval
-  useEffect(() => {
-    if (!shouldRefetchOnBlockChange) return
-
-    let lastBlockFetched = 0n
-    const unsubscribe = onBlockChange((blockNumber) => {
-      if (lastBlockFetched === 0n && blockNumber > 0n) {
-        lastBlockFetched = blockNumber - 1n
-      }
-      const shouldRefetch = blockNumber > 0n && blockNumber >= lastBlockFetched + BigInt(refetchInterval)
-
-      if (shouldRefetch) {
-        result.refetch()
-        lastBlockFetched = blockNumber
-      }
-    })
-    return () => {
-      unsubscribe()
-    }
-  }, [shouldRefetchOnBlockChange, refetchInterval, options.paused])
-
-  const data = useMemo(() => {
-    if (!result.error) {
-      const newData = callKeys.reduce(
-        (acc, k, index) => {
-          acc[k] = result.data?.[index]?.result ?? previousData.current[k] ?? requests?.[k]?.defaultValue!
-          return acc
-        },
-        {} as {
-          [K in keyof T]: NonNullable<T[K]['defaultValue']>
-        },
-      )
-      previousData.current = newData
-      return newData
-    }
-    // During error, merge previous data with new default values
-    return callKeys.reduce((acc, k) => {
-      acc[k] = previousData.current[k] ?? requests[k].defaultValue!
-      return acc
-    }, {} as ResultData)
-  }, [stringify(result.data), result.error, defaultData])
+      !options.paused &&
+      !options.isStatic &&
+      !options.blockNumber &&
+      !options.refetchInterval,
+    options.blocksRefetchInterval ?? blocksRefetchInterval,
+  )
 
   return useMemo(() => {
     return { ...result, data }
@@ -235,23 +173,6 @@ export type CountCall = Request & {
 }
 
 /**
- * Function type for generating item queries at specific indices
- */
-export type GetItemCallFunction<T> = (index: bigint) => Request & {
-  defaultValue: T
-}
-
-function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
-  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
-  const iterator = Array.from(new Array(Number(total)).keys())
-  return iterator.reduce((acc, index) => {
-    const realIndex = BigInt(index) + firstIndex
-    acc[`item${realIndex}`] = getItem(realIndex)
-    return acc
-  }, {} as FinalQuery)
-}
-
-/**
  * React hook for querying iterable data structures (like arrays) from smart contracts
  * @param total Total number of items to query
  * @param getItem Function that generates the query for a specific index
@@ -268,27 +189,11 @@ export function useIteratorQuery<T>(
   options: QueryOptions & {
     firstIndex?: bigint
   } = {},
-): { data: { value: NonNullable<T>; queryIndex: bigint }[]; isLoading: boolean; error?: Error | null } {
+): IteratorQueryResult<T> {
   const { firstIndex = 0n, ...queryParams } = options
-
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
   const result = useQuery(query, queryParams)
-  type Result = { value: NonNullable<T>; queryIndex: bigint }[]
-  return useMemo(() => {
-    if (total === 0n) return { data: [] as Result, isLoading: false }
-    const items = Object.keys(result.data)
-      .map((k) => ({
-        value: result.data[k] as NonNullable<T>,
-        queryIndex: BigInt(k.replace('item', '')),
-      }))
-      .filter((i) => !!i.value) as Result
-
-    return {
-      data: items,
-      isLoading: result.isLoading,
-      error: result.error,
-    }
-  }, [result.data, result.isLoading, result.error, total])
+  return useIteratorQueryData(total, result)
 }
 
 /**
@@ -311,7 +216,6 @@ export async function iteratorQuery<T>(
   addressResolver?: AddressResolverFunction,
 ) {
   const { firstIndex = 0n, ...queryParams } = options
-
   if (total === 0n) return [] as { value: NonNullable<T>; queryIndex: bigint }[]
 
   const result = await query(client, buildIteratorQuery(total, firstIndex, getItem), queryParams, addressResolver)
