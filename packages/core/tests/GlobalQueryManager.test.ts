@@ -1,9 +1,9 @@
-import { GlobalQueryManager } from '../src/GlobalQueryManager.js'
+import { ContextQueryManager } from '../src/ContextQueryManager.js'
 import { describe, it, expect, vi } from 'vitest'
 import { Abi } from 'viem'
 import { Request } from '../src/types.js'
 
-describe('GlobalQueryManager', () => {
+describe('ContextQueryManager', () => {
   const mockAbi = {} as Abi
   const createMockRequest = (method: string, args: any[] = []): Request => ({
     method,
@@ -16,7 +16,7 @@ describe('GlobalQueryManager', () => {
 
   it('should aggregate single query', () => {
     const onUpdate = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     const queryId = manager.addQuery({
       collection: {
@@ -40,7 +40,7 @@ describe('GlobalQueryManager', () => {
 
   it('should handle rapid query changes', () => {
     const onUpdate = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     // Add first query
     const query1Id = manager.addQuery({
@@ -68,7 +68,7 @@ describe('GlobalQueryManager', () => {
   it('should only process results matching current version', () => {
     const onUpdate = vi.fn()
     const callback = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     manager.addQuery({
       collection: {
@@ -122,7 +122,7 @@ describe('QueryManager - Racing Conditions', () => {
     const onUpdate = vi.fn()
     const callback1 = vi.fn()
     const callback2 = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     // First query
     manager.addQuery({
@@ -132,8 +132,8 @@ describe('QueryManager - Racing Conditions', () => {
     const version1 = onUpdate.mock.lastCall?.[0].version
     expect(version1).toBe(1)
     expect(manager.getVersion()).toBe(1)
-    expect(manager.getGlobalQuery().calls.length).toBe(1)
-    expect(manager.getGlobalQuery().version).toBe(1)
+    expect(manager.getContextQuery().calls.length).toBe(1)
+    expect(manager.getContextQuery().version).toBe(1)
 
     // Second query (replaces first)
     manager.addQuery({
@@ -143,8 +143,8 @@ describe('QueryManager - Racing Conditions', () => {
     const version2 = onUpdate.mock.lastCall?.[0].version
     expect(version2).toBe(2)
     expect(manager.getVersion()).toBe(2)
-    expect(manager.getGlobalQuery().calls.length).toBe(2)
-    expect(manager.getGlobalQuery().version).toBe(2)
+    expect(manager.getContextQuery().calls.length).toBe(2)
+    expect(manager.getContextQuery().version).toBe(2)
 
     // Process results in wrong order
     manager.onResult(
@@ -182,7 +182,7 @@ describe('QueryManager - Racing Conditions', () => {
 
   it('should batch rapid updates', () => {
     const onUpdate = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     // Queue multiple updates synchronously
     Promise.all([
@@ -209,7 +209,7 @@ describe('QueryManager - Racing Conditions', () => {
     const onUpdate = vi.fn()
     const callback1 = vi.fn()
     const callback2 = vi.fn()
-    const manager = new GlobalQueryManager(onUpdate)
+    const manager = new ContextQueryManager(onUpdate)
 
     // First query
     const query1Id = manager.addQuery({
@@ -243,7 +243,7 @@ describe('QueryManager - Racing Conditions', () => {
     manager.removeQuery(query1Id)
     const version3 = onUpdate.mock.lastCall?.[0].version
     expect(version3).toBe(3)
-    expect(manager.getGlobalQuery().calls.length).toBe(1)
+    expect(manager.getContextQuery().calls.length).toBe(1)
 
     // Process new results
     manager.onResult(

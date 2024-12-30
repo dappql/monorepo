@@ -2,9 +2,9 @@ import { type ComponentType, useMemo, useState } from 'react'
 
 import { useBlockNumberSubscriber } from './blocksHandler.js'
 import useTransactionUpdates from './useTransactionUpdates.js'
-import { MutationCallbacks, AddressResolverFunction, AddressResolverProps } from './types.js'
+import { MutationCallbacks, AddressResolverFunction, AddressResolverProps, QueryContextProps } from './types.js'
 import { DappQLContext } from './Context.js'
-import GlobalQueryContext from './GlobalQueryManager.js'
+import { ContextQueryProvider } from './ContextQueryManager.js'
 
 export const ADDRESS_RESOLVER_ERROR =
   'Cannot provide both AddressResolverComponent and addressResolver. Please use only one of these props.'
@@ -12,14 +12,8 @@ export const ADDRESS_RESOLVER_ERROR =
 /**
  * Props for the Provider component
  */
-type BaseProviderProps = {
+type BaseProviderProps = QueryContextProps & {
   children: any
-  /** Whether to update queries on new blocks */
-  watchBlocks?: boolean
-  /** How many blocks to wait before refecthing queries*/
-  blocksRefetchInterval?: number
-  /** Default batch size for multicalls */
-  defaultBatchSize?: number
   /** Whether to simulate mutations before sending them */
   simulateMutations?: boolean
 } & MutationCallbacks
@@ -101,7 +95,7 @@ export function DappQLProvider({
         />
       ) : null}
       {!AddressResolverComponent || addressResolverState.resolver ? (
-        <GlobalQueryContext>{children}</GlobalQueryContext>
+        <ContextQueryProvider {...value}>{children}</ContextQueryProvider>
       ) : null}
     </DappQLContext.Provider>
   )

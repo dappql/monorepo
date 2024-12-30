@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { useGlobalQuery, useIteratorGlobalQuery, useSingleGlobalQuery } from '../src/GlobalQuery'
+import { useContextQuery, useIteratorContextQuery, useSingleContextQuery } from '../src/ContextQuery'
 import { DappQLProvider } from '../src/Provider'
 import * as React from 'react'
 import { useReadContracts } from 'wagmi'
@@ -40,7 +40,7 @@ vi.mock('viem/actions', () => ({
   multicall: vi.fn(),
 }))
 
-describe('useGlobalQuery', () => {
+describe('useContextQuery', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -57,7 +57,7 @@ describe('useGlobalQuery', () => {
 
     const { result, rerender } = renderHook(
       () =>
-        useGlobalQuery({
+        useContextQuery({
           balance: REQUEST_BALANCE,
         }),
       {
@@ -96,7 +96,7 @@ describe('useGlobalQuery', () => {
   })
 })
 
-describe('useSingleGlobalQuery', () => {
+describe('useSingleContextQuery', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -111,7 +111,7 @@ describe('useSingleGlobalQuery', () => {
     const mockUseReadContracts = vi.fn(() => mockResult)
     ;(useReadContracts as any).mockImplementation(mockUseReadContracts)
 
-    const { result, rerender } = renderHook(() => useSingleGlobalQuery(REQUEST_BALANCE), {
+    const { result, rerender } = renderHook(() => useSingleContextQuery(REQUEST_BALANCE), {
       wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 
@@ -146,7 +146,7 @@ describe('useSingleGlobalQuery', () => {
   })
 })
 
-describe('useIteratorGlobalQuery', () => {
+describe('useIteratorContextQuery', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -161,7 +161,7 @@ describe('useIteratorGlobalQuery', () => {
     const mockUseReadContracts = vi.fn(() => mockResult)
     ;(useReadContracts as any).mockImplementation(mockUseReadContracts)
 
-    const { result, rerender } = renderHook(() => useIteratorGlobalQuery(2n, () => REQUEST_BALANCE, 1n), {
+    const { result, rerender } = renderHook(() => useIteratorContextQuery(2n, () => REQUEST_BALANCE, 1n), {
       wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
     })
 

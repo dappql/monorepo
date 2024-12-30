@@ -10,7 +10,7 @@ import {
   useRequestString,
   useResultData,
 } from './queryHooks.js'
-import { useGlobalQueryContext } from './GlobalQueryManager.js'
+import { useContextQueryContext } from './ContextQueryManager.js'
 /**
  * Hook to execute contract queries through the global query manager
  *
@@ -34,19 +34,19 @@ import { useGlobalQueryContext } from './GlobalQueryManager.js'
  *
  * @example
  * ```tsx
- * const { isLoading, isError, data, error } = useGlobalQuery({
+ * const { isLoading, isError, data, error } = useContextQuery({
  *   balanceOf: { deployAddress: '0x...', method: 'balanceOf', args: [user1] },
  *   balanceOf2: { deployAddress: '0x...', method: 'balanceOf', args: [user2] },
  * })
  * ```
  */
-export function useGlobalQuery<T extends RequestCollection>(
+export function useContextQuery<T extends RequestCollection>(
   requests: T,
 ): Omit<ReadContractsResult, 'data'> & {
   data: { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
 } {
   const requestString = useRequestString(requests)
-  const queryManager = useGlobalQueryContext()
+  const queryManager = useContextQueryContext()
   const [result, setResult] = useState<ReadContractsResult>({
     isLoading: true,
     isError: false,
@@ -84,13 +84,13 @@ export function useGlobalQuery<T extends RequestCollection>(
  *
  * @example
  * ```tsx
- * const { isLoading, isError, data, error } = useSingleGlobalQuery({ deployAddress: '0x...', method: 'balanceOf', args: [user1] })
+ * const { isLoading, isError, data, error } = useSingleContextQuery({ deployAddress: '0x...', method: 'balanceOf', args: [user1] })
  * ```
  */
-export function useSingleGlobalQuery<T extends Request>(
+export function useSingleContextQuery<T extends Request>(
   request: T,
-): Omit<ReturnType<typeof useGlobalQuery>, 'data'> & { data: NonNullable<T['defaultValue']> } {
-  const result = useGlobalQuery({ value: request })
+): Omit<ReturnType<typeof useContextQuery>, 'data'> & { data: NonNullable<T['defaultValue']> } {
+  const result = useContextQuery({ value: request })
 
   return useMemo(() => {
     return { ...result, data: result.data.value }
@@ -108,12 +108,12 @@ export function useSingleGlobalQuery<T extends Request>(
  * const { data, isLoading } = useIteratorQuery(10, (i) => contracts.myContract.getValue(i))
  * ```
  */
-export function useIteratorGlobalQuery<T>(
+export function useIteratorContextQuery<T>(
   total: bigint,
   getItem: GetItemCallFunction<T>,
   firstIndex: bigint = 0n,
 ): IteratorQueryResult<T> {
   const query = useMemo(() => buildIteratorQuery(total, firstIndex, getItem), [total, firstIndex, getItem])
-  const result = useGlobalQuery(query)
+  const result = useContextQuery(query)
   return useIteratorQueryData(total, result)
 }

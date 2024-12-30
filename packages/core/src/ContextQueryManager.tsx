@@ -1,5 +1,5 @@
 /**
- * GlobalQuery Module
+ * ContextQuery Module
  *
  * Manages the aggregation and distribution of multiple contract queries into a single global query.
  * This optimization reduces the number of RPC calls by batching multiple contract reads together.
@@ -14,7 +14,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { Abi, stringify, Address } from 'viem'
 import { useReadContracts } from 'wagmi'
-import { RequestCollection, AddressResolverFunction, Request, ReadContractsResult } from './types.js'
+import { RequestCollection, AddressResolverFunction, Request, ReadContractsResult, QueryContextProps } from './types.js'
 import { useDappQL, useRefetchOnBlockChange } from './Context.js'
 
 type Query = { collection: RequestCollection; callBack: (result: ReadContractsResult) => void }
@@ -32,7 +32,7 @@ type Call = {
 /**
  * Represents the state of all aggregated queries
  */
-type GlobalQuery = {
+type ContextQuery = {
   version: number // Increments with each query update
   count: Record<number, number> // Maps queryId to number of calls
   calls: Call[] // Array of all contract calls
@@ -41,26 +41,26 @@ type GlobalQuery = {
 /**
  * Manages the aggregation and distribution of contract queries
  */
-export class GlobalQueryManager {
+export class ContextQueryManager {
   private queries: Record<number, Query> = {}
   private activeQueries: Set<number> = new Set()
-  private currGlobal: GlobalQuery = { version: 0, count: {}, calls: [] }
+  private currGlobal: ContextQuery = { version: 0, count: {}, calls: [] }
   private version = 0
   private queryId: number = 0
   private addressResolver?: AddressResolverFunction
-  private onUpdate: (globalQuery: GlobalQuery) => void
+  private onUpdate: (ContextQuery: ContextQuery) => void
 
   /**
    * Creates a new QueryManager instance
    * @param onUpdate - Callback triggered when the global query changes
    * @param addressResolver - Optional function to resolve contract addresses
    */
-  constructor(onUpdate: (globalQuery: GlobalQuery) => any, addressResolver?: AddressResolverFunction) {
+  constructor(onUpdate: (ContextQuery: ContextQuery) => any, addressResolver?: AddressResolverFunction) {
     this.addressResolver = addressResolver
     this.onUpdate = onUpdate
   }
 
-  getGlobalQuery(): GlobalQuery {
+  getContextQuery(): ContextQuery {
     return this.currGlobal
   }
 
@@ -85,7 +85,7 @@ export class GlobalQueryManager {
   private aggregateQueries(): void {
     const queryVersion = ++this.version
 
-    const newGlobalQuery = Object.keys(this.queries)
+    const newContextQuery = Object.keys(this.queries)
       .map((id) => {
         const queryId = Number(id)
         const query = this.queries[queryId]
@@ -109,13 +109,13 @@ export class GlobalQueryManager {
           }
           return acc
         },
-        { version: queryVersion, count: {}, calls: [] } as GlobalQuery,
+        { version: queryVersion, count: {}, calls: [] } as ContextQuery,
       )
 
-    if (stringify(newGlobalQuery) !== stringify(this.currGlobal)) {
-      this.currGlobal = newGlobalQuery
+    if (stringify(newContextQuery) !== stringify(this.currGlobal)) {
+      this.currGlobal = newContextQuery
       if (this.version === queryVersion) {
-        this.onUpdate(newGlobalQuery)
+        this.onUpdate(newContextQuery)
       }
     }
   }
@@ -150,16 +150,21 @@ export class GlobalQueryManager {
   }
 }
 
-const QueryContext = createContext<GlobalQueryManager>(new GlobalQueryManager(() => {}))
+const QueryContext = createContext<ContextQueryManager>(new ContextQueryManager(() => {}))
 
 /**
- * React Context provider for global query management
+ * React Context provider for scoped query management
  * Handles the lifecycle of queries and their results
  */
-export default function GlobalQueryContext({ children }: { children: any }) {
-  const { addressResolver, defaultBatchSize, watchBlocks, blocksRefetchInterval } = useDappQL()
-  const [query, setQuery] = useState<GlobalQuery>({ version: 0, count: {}, calls: [] })
-  const queryManager = useMemo(() => new GlobalQueryManager(setQuery, addressResolver), [])
+export function ContextQueryProvider({
+  children,
+  defaultBatchSize,
+  watchBlocks,
+  blocksRefetchInterval,
+}: { children: any } & QueryContextProps) {
+  const { addressResolver } = useDappQL()
+  const [query, setQuery] = useState<ContextQuery>({ version: 0, count: {}, calls: [] })
+  const queryManager = useMemo(() => new ContextQueryManager(setQuery, addressResolver), [])
 
   useEffect(() => {
     queryManager.setAddressResolver(addressResolver)
@@ -182,6 +187,6 @@ export default function GlobalQueryContext({ children }: { children: any }) {
   return <QueryContext.Provider value={queryManager}>{children}</QueryContext.Provider>
 }
 
-export function useGlobalQueryContext() {
+export function useContextQueryContext() {
   return useContext(QueryContext)
 }

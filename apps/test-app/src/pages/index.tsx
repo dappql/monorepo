@@ -16,10 +16,10 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import {
-  useIteratorGlobalQuery,
+  useIteratorContextQuery,
   useIteratorQuery,
   useMutation,
-  useSingleGlobalQuery,
+  useSingleContextQuery,
   useSingleQuery,
 } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
@@ -39,7 +39,7 @@ const STATUS_IDS = {
 }
 
 const useItems = (total: bigint, address: Address) => {
-  return useIteratorGlobalQuery(total, (index: bigint) => ToDo.call.item(address, index), 1n)
+  return useIteratorContextQuery(total, (index: bigint) => ToDo.call.item(address, index), 1n)
 }
 
 type ToDoItemList = ReturnType<typeof useItems>['data']
@@ -192,7 +192,7 @@ function List({ list, title, status }: { list: ToDoItemList; title: string; stat
 export function HomeData() {
   const { address = zeroAddress } = useAccount()
 
-  const total = useSingleGlobalQuery(ToDo.call.numItems(address).defaultTo(0n))
+  const total = useSingleContextQuery(ToDo.call.numItems(address).defaultTo(0n))
   const items = useItems(total.data, address)
   const classifiedItems = useMemo(
     () =>

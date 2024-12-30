@@ -107,3 +107,12 @@ export type ReadContractsResult = {
 export type GetItemCallFunction<T> = (index: bigint) => Request & {
   defaultValue: T
 }
+
+export type QueryContextProps = {
+  /** Whether to update queries on new blocks */
+  watchBlocks?: boolean
+  /** How many blocks to wait before refecthing queries*/
+  blocksRefetchInterval?: number
+  /** Default batch size for multicalls */
+  defaultBatchSize?: number
+}
