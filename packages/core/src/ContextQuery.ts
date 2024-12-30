@@ -10,7 +10,7 @@ import {
   useRequestString,
   useResultData,
 } from './queryHooks.js'
-import { useContextQueryContext } from './ContextQueryManager.js'
+import { useQueryContextProvider } from './ContextQueryManager.js'
 /**
  * Hook to execute contract queries through the global query manager
  *
@@ -46,7 +46,7 @@ export function useContextQuery<T extends RequestCollection>(
   data: { [K in keyof T]: NonNullable<T[K]['defaultValue']> }
 } {
   const requestString = useRequestString(requests)
-  const queryManager = useContextQueryContext()
+  const queryManager = useQueryContextProvider()
   const [result, setResult] = useState<ReadContractsResult>({
     isLoading: true,
     isError: false,

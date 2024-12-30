@@ -52,6 +52,7 @@ export function useQuery<T extends RequestCollection>(
         functionName: req.method,
         args: req.args,
         address: req.address || addressResolver?.(req.contractName) || req.deployAddress!,
+        chainId: req.chainId,
       }
     })
   }, [requestString])

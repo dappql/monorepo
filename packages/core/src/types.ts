@@ -7,6 +7,7 @@ export type Request = {
   address?: Address
   deployAddress?: Address
   defaultValue?: unknown
+  chainId?: number
   getAbi: () => Abi
 }
 export type RequestCollection = Record<string, Request>

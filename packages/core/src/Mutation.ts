@@ -45,6 +45,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   confirmation: ReturnType<typeof useWaitForTransactionReceipt>
   isLoading: boolean
   send: (...args: Args) => void
+  simulate: (...args: Args) => Promise<boolean>
 } {
   const { addressResolver, onMutationUpdate, simulateMutations } = useDappQL()
 
@@ -76,6 +77,19 @@ export function useMutation<M extends string, Args extends readonly any[]>(
     functionName: config.functionName,
     transactionName: options?.transactionName || '',
   }
+
+  const simulate = useCallback(
+    async (...args: Args) => {
+      return !!(await client?.simulateContract({
+        abi: config.getAbi(),
+        functionName: config.functionName,
+        address,
+        args,
+        account,
+      }))
+    },
+    [address, config, account, chain?.id, client],
+  )
 
   const send = useCallback(
     (...args: NonNullable<Args>) => {
@@ -126,14 +140,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
       }
 
       if ((options?.simulate ?? simulateMutations) && client) {
-        client
-          .simulateContract({
-            abi: config.getAbi(),
-            functionName: config.functionName,
-            address,
-            args,
-            account,
-          })
+        simulate(...(args as Args))
           .then(sendTx)
           .catch((error) => {
             onMutationUpdate?.({
@@ -148,7 +155,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
         sendTx()
       }
     },
-    [address, tx, config, account, chain?.id, options?.simulate, simulateMutations, client],
+    [address, tx, config, account, chain?.id, options?.simulate, simulateMutations, client, simulate],
   )
 
   const confirmation = useWaitForTransactionReceipt({ hash: tx.data })
@@ -159,9 +166,10 @@ export function useMutation<M extends string, Args extends readonly any[]>(
       confirmation,
       isLoading: tx.isPending || confirmation.isLoading,
       send,
+      simulate,
     }),
 
-    [tx, send, confirmation],
+    [tx, send, confirmation, simulate],
   )
 }
 

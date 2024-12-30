@@ -15,15 +15,9 @@ import {
   Textarea,
   VStack,
 } from '@chakra-ui/react'
-import {
-  useIteratorContextQuery,
-  useIteratorQuery,
-  useMutation,
-  useSingleContextQuery,
-  useSingleQuery,
-} from '@dappql/core'
+import { useIteratorContextQuery, useMutation, useSingleContextQuery } from '@dappql/core'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Address, zeroAddress } from 'viem'
 
@@ -94,9 +88,13 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
           disabled={!content}
           flex={1}
           size="xs"
-          onClick={() => {
+          onClick={async () => {
             if (item) {
-              updateItem.send(item.queryIndex, content, BigInt(status))
+              try {
+                updateItem.send(item.queryIndex, content, BigInt(status))
+              } catch (e) {
+                console.error(e)
+              }
             } else {
               addItem.send(content, BigInt(status))
             }

@@ -187,6 +187,6 @@ export function ContextQueryProvider({
   return <QueryContext.Provider value={queryManager}>{children}</QueryContext.Provider>
 }
 
-export function useContextQueryContext() {
+export function useQueryContextProvider() {
   return useContext(QueryContext)
 }
