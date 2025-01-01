@@ -5,6 +5,7 @@ import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteCont
 
 import { MutationInfo, type MutationConfig } from './types.js'
 import { useDappQL } from './Context.js'
+import { WriteContractErrorType } from 'wagmi/actions'
 
 function useSimulate<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
@@ -89,9 +90,20 @@ export type MutationOptions =
 export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
-): ReturnType<typeof useWriteContract> & {
-  confirmation: ReturnType<typeof useMutationConfirmation>
+): {
+  status: 'pending' | 'success' | 'error' | 'idle'
+  data: Address | undefined
+  error: WriteContractErrorType | null
+  isPending: boolean
+  isSuccess: boolean
+  isError: boolean
   isLoading: boolean
+  failureCount: number
+  failureReason: WriteContractErrorType | null
+  isIdle: boolean
+  submittedAt: number
+  confirmation: ReturnType<typeof useMutationConfirmation>
+  reset: () => void
   send: (...args: Args) => void
   simulate: ReturnType<typeof useSimulate<M, Args>>
   estimate: ReturnType<typeof useEstimate<M, Args>>
@@ -198,12 +210,21 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   )
 
   const confirmation = useMutationConfirmation(tx.data)
-
   return useMemo(
     () => ({
-      ...tx,
-      confirmation,
+      status: tx.status,
+      data: tx.data,
+      error: tx.error,
+      isPending: tx.isPending,
+      isSuccess: tx.isSuccess,
+      isError: tx.isError,
       isLoading: tx.isPending || confirmation.isLoading,
+      failureCount: tx.failureCount,
+      failureReason: tx.failureReason,
+      isIdle: tx.isIdle,
+      submittedAt: tx.submittedAt,
+      confirmation,
+      reset: tx.reset,
       send,
       simulate,
       estimate,
