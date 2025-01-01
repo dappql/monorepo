@@ -238,4 +238,4 @@ export function useMutation<M extends string, Args extends readonly any[]>(
  * Return type of the useMutation hook
  * Includes transaction state, confirmation status, and send function
  */
-export type Mutation = ReturnType<typeof useMutation>
+export type Mutation<M extends string, Args extends readonly any[]> = ReturnType<typeof useMutation<M, Args>>
