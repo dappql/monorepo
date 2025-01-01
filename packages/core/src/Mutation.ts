@@ -1,10 +1,14 @@
 import { useCallback, useMemo } from 'react'
 
-import { type Address } from 'viem'
+import { Account, Chain, Abi, SimulateContractReturnType, type Address } from 'viem'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { MutationInfo, type MutationConfig } from './types.js'
 import { useDappQL } from './Context.js'
+
+function useMutationConfirmation(hash: `0x${string}` | undefined) {
+  return useWaitForTransactionReceipt({ hash })
+}
 
 /**
  * Configuration options for mutations
@@ -42,10 +46,13 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   config: MutationConfig<M, Args>,
   optionsOrTransactionName?: MutationOptions,
 ): ReturnType<typeof useWriteContract> & {
-  confirmation: ReturnType<typeof useWaitForTransactionReceipt>
+  confirmation: ReturnType<typeof useMutationConfirmation>
   isLoading: boolean
   send: (...args: Args) => void
-  simulate: (...args: Args) => Promise<boolean>
+  simulate: (
+    ...args: Args
+  ) => Promise<SimulateContractReturnType<Abi, M, Args, Chain, Account | undefined, Chain | undefined, `0x${string}`>>
+  estimate: (...args: Args) => Promise<bigint>
 } {
   const { addressResolver, onMutationUpdate, simulateMutations } = useDappQL()
 
@@ -80,13 +87,28 @@ export function useMutation<M extends string, Args extends readonly any[]>(
 
   const simulate = useCallback(
     async (...args: Args) => {
-      return !!(await client?.simulateContract({
+      if (!client) throw new Error('No client')
+      return await client?.simulateContract({
         abi: config.getAbi(),
         functionName: config.functionName,
         address,
         args,
         account,
-      }))
+      })
+    },
+    [address, config, account, chain?.id, client],
+  )
+
+  const estimate = useCallback(
+    async (...args: Args) => {
+      if (!client) throw new Error('No client')
+      return await client?.estimateContractGas({
+        abi: config.getAbi(),
+        functionName: config.functionName,
+        address,
+        args,
+        account,
+      })
     },
     [address, config, account, chain?.id, client],
   )
@@ -114,6 +136,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
             abi: config.getAbi(),
             functionName: config.functionName,
             address,
+            chainId: chain?.id,
             args,
           },
           {
@@ -158,7 +181,7 @@ export function useMutation<M extends string, Args extends readonly any[]>(
     [address, tx, config, account, chain?.id, options?.simulate, simulateMutations, client, simulate],
   )
 
-  const confirmation = useWaitForTransactionReceipt({ hash: tx.data })
+  const confirmation = useMutationConfirmation(tx.data)
 
   return useMemo(
     () => ({
@@ -167,9 +190,10 @@ export function useMutation<M extends string, Args extends readonly any[]>(
       isLoading: tx.isPending || confirmation.isLoading,
       send,
       simulate,
+      estimate,
     }),
 
-    [tx, send, confirmation, simulate],
+    [tx, send, confirmation, simulate, estimate],
   )
 }
 

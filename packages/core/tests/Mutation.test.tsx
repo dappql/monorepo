@@ -91,6 +91,7 @@ describe('useMutation', () => {
         functionName: MUTATION_CONFIG.functionName,
         address: MUTATION_CONFIG.deployAddress,
         args: [123n],
+        chainId: 1,
       },
       expect.any(Object),
     )
@@ -346,5 +347,57 @@ describe('useMutation', () => {
 
     // Verify address resolver was not called
     expect(mockAddressResolver).not.toHaveBeenCalled()
+  })
+
+  it('handles gas estimation', async () => {
+    const mockEstimateGas = vi.fn().mockResolvedValue(200000n)
+    ;(usePublicClient as any).mockReturnValue({
+      estimateContractGas: mockEstimateGas,
+    })
+
+    const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
+    })
+
+    // Call estimate function
+    const estimatedGas = result.current.estimate(123n)
+
+    // Verify estimation was called with correct params
+    expect(mockEstimateGas).toHaveBeenCalledWith({
+      abi: MUTATION_CONFIG.getAbi(),
+      functionName: MUTATION_CONFIG.functionName,
+      address: MUTATION_CONFIG.deployAddress,
+      args: [123n],
+      account: '0x456',
+    })
+
+    // Verify the returned value
+    await expect(estimatedGas).resolves.toBe(200000n)
+  })
+
+  it('handles gas estimation errors', async () => {
+    const mockError = new Error('Gas estimation failed')
+    const mockEstimateGas = vi.fn().mockRejectedValue(mockError)
+    ;(usePublicClient as any).mockReturnValue({
+      estimateContractGas: mockEstimateGas,
+    })
+
+    const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
+    })
+
+    // Call estimate function and expect it to throw
+    await expect(result.current.estimate(123n)).rejects.toThrow('Gas estimation failed')
+  })
+
+  it('throws error when trying to estimate gas without a client', async () => {
+    ;(usePublicClient as any).mockReturnValue(null)
+
+    const { result } = renderHook(() => useMutation(MUTATION_CONFIG, 'Set Value'), {
+      wrapper: ({ children }) => <DappQLProvider>{children}</DappQLProvider>,
+    })
+
+    // Call estimate function and expect it to throw
+    await expect(result.current.estimate(123n)).rejects.toThrow('No client')
   })
 })

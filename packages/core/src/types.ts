@@ -17,6 +17,7 @@ export type MutationConfig<M extends string, Args extends readonly any[]> = {
   functionName: M
   deployAddress?: Address
   argsType?: Args
+  chainId?: number
   getAbi: () => Abi
 }
 export type MutationCollection<T extends Record<string, MutationConfig<any, any>>> = T
