@@ -50,8 +50,8 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
   const [content, setContent] = useState(item?.value.content || '')
   const [status, setStatus] = useState((defaultStatus || item?.value.status || STATUS_IDS.Pending).toString())
 
-  const addItem = useMutation(ToDo.mutation('addItem'))
-  const updateItem = useMutation(ToDo.mutation('updateItem'))
+  const addItem = useMutation(ToDo.mutation.addItem)
+  const updateItem = useMutation(ToDo.mutation.updateItem)
   const confirmed = !!(addItem.confirmation.data || updateItem.confirmation.data)
 
   useEffect(() => {
@@ -107,7 +107,7 @@ function EditItem({ item, onClose, defaultStatus }: { item?: ToDoItem; onClose: 
 }
 
 function Item({ item }: { item: ToDoItem }) {
-  const updateStatus = useMutation(ToDo.mutation('updateStatus'))
+  const updateStatus = useMutation(ToDo.mutation.updateStatus)
   const [editing, setEditing] = useState(false)
   const [side, setSide] = useState<'left' | 'right'>()
   return (
