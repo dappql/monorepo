@@ -1,10 +1,54 @@
 import { useCallback, useMemo } from 'react'
 
-import { Account, Chain, Abi, SimulateContractReturnType, type Address } from 'viem'
+import { Chain, type Address, PublicClient } from 'viem'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
 import { MutationInfo, type MutationConfig } from './types.js'
 import { useDappQL } from './Context.js'
+
+function useSimulate<M extends string, Args extends readonly any[]>(
+  config: MutationConfig<M, Args>,
+  address: Address,
+  account: Address | undefined,
+  chain: Chain | undefined,
+  client: PublicClient | undefined,
+) {
+  return useCallback(
+    async (...args: Args) => {
+      if (!client) throw new Error('No client')
+      return await client?.simulateContract({
+        abi: config.getAbi(),
+        functionName: config.functionName,
+        address,
+        args,
+        account,
+      })
+    },
+    [address, config, account, chain?.id, client],
+  )
+}
+
+function useEstimate<M extends string, Args extends readonly any[]>(
+  config: MutationConfig<M, Args>,
+  address: Address,
+  account: Address | undefined,
+  chain: Chain | undefined,
+  client: PublicClient | undefined,
+) {
+  return useCallback(
+    async (...args: Args) => {
+      if (!client) throw new Error('No client')
+      return await client?.estimateContractGas({
+        abi: config.getAbi(),
+        functionName: config.functionName,
+        address,
+        args,
+        account,
+      })
+    },
+    [address, config, account, chain?.id, client],
+  )
+}
 
 function useMutationConfirmation(hash: `0x${string}` | undefined) {
   return useWaitForTransactionReceipt({ hash })
@@ -49,10 +93,8 @@ export function useMutation<M extends string, Args extends readonly any[]>(
   confirmation: ReturnType<typeof useMutationConfirmation>
   isLoading: boolean
   send: (...args: Args) => void
-  simulate: (
-    ...args: Args
-  ) => Promise<SimulateContractReturnType<Abi, M, Args, Chain, Account | undefined, Chain | undefined, `0x${string}`>>
-  estimate: (...args: Args) => Promise<bigint>
+  simulate: ReturnType<typeof useSimulate<M, Args>>
+  estimate: ReturnType<typeof useEstimate<M, Args>>
 } {
   const { addressResolver, onMutationUpdate, simulateMutations } = useDappQL()
 
@@ -85,34 +127,8 @@ export function useMutation<M extends string, Args extends readonly any[]>(
     transactionName: options?.transactionName || '',
   }
 
-  const simulate = useCallback(
-    async (...args: Args) => {
-      if (!client) throw new Error('No client')
-      return await client?.simulateContract({
-        abi: config.getAbi(),
-        functionName: config.functionName,
-        address,
-        args,
-        account,
-      })
-    },
-    [address, config, account, chain?.id, client],
-  )
-
-  const estimate = useCallback(
-    async (...args: Args) => {
-      if (!client) throw new Error('No client')
-      return await client?.estimateContractGas({
-        abi: config.getAbi(),
-        functionName: config.functionName,
-        address,
-        args,
-        account,
-      })
-    },
-    [address, config, account, chain?.id, client],
-  )
-
+  const simulate = useSimulate(config, address, account, chain, client)
+  const estimate = useEstimate(config, address, account, chain, client)
   const send = useCallback(
     (...args: NonNullable<Args>) => {
       const now = Date.now()
