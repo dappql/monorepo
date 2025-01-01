@@ -131,7 +131,15 @@ function getMutation<M extends Mutations>(functionName: M) {
   }
 }
 
-export const mutation = {
+export const mutation:  {
+  [K in Mutations]: {
+    contractName: '{{CONTRACT_NAME}}'
+    deployAddress: Address | undefined
+    getAbi: () => typeof abi
+    functionName: K
+    argsType: ExtractArgs<Contract['mutations'][K]> | undefined
+  }
+} = {
 ${writeMethods.map((m) => `\t\t${m}: getMutation('${m}'),`).join('\n')}
 }
 `

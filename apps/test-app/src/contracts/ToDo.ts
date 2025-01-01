@@ -7,123 +7,123 @@ import { ExtractArgs } from '@dappql/core'
 import { Address } from 'viem'
 
 export const abi = [
-    {
-        "type": "function",
-        "name": "addItem",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "_content",
-                "type": "string"
-            },
-            {
-                "name": "_status",
-                "type": "uint256"
-            }
+  {
+    type: 'function',
+    name: 'addItem',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: '_content',
+        type: 'string',
+      },
+      {
+        name: '_status',
+        type: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'updateItem',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+      },
+      {
+        name: '_content',
+        type: 'string',
+      },
+      {
+        name: '_status',
+        type: 'uint256',
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'updateStatus',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: '_id',
+        type: 'uint256',
+      },
+      {
+        name: '_status',
+        type: 'uint256',
+      },
+    ],
+    outputs: [],
+  },
+  {
+    type: 'function',
+    name: 'numItems',
+    stateMutability: 'view',
+    inputs: [
+      {
+        name: 'arg0',
+        type: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'item',
+    stateMutability: 'view',
+    inputs: [
+      {
+        name: 'arg0',
+        type: 'address',
+      },
+      {
+        name: 'arg1',
+        type: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          {
+            name: 'user',
+            type: 'address',
+          },
+          {
+            name: 'timestamp',
+            type: 'uint256',
+          },
+          {
+            name: 'content',
+            type: 'string',
+          },
+          {
+            name: 'status',
+            type: 'uint256',
+          },
+          {
+            name: 'lastUpdated',
+            type: 'uint256',
+          },
         ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ]
-    },
-    {
-        "type": "function",
-        "name": "updateItem",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "_id",
-                "type": "uint256"
-            },
-            {
-                "name": "_content",
-                "type": "string"
-            },
-            {
-                "name": "_status",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
-        "name": "updateStatus",
-        "stateMutability": "nonpayable",
-        "inputs": [
-            {
-                "name": "_id",
-                "type": "uint256"
-            },
-            {
-                "name": "_status",
-                "type": "uint256"
-            }
-        ],
-        "outputs": []
-    },
-    {
-        "type": "function",
-        "name": "numItems",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "name": "arg0",
-                "type": "address"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint256"
-            }
-        ]
-    },
-    {
-        "type": "function",
-        "name": "item",
-        "stateMutability": "view",
-        "inputs": [
-            {
-                "name": "arg0",
-                "type": "address"
-            },
-            {
-                "name": "arg1",
-                "type": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "tuple",
-                "components": [
-                    {
-                        "name": "user",
-                        "type": "address"
-                    },
-                    {
-                        "name": "timestamp",
-                        "type": "uint256"
-                    },
-                    {
-                        "name": "content",
-                        "type": "string"
-                    },
-                    {
-                        "name": "status",
-                        "type": "uint256"
-                    },
-                    {
-                        "name": "lastUpdated",
-                        "type": "uint256"
-                    }
-                ]
-            }
-        ]
-    }
+      },
+    ],
+  },
 ] as const
 
 export const deployAddress: Address | undefined = '0x29B63f08aBa4Be48873238C23693a5550bC1E93F'
@@ -131,16 +131,17 @@ export const deployAddress: Address | undefined = '0x29B63f08aBa4Be48873238C2369
 export type Contract = {
   calls: {
     numItems: (arg0: `0x${string}`) => Promise<bigint>
-    item: (arg0: `0x${string}`, arg1: bigint) => Promise<{ user: `0x${string}`; timestamp: bigint; content: string; status: bigint; lastUpdated: bigint }>
+    item: (
+      arg0: `0x${string}`,
+      arg1: bigint,
+    ) => Promise<{ user: `0x${string}`; timestamp: bigint; content: string; status: bigint; lastUpdated: bigint }>
   }
   mutations: {
     addItem: (content: string, status: bigint) => Promise<bigint>
     updateItem: (id: bigint, content: string, status: bigint) => Promise<void>
     updateStatus: (id: bigint, status: bigint) => Promise<void>
   }
-  events: {
-    
-  }
+  events: {}
 }
 
 export type Calls = keyof Contract['calls']
@@ -152,10 +153,7 @@ export type Request<M extends Calls> = {
   deployAddress: Address | undefined
   defaultValue: Awaited<ReturnType<Contract['calls'][M]>> | undefined
   getAbi: () => typeof abi
-  with: (options: {
-    contractAddress?: Address
-    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
-  }) => Request<M>
+  with: (options: { contractAddress?: Address; defaultValue?: Awaited<ReturnType<Contract['calls'][M]>> }) => Request<M>
   defaultTo: (defaultValue: Awaited<ReturnType<Contract['calls'][M]>>) => Request<M>
   at: (address: Address) => Request<M>
 }
@@ -165,56 +163,50 @@ function getRequest<M extends Calls>(
   method: M,
   args: ExtractArgs<Contract['calls'][M]>,
   contractAddressOrOptions?:
-  | Address
-  | {
-    contractAddress?: Address
-    defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
-    },
-  ): Request<M> {
-    const address =
-      typeof contractAddressOrOptions === 'string' ? contractAddressOrOptions : contractAddressOrOptions?.contractAddress
-    const defaultValue = typeof contractAddressOrOptions === 'string' ? undefined : contractAddressOrOptions?.defaultValue
-
-    const call = {
-      contractName: 'ToDo' as const,
-      method,
-      args,
-      address,
-      deployAddress,
-      defaultValue,
-      getAbi: () => abi,
-      with: (options: {
+    | Address
+    | {
         contractAddress?: Address
         defaultValue?: Awaited<ReturnType<Contract['calls'][M]>>
-      }) => {
-          call.address = options.contractAddress
-          call.defaultValue = options.defaultValue
-          return call as Request<M>
       },
-      defaultTo: (defaultValue: Awaited<ReturnType<Contract['calls'][M]>>) => {
-        call.defaultValue = defaultValue
-        return call as Request<M>
-      },
-      at: (address: Address) => {
-        call.address = address
-        return call as Request<M>
-      },
-    } as Request<M>
+): Request<M> {
+  const address =
+    typeof contractAddressOrOptions === 'string' ? contractAddressOrOptions : contractAddressOrOptions?.contractAddress
+  const defaultValue = typeof contractAddressOrOptions === 'string' ? undefined : contractAddressOrOptions?.defaultValue
 
-    return call
+  const call = {
+    contractName: 'ToDo' as const,
+    method,
+    args,
+    address,
+    deployAddress,
+    defaultValue,
+    getAbi: () => abi,
+    with: (options: { contractAddress?: Address; defaultValue?: Awaited<ReturnType<Contract['calls'][M]>> }) => {
+      call.address = options.contractAddress
+      call.defaultValue = options.defaultValue
+      return call as Request<M>
+    },
+    defaultTo: (defaultValue: Awaited<ReturnType<Contract['calls'][M]>>) => {
+      call.defaultValue = defaultValue
+      return call as Request<M>
+    },
+    at: (address: Address) => {
+      call.address = address
+      return call as Request<M>
+    },
+  } as Request<M>
+
+  return call
 }
 
 type CallType = {
-  [K in Calls]: (
-    ...args: ExtractArgs<Contract['calls'][K]>
-  ) => ReturnType<typeof getRequest<K>>
+  [K in Calls]: (...args: ExtractArgs<Contract['calls'][K]>) => ReturnType<typeof getRequest<K>>
 }
 
 export const call: CallType = {
-		numItems: (...args: ExtractArgs<Contract['calls']['numItems']>) => getRequest('numItems', args),
-		item: (...args: ExtractArgs<Contract['calls']['item']>) => getRequest('item', args),
+  numItems: (...args: ExtractArgs<Contract['calls']['numItems']>) => getRequest('numItems', args),
+  item: (...args: ExtractArgs<Contract['calls']['item']>) => getRequest('item', args),
 }
-
 
 export type Mutations = keyof Contract['mutations']
 function getMutation<M extends Mutations>(functionName: M) {
@@ -227,9 +219,16 @@ function getMutation<M extends Mutations>(functionName: M) {
   }
 }
 
-export const mutation = {
-		addItem: getMutation('addItem'),
-		updateItem: getMutation('updateItem'),
-		updateStatus: getMutation('updateStatus'),
+export const mutation: {
+  [K in Mutations]: {
+    contractName: 'ToDo'
+    deployAddress: Address | undefined
+    getAbi: () => typeof abi
+    functionName: K
+    argsType: ExtractArgs<Contract['mutations'][K]> | undefined
+  }
+} = {
+  addItem: getMutation('addItem'),
+  updateItem: getMutation('updateItem'),
+  updateStatus: getMutation('updateStatus'),
 }
-

@@ -23,6 +23,25 @@ const typeMap: Record<string, string> = {
   bytes: '`0x${string}`',
 }
 
+type ParamType = {
+  name: string
+  type: string
+  isOptional: boolean
+}
+
+export function extractParamsList(funcs: AbiFunction[]): ParamType[] {
+  const sortedFuncs = funcs.sort((a, b) => (b.inputs?.length || 0) - (a.inputs?.length || 0))
+  const baseFunc = sortedFuncs[0]
+
+  return (
+    baseFunc.inputs?.map((input, i) => ({
+      name: input.name.replace('_', ''),
+      type: getSolidityToTsType(input),
+      isOptional: sortedFuncs.some((f) => (f.inputs?.length || 0) < i + 1),
+    })) || []
+  )
+}
+
 function generateContractTypes(abi: readonly AbiFunction[]) {
   const functions = abi.filter((item) => item.type === 'function')
   const events = abi.filter((item) => item.type === 'event')
@@ -63,19 +82,11 @@ function generateContractTypes(abi: readonly AbiFunction[]) {
 }
 
 function generateOverloadedType(name: string, funcs: AbiFunction[]) {
-  // Sort by input length in descending order to get the most parameters first
-  const sortedFuncs = funcs.sort((a, b) => (b.inputs?.length || 0) - (a.inputs?.length || 0))
-  const baseFunc = sortedFuncs[0]
+  const params = extractParamsList(funcs)
+    .map(({ name, type, isOptional }) => `${name}${isOptional ? '?' : ''}: ${type}`)
+    .join(', ')
 
-  const params =
-    baseFunc.inputs
-      ?.map((input, i) => {
-        // Parameter is optional if any function signature has fewer parameters than this index
-        const isOptional = sortedFuncs.some((f) => (f.inputs?.length || 0) < i + 1)
-        return `${input.name.replace('_', '')}${isOptional ? '?' : ''}: ${getSolidityToTsType(input)}`
-      })
-      .join(', ') || ''
-
+  const baseFunc = funcs[0]
   const output =
     baseFunc.outputs && baseFunc.outputs.length === 1
       ? getSolidityToTsType(baseFunc.outputs[0])
