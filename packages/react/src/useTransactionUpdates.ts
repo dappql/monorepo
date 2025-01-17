@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from 'react'
 import { Address, PublicClient } from 'viem'
 import { usePublicClient } from 'wagmi'
-import { MutationInfo } from './types.js'
+import { MutationInfo } from '../../shared/types.js'
+
 // Store refs for watching state outside the effect
 const storageKey = 'pending-transactions'
 

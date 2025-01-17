@@ -14,7 +14,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { Abi, stringify, Address } from 'viem'
 import { useReadContracts } from 'wagmi'
-import { RequestCollection, AddressResolverFunction, Request, ReadContractsResult, QueryContextProps } from './types.js'
+import {
+  RequestCollection,
+  AddressResolverFunction,
+  Request,
+  ReadContractsResult,
+  QueryContextProps,
+} from '../../shared/types.js'
 import { useDappQL, useRefetchOnBlockChange } from './Context.js'
 
 type Query = { collection: RequestCollection; callBack: (result: ReadContractsResult) => void }

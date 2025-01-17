@@ -3,7 +3,7 @@
 /* eslint-disable */
 /* @ts-nocheck */
 
-import { ExtractArgs } from '@dappql/core'
+import { ExtractArgs } from '@dappql/react'
 import { Address } from 'viem'
 
 export const abi = [

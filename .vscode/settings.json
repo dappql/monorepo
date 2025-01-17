@@ -8,7 +8,22 @@
     }
   ],
   "workbench.colorCustomizations": {
-    "tab.activeBackground": "#4864a470"
+    "editor.background": "#000000",
+    "tab.activeBackground": "#4864a470",
+    "titleBar.activeBackground": "#c1414c",
+    "titleBar.activeForeground": "#000000",
+    "titleBar.inactiveBackground": "#c1414c",
+    "titleBar.inactiveForeground": "#000000",
+    "titleBar.border": "#c1414c",
+    "activityBar.background": "#c1414c",
+    "activityBar.foreground": "#000000",
+    "statusBar.background": "#c1414c",
+    "statusBar.foreground": "#000000",
+    "statusBar.debuggingBackground": "#c1414c",
+    "statusBar.debuggingForeground": "#000000",
+    "tab.activeBorder": "#c1414c",
+    "iLoveWorkSpaceColors": true,
+    "iLoveWorkSpaceRandom": false
   },
   "apc.stylesheet": {
     ".nostatusbar": "border-bottom: 2px solid #16b22170; box-sizing: border-box;"

@@ -1,13 +1,13 @@
 {
-  "name": "@dappql/core",
-  "version": "1.0.39",
+  "name": "@dappql/react",
+  "version": "1.0.0",
   "description": "Streamlined smart contract data fetching library for React dApps with TypeScript support",
   "author": "DappQL Team",
   "type": "module",
   "keywords": [
     "wagmi",
     "viem",
-    "typechain",
+    "typescript",
     "blockchain",
     "smart-contracts",
     "dapp",
@@ -20,18 +20,25 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest --coverage",
     "dev": "pnpm exec tsc -b -w",
-    "build": "pnpm exec tsc -b",
+    "build": "del-cli dist && tsc",
     "version:bump": "bump patch --commit --push",
     "publish:npm": "pnpm publish --access public --no-workspace-root",
     "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm --no-git-checks --access public"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/react/src/index.js",
+  "types": "dist/react/src/index.d.ts",
   "files": [
-    "/dist"
+    "dist"
   ],
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/react/src/index.d.ts",
+      "default": "./dist/react/src/index.js"
+    },
+    "./shared/*": {
+      "types": "./dist/shared/*.d.ts",
+      "default": "./dist/shared/*.js"
+    }
   },
   "repository": {
     "type": "git",

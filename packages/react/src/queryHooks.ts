@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { stringify } from 'viem'
-import { GetItemCallFunction, ReadContractsResult, RequestCollection } from './types.js'
+import { ReadContractsResult, RequestCollection } from '../../shared/types.js'
 
 export function useRequestString<T extends RequestCollection>(requests: T) {
   return useMemo(() => stringify(requests), [stringify(requests)])
@@ -51,16 +51,6 @@ export function useResultData<T extends RequestCollection>(
       return acc
     }, {} as ResultData)
   }, [stringify(result.data), result.error, defaultData])
-}
-
-export function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
-  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
-  const iterator = Array.from(new Array(Number(total)).keys())
-  return iterator.reduce((acc, index) => {
-    const realIndex = BigInt(index) + firstIndex
-    acc[`item${realIndex}`] = getItem(realIndex)
-    return acc
-  }, {} as FinalQuery)
 }
 
 export type IteratorQueryResultData<T> = { value: NonNullable<T>; queryIndex: bigint }[]

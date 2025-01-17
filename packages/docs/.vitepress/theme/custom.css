@@ -1,0 +1,41 @@
+:root {
+  --vp-c-brand: #057aff;
+  --vp-c-brand-light: #3386ff;
+  --vp-c-brand-lighter: #66a4ff;
+  --vp-c-brand-dark: #0062cc;
+  --vp-c-brand-darker: #004999;
+
+  /* Link colors */
+  --vp-c-text-1: #ffffff;
+  --vp-c-text-2: #9e9e9e;
+  --vp-c-text-3: #757575;
+
+  /* Accent colors */
+  --vp-c-indigo-1: #057aff;
+  --vp-c-indigo-2: #3386ff;
+  --vp-c-indigo-3: #66a4ff;
+
+  /* Button brand colors */
+  --vp-button-brand-bg: var(--vp-c-brand);
+  --vp-button-brand-border: var(--vp-c-brand-dark);
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-hover-bg: var(--vp-c-brand-light);
+  --vp-button-brand-hover-border: var(--vp-c-brand-lighter);
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-active-bg: var(--vp-c-brand-dark);
+  --vp-button-brand-active-border: var(--vp-c-brand-darker);
+  --vp-button-brand-active-text: #ffffff;
+}
+
+/* Ensure links are visible in dark mode */
+.dark {
+  --vp-c-link: #3386ff;
+  --vp-c-link-hover: #66a4ff;
+}
+
+.VPNavBar.top .title {
+  visibility: hidden !important;
+}
+.VPNavBar.has-sidebar.top .title {
+  visibility: visible !important;
+}

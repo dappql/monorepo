@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { RequestCollection, ReadContractsResult, Request, GetItemCallFunction } from './types.js'
+import { RequestCollection, ReadContractsResult, Request, GetItemCallFunction } from '../../shared/types.js'
 import {
-  buildIteratorQuery,
   IteratorQueryResult,
   useCallKeys,
   useDefaultData,
@@ -11,6 +10,7 @@ import {
   useResultData,
 } from './queryHooks.js'
 import { useQueryContextProvider } from './ContextQueryManager.js'
+import { buildIteratorQuery } from './buildIteratorQuery.js'
 /**
  * Hook to execute contract queries through the global query manager
  *

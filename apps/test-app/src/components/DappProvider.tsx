@@ -1,4 +1,4 @@
-import { DappQLProvider, MutationInfo } from '@dappql/core'
+import { DappQLProvider, MutationInfo } from '@dappql/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { connectorsForWallets, darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'

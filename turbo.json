@@ -4,6 +4,22 @@
     "**/.env"
   ],
   "tasks": {
+    "docs:build": {
+      "dependsOn": [
+        "^docs:build"
+      ],
+      "outputs": [
+        "docs/.vitepress/dist/**"
+      ]
+    },
+    "docs:dev": {
+      "dependsOn": [
+        "^docs:dev"
+      ],
+      "outputs": [
+        "docs/.vitepress/dist/**"
+      ]
+    },
     "build": {
       "dependsOn": [
         "^build"

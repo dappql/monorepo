@@ -1,4 +1,5 @@
 {
+  "name": "dappql-monorepo",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -7,6 +8,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "docs:dev": "turbo docs:dev",
+    "docs:build": "turbo docs:build",
     "lint": "turbo lint",
     "types": "turbo types",
     "test": "turbo test",
@@ -15,6 +18,7 @@
     "ship:cli": "cd packages/cli && pnpm ship"
   },
   "devDependencies": {
+    "del-cli": "^6.0.0",
     "prettier": "^3.3.3",
     "turbo": "^2.3.0",
     "version-bump-prompt": "^6.1.0"
