@@ -22,8 +22,6 @@ export type MutationConfig<M extends string, Args extends readonly any[]> = {
 }
 export type MutationCollection<T extends Record<string, MutationConfig<any, any>>> = T
 
-export type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never
-
 /**
  * Configuration options for query operations
  */

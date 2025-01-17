@@ -18,6 +18,7 @@ const typeMap: Record<string, string> = {
   int16: 'number',
   int32: 'number',
   int64: 'bigint',
+  int80: 'bigint',
   int128: 'bigint',
   int256: 'bigint',
   bytes: '`0x${string}`',

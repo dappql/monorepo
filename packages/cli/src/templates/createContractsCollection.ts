@@ -33,8 +33,9 @@ function createContractFile(contract: ContractConfig & { contractName: string })
 /* eslint-disable */
 /* @ts-nocheck */
 
-${hasRead || hasWrite ? `import { ExtractArgs } from '@dappql/react'` : ''}
-import { Address } from 'viem'
+${hasRead || hasWrite ? `type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never` : ''}
+type Address = ${'`0x${string}`'}
+
 
 export const abi = ${JSON.stringify(contract.abi, undefined, 4)} as const
 

@@ -3,8 +3,8 @@
 /* eslint-disable */
 /* @ts-nocheck */
 
-import { ExtractArgs } from '@dappql/react'
-import { Address } from 'viem'
+type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never
+type Address = `0x${string}`
 
 export const abi = [
   {
