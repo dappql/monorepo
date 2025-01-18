@@ -1,7 +1,7 @@
 import { useContext, useEffect } from 'react'
 
 import { createContext } from 'react'
-import { MutationCallbacks, AddressResolverFunction } from '../../shared/types.js'
+import { MutationCallbacks, AddressResolverFunction } from './types.js'
 import { BlockSubscriptionManager } from './blocksHandler.js'
 
 /**

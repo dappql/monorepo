@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { useReadContracts } from 'wagmi'
 
-import { GetItemCallFunction, QueryOptions, type Request, type RequestCollection } from '../../shared/types.js'
+import { GetItemCallFunction, QueryOptions, type Request, type RequestCollection } from './types.js'
 import { useDappQL, useRefetchOnBlockChange } from './Context.js'
 import { IteratorQueryResult, useDefaultData, useIteratorQueryData, useResultData } from './queryHooks.js'
 import { useCallKeys } from './queryHooks.js'

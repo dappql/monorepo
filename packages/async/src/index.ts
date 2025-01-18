@@ -1,16 +1,52 @@
-import { Address, WalletClient, type PublicClient } from 'viem'
-import { multicall, writeContract } from 'viem/actions'
+import { Abi, AbiFunction, Address, TransactionReceipt, WalletClient, type PublicClient } from 'viem'
+import { multicall } from 'viem/actions'
 
-import {
-  AddressResolverFunction,
-  GetItemCallFunction,
-  type Request,
-  type RequestCollection,
-  MutationConfig,
-} from '../../shared/types.js'
-import { buildIteratorQuery } from './buildIteratorQuery.js'
+export type Request = {
+  contractName: string
+  method: AbiFunction['name']
+  args?: readonly any[]
+  address?: Address
+  deployAddress?: Address
+  defaultValue?: unknown
+  chainId?: number
+  getAbi: () => Abi
+}
+export type RequestCollection = Record<string, Request>
 
-export * from '../../shared/types.js'
+type MutationConfig<M extends string, Args extends readonly any[]> = {
+  contractName: string
+  functionName: M
+  deployAddress?: Address
+  argsType?: Args
+  chainId?: number
+  getAbi: () => Abi
+}
+
+export type MutationInfo = {
+  id: string
+  status: 'submitted' | 'signed' | 'success' | 'error'
+  account?: Address
+  address: Address
+  contractName: string
+  functionName: string
+  transactionName?: string
+  txHash?: Address
+  args?: readonly any[]
+  error?: Error
+  receipt?: TransactionReceipt
+}
+
+/**
+ * Function type for resolving contract names to addresses
+ */
+export type AddressResolverFunction = (contractName: string) => Address
+
+/**
+ * Function type for generating item queries at specific indices
+ */
+export type GetItemCallFunction<T> = (index: bigint) => Request & {
+  defaultValue: T
+}
 
 /**
  * Executes multiple contract read calls in a single multicall (non-hook version)
@@ -77,6 +113,16 @@ export type CountCall = Request & {
   defaultValue: bigint
 }
 
+function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
+  type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>
+  const iterator = Array.from(new Array(Number(total)).keys())
+  return iterator.reduce((acc, index) => {
+    const realIndex = BigInt(index) + firstIndex
+    acc[`item${realIndex}`] = getItem(realIndex)
+    return acc
+  }, {} as FinalQuery)
+}
+
 /**
  * Queries iterable data structures from smart contracts (non-hook version)
  * @param client Viem public client instance
@@ -120,13 +166,14 @@ export function mutate<M extends string, Args extends readonly any[]>(
   options: {
     address?: Address
     addressResolver?: AddressResolverFunction
+    value?: bigint
   } = {},
 ) {
   if (!client.chain || !client.account) {
     throw new Error('Client must be connected to a chain and account')
   }
 
-  const { address, addressResolver } = options
+  const { address, addressResolver, value } = options
   return (...args: Args) =>
     client.writeContract({
       address: address || addressResolver?.(mutation.contractName) || mutation.deployAddress!,
@@ -135,5 +182,6 @@ export function mutate<M extends string, Args extends readonly any[]>(
       args: args,
       chain: client.chain,
       account: client.account!,
+      value,
     })
 }

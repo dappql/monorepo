@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react'
 import { Chain, type Address, PublicClient } from 'viem'
 import { useAccount, usePublicClient, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 
-import { MutationInfo, type MutationConfig } from '../../shared/types.js'
+import { MutationInfo, type MutationConfig } from './types.js'
 import { useDappQL } from './Context.js'
 import { WriteContractErrorType } from 'wagmi/actions'
 

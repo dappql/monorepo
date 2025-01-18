@@ -1,6 +1,6 @@
 'use strict'
 
-import { GetItemCallFunction } from '../../shared/types.js'
+import { GetItemCallFunction } from './types.js'
 
 export function buildIteratorQuery<T>(total: bigint, firstIndex: bigint, getItem: GetItemCallFunction<T>) {
   type FinalQuery = Record<string, ReturnType<GetItemCallFunction<T>>>

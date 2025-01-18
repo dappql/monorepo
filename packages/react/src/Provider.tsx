@@ -2,12 +2,7 @@ import { type ComponentType, useMemo, useState } from 'react'
 
 import { useBlockNumberSubscriber } from './blocksHandler.js'
 import useTransactionUpdates from './useTransactionUpdates.js'
-import {
-  MutationCallbacks,
-  AddressResolverFunction,
-  AddressResolverProps,
-  QueryContextProps,
-} from '../../shared/types.js'
+import { MutationCallbacks, AddressResolverFunction, AddressResolverProps, QueryContextProps } from './types.js'
 import { DappQLContext } from './Context.js'
 import { ContextQueryProvider } from './ContextQueryManager.js'
 

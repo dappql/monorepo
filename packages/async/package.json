@@ -22,19 +22,15 @@
     "publish:npm": "pnpm publish --access public --no-workspace-root",
     "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm --no-git-checks --access public"
   },
-  "main": "dist/async/src/index.js",
-  "types": "dist/async/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "types": "./dist/async/src/index.d.ts",
-      "default": "./dist/async/src/index.js"
-    },
-    "./shared/*": {
-      "types": "./dist/shared/*.d.ts",
-      "default": "./dist/shared/*.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "repository": {

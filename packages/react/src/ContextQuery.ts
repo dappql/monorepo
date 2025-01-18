@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { RequestCollection, ReadContractsResult, Request, GetItemCallFunction } from '../../shared/types.js'
+import { RequestCollection, ReadContractsResult, Request, GetItemCallFunction } from './types.js'
 import {
   IteratorQueryResult,
   useCallKeys,

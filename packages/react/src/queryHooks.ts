@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { stringify } from 'viem'
-import { ReadContractsResult, RequestCollection } from '../../shared/types.js'
+import { ReadContractsResult, RequestCollection } from './types.js'
 
 export function useRequestString<T extends RequestCollection>(requests: T) {
   return useMemo(() => stringify(requests), [stringify(requests)])
