@@ -1,4 +1,5 @@
 import path from 'path'
+import { readFileSync } from 'fs'
 
 async function getAbiFromEtherscan(
   contractName: string,
@@ -27,11 +28,15 @@ export default function extractAbis(config: Config) {
       }
 
       if (config.abiSourcePath) {
-        const pathName = path.join(config.abiSourcePath, `${contractName}.json`)
+        const pathName = path.join(process.cwd(), config.abiSourcePath, `${contractName}.json`)
+
         try {
-          const abi = require(pathName) as AbiFunction[]
+          const abi = JSON.parse(readFileSync(pathName, 'utf8')) as AbiFunction[]
+
           return { ...contract, contractName, abi }
-        } catch {}
+        } catch (error) {
+          console.error('Error loading ABI from file:', error)
+        }
       }
 
       return getAbiFromEtherscan(contractName, contract, config.etherscanApiKey, config.etherscanApi)
