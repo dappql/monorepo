@@ -25,7 +25,7 @@ async function main() {
   const contractsWithAbis = contracts.filter((c) => !!c.abi)
   if (contractsWithAbis.length) {
     logger(`Generating DappQL code for:\n${contractsWithAbis.map((c) => `\n\t- ${c.contractName}`).join('')}\n`)
-    createContractsCollection(contractsWithAbis, config.targetPath, config.isModule)
+    createContractsCollection(contractsWithAbis, config.targetPath, config.isModule, config.isSdk)
     logger('\n\nDone! 🎉\n\n', Severity.success)
   }
 }

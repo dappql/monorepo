@@ -23,4 +23,5 @@ type Config = {
   etherscanApiKey?: string
   etherscanApi?: string
   isModule?: boolean
+  isSdk?: boolean
 }
