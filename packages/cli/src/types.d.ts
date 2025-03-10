@@ -14,7 +14,7 @@ type AbiFunction = {
   outputs?: AbiParameter[]
   anonymous?: boolean
 }
-type ContractConfig = { address?: Address; abi?: AbiFunction[] }
+type ContractConfig = { address?: Address; isTemplate?: boolean; abi?: AbiFunction[] }
 type Contracts = Record<string, ContractConfig>
 type Config = {
   contracts: Contracts

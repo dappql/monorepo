@@ -4,9 +4,12 @@ import { join } from 'path'
 import { RUNNING_DIRECTORY } from '../utils/constants.js'
 import touchDirectory from '../utils/touchDir.js'
 import generateContractTypes from '../utils/generateTypes.js'
-import { PublicClient } from 'viem'
 
-function createContractFile(contract: ContractConfig & { contractName: string }, isSdk?: boolean) {
+function createContractFile(
+  contract: ContractConfig & { contractName: string },
+  isSdk?: boolean,
+  isTemplate?: boolean,
+) {
   if (!contract.abi) {
     throw new Error('ABI not fetched')
   }
@@ -171,13 +174,13 @@ ${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => Promise<Address>`).join('\n')}
 }
 
-export function toSdk(publicClient?: PublicClient, walletClient?: WalletClient): SDK {
+export function toSdk(${isTemplate ? 'address: Address, ' : ''}publicClient?: PublicClient, walletClient?: WalletClient): SDK {
   return {
     // Queries
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)) as Promise<CallReturn<'${m}'>>,`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(address)` : ''}) as Promise<CallReturn<'${m}'>>,`).join('\n')}
     
     // Mutations
-${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m})(...args),`).join('\n')}
+${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address}` : ''})(...args),`).join('\n')}
   }
 }`
     : ''
@@ -199,7 +202,7 @@ export default function createContractsCollection(
 
   const generated = contracts.map((c) => {
     const contractPath = join(collectionPath, `${c.contractName}.ts`)
-    const { hasRead, hasWrite, content } = createContractFile(c, isSdk)
+    const { hasRead, hasWrite, content } = createContractFile(c, isSdk, c.isTemplate)
     writeFileSync(contractPath, content)
     return { hasRead, hasWrite, ...c }
   })
@@ -225,12 +228,12 @@ import { PublicClient, WalletClient } from 'viem'
 ${generated.map((c) => `import * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
 
 export type SDK = {
-${generated.map((c) => `\t\t${c.contractName}: ${c.contractName}.SDK`).join('\n')}
+${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.SDK`).join('\n')}
 }
 
 export default function createSdk(publicClient?: PublicClient, walletClient?: WalletClient): SDK {
   return {
-${generated.map((c) => `\t\t${c.contractName}: ${c.contractName}.toSdk(publicClient, walletClient),`).join('\n')}
+${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.toSdk(${c.isTemplate ? 'address, ' : ''}publicClient, walletClient),`).join('\n')}
   }
 }
   `
