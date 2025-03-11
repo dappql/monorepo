@@ -66,7 +66,11 @@ export async function query<T extends RequestCollection>(
   const calls = Object.values(requests).map((req) => {
     return {
       address: req.address || addressResolver?.(req.contractName) || req.deployAddress!,
-      abi: req.getAbi(),
+      abi: req
+        .getAbi()
+        .filter(
+          (abi) => (abi.type === 'function' && abi.name === req.method && abi.inputs.length === req.args?.length) ?? 0,
+        ),
       functionName: req.method,
       args: req.args,
     }
@@ -177,7 +181,11 @@ export function mutate<M extends string, Args extends readonly any[]>(
   return (...args: Args) =>
     client.writeContract({
       address: address || addressResolver?.(mutation.contractName) || mutation.deployAddress!,
-      abi: mutation.getAbi(),
+      abi: mutation
+        .getAbi()
+        .filter(
+          (abi) => abi.type === 'function' && abi.name === mutation.functionName && abi.inputs.length === args.length,
+        ),
       functionName: mutation.functionName,
       args: args,
       chain: client.chain,
