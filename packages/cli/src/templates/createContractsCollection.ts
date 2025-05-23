@@ -170,17 +170,21 @@ ${
     ? `
 
 export type SDK = {
+    deployAddress: Address | undefined
+    abi: typeof abi
 ${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => Promise<CallReturn<'${m}'>>`).join('\n')}
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => Promise<Address>`).join('\n')}
 }
 
-export function toSdk(${isTemplate ? 'address: Address, ' : ''}publicClient?: PublicClient, walletClient?: WalletClient): SDK {
+export function toSdk(${isTemplate ? 'deployAddress: Address, ' : ''}publicClient?: PublicClient, walletClient?: WalletClient): SDK {
   return {
+    deployAddress,
+    abi,
     // Queries
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(address)` : ''}) as Promise<CallReturn<'${m}'>>,`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}) as Promise<CallReturn<'${m}'>>,`).join('\n')}
     
     // Mutations
-${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address}` : ''})(...args),`).join('\n')}
+${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address: deployAddress}` : ''})(...args),`).join('\n')}
   }
 }`
     : ''
@@ -228,15 +232,11 @@ import { PublicClient, WalletClient } from 'viem'
 ${generated.map((c) => `import * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
 
 export type SDK = {
-    deployAddress: Address | undefined
-    abi: typeof abi
 ${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.SDK`).join('\n')}
 }
 
 export default function createSdk(publicClient?: PublicClient, walletClient?: WalletClient): SDK {
   return {
-    deployAddress,
-    abi,
 ${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.toSdk(${c.isTemplate ? 'address, ' : ''}publicClient, walletClient),`).join('\n')}
   }
 }
