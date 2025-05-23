@@ -228,15 +228,19 @@ import { PublicClient, WalletClient } from 'viem'
 ${generated.map((c) => `import * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
 
 export type SDK = {
+    deployAddress: Address | undefined
+    abi: typeof abi
 ${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.SDK`).join('\n')}
 }
 
 export default function createSdk(publicClient?: PublicClient, walletClient?: WalletClient): SDK {
   return {
+    deployAddress,
+    abi,
 ${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.toSdk(${c.isTemplate ? 'address, ' : ''}publicClient, walletClient),`).join('\n')}
   }
 }
-  `
+`
     writeFileSync(join(collectionPath, 'sdk.ts'), sdk)
   }
 }
