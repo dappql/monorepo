@@ -8,6 +8,9 @@ async function getAbiFromEtherscan(
   etherscanApi = 'https://api.etherscan.io',
 ) {
   const address = contract.address || (contract as string)
+  const maxRetries = 3
+  let attempt = 0
+  let lastError: any = null
   if (address && etherscanApiKey) {
     const params = new URLSearchParams({
       apikey: etherscanApiKey,
@@ -17,23 +20,36 @@ async function getAbiFromEtherscan(
     })
 
     const url = `${etherscanApi}/api?${params.toString()}`
-    try {
-      console.log('Fetching ABI for:', contractName, 'from:', etherscanApi)
-      const response = await fetch(url)
-      const data = (await response.json()) as { status: string; result: string; message?: string }
-      if (data.status === '1' && data.result) {
-        const abi = JSON.parse(data.result)
-        return {
-          ...contract,
-          contractName,
-          abi,
+    while (attempt < maxRetries) {
+      try {
+        if (attempt > 0) {
+          // Exponential backoff: 500ms, 1000ms, ...
+          await sleep(500 * attempt)
         }
+        console.log(`Fetching ABI for: ${contractName} from: ${etherscanApi} (attempt ${attempt + 1})`)
+        const response = await fetch(url)
+        const data = (await response.json()) as { status: string; result: string; message?: string }
+        if (data.status === '1' && data.result) {
+          const abi = JSON.parse(data.result)
+          return {
+            ...contract,
+            contractName,
+            abi,
+          }
+        }
+        lastError = data.message || 'Unknown error'
+        console.error(
+          `Failed to fetch ABI from ${etherscanApi} for ${contractName} (attempt ${attempt + 1}):`,
+          lastError,
+        )
+      } catch (error) {
+        lastError = error
+        console.error(`Error fetching ABI for ${contractName} (attempt ${attempt + 1}):`, error)
       }
-      console.error(`Failed to fetch ABI from ${etherscanApi} for ${contractName}:`, data.message || 'Unknown error')
-    } catch (error) {
-      console.error(`Error fetching ABI for ${contractName}:`, error)
+      attempt++
     }
-
+    // All retries failed
+    console.error(`All attempts to fetch ABI from ${etherscanApi} for ${contractName} failed. Last error:`, lastError)
     return {
       ...contract,
       contractName,
