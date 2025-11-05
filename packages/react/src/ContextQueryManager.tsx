@@ -162,9 +162,17 @@ export function ContextQueryProvider({
   watchBlocks,
   blocksRefetchInterval,
 }: { children: any } & QueryContextProps) {
-  const { addressResolver } = useDappQL()
+  const { addressResolver, onBlockChange } = useDappQL()
   const [query, setQuery] = useState<ContextQuery>({ version: 0, count: {}, calls: [] })
   const queryManager = useMemo(() => new ContextQueryManager(setQuery, addressResolver), [])
+  const [blockNumber, setBlockNumber] = useState<bigint>()
+
+  useEffect(() => {
+    const unsubscribe = onBlockChange((blockNumber) => setBlockNumber(blockNumber))
+    return () => {
+      unsubscribe()
+    }
+  }, [onBlockChange])
 
   useEffect(() => {
     queryManager.setAddressResolver(addressResolver)
@@ -176,6 +184,7 @@ export function ContextQueryProvider({
       notifyOnChangeProps: ['data', 'error'],
     },
     batchSize: defaultBatchSize,
+    blockNumber: blockNumber,
   })
 
   useRefetchOnBlockChange(result.refetch, watchBlocks && !!query.calls.length, blocksRefetchInterval)
