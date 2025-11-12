@@ -22,6 +22,7 @@ type Config = {
   abiSourcePath?: string
   etherscanApiKey?: string
   etherscanApi?: string
+  chainId?: number
   isModule?: boolean
   isSdk?: boolean
 }

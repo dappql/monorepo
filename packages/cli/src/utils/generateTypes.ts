@@ -36,7 +36,7 @@ export function extractParamsList(funcs: AbiFunction[]): ParamType[] {
 
   return (
     baseFunc.inputs?.map((input, i) => ({
-      name: input.name.replace('_', ''),
+      name: input.name.replace('_', '') || `input${i}`,
       type: getSolidityToTsType(input),
       isOptional: sortedFuncs.some((f) => (f.inputs?.length || 0) < i + 1),
     })) || []
