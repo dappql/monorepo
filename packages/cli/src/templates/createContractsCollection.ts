@@ -48,7 +48,7 @@ function createContractFile(
 /* eslint-disable */
 /* @ts-nocheck */
 
-${dappqlImports.length ? `import { ${dappqlImports.join(', ')} } from '@dappql/async'` : ''}
+${dappqlImports.length ? `import { ${dappqlImports.join(', ')}, AddressResolverFunction } from '@dappql/async'` : ''}
 ${isSdk ? `import { PublicClient, WalletClient } from 'viem'` : ''}
 
 ${hasRead || hasWrite ? `type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never` : ''}
@@ -172,19 +172,19 @@ ${
 export type SDK = {
     deployAddress: Address | undefined
     abi: typeof abi
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => Promise<CallReturn<'${m}'>>`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>,) => Promise<CallReturn<'${m}'>>`).join('\n')}
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => Promise<Address>`).join('\n')}
 }
 
-export function toSdk(${isTemplate ? 'deployAddress: Address, ' : ''}publicClient?: PublicClient, walletClient?: WalletClient): SDK {
+export function toSdk(${isTemplate ? 'deployAddress: Address, ' : ''}publicClient?: PublicClient, walletClient?: WalletClient, addressResolver?: AddressResolverFunction): SDK {
   return {
     deployAddress,
     abi,
     // Queries
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}) as Promise<CallReturn<'${m}'>>,`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}, {}, addressResolver) as Promise<CallReturn<'${m}'>>,`).join('\n')}
     
     // Mutations
-${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address: deployAddress}` : ''})(...args),`).join('\n')}
+${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address: deployAddress, addressResolver}` : ', {addressResolver}'})(...args),`).join('\n')}
   }
 }`
     : ''
@@ -227,6 +227,7 @@ ${generated.map((c) => `export * as ${c.contractName} from './${c.contractName}$
 /* eslint-disable */
 /* @ts-nocheck */
 
+import { AddressResolverFunction } from '@dappql/async'
 import { PublicClient, WalletClient } from 'viem'
 
 ${generated.map((c) => `import * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
@@ -235,9 +236,9 @@ export type SDK = {
 ${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.SDK`).join('\n')}
 }
 
-export default function createSdk(publicClient?: PublicClient, walletClient?: WalletClient): SDK {
+export default function createSdk(publicClient?: PublicClient, walletClient?: WalletClient, addressResolver?: AddressResolverFunction): SDK {
   return {
-${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.toSdk(${c.isTemplate ? 'address, ' : ''}publicClient, walletClient),`).join('\n')}
+${generated.map((c) => `\t\t${c.contractName}: ${c.isTemplate ? '(address: `0x${string}`) => ' : ''}${c.contractName}.toSdk(${c.isTemplate ? 'address, ' : ''}publicClient, walletClient, addressResolver),`).join('\n')}
   }
 }
 `
