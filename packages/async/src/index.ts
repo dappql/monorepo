@@ -105,8 +105,9 @@ export async function singleQuery<T extends Request>(
   client: PublicClient | WalletClient,
   request: T,
   options: { blockNumber?: bigint } = {},
+  addressResolver?: AddressResolverFunction,
 ): Promise<NonNullable<T['defaultValue']>> {
-  const result = await query(client, { value: request }, options)
+  const result = await query(client, { value: request }, options, addressResolver)
   return result.value
 }
 
