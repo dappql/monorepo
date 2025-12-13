@@ -1,6 +1,6 @@
 {
   "name": "dappql",
-  "version": "2.0.35",
+  "version": "2.0.36",
   "description": "wagmi extension to easily query smart-contracts",
   "main": "./lib/index.js",
   "bin": {
