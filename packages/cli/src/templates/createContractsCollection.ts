@@ -30,6 +30,13 @@ function createContractFile(
       return [...acc, a.name]
     }, [] as string[])
 
+  const eventNames = contract.abi
+    .filter((a) => a.type === 'event')
+    .reduce((acc, a) => {
+      if (acc.includes(a.name)) return acc
+      return [...acc, a.name]
+    }, [] as string[])
+
   const hasWrite = !!writeMethods.length
 
   const dappqlImports = []
@@ -49,7 +56,7 @@ function createContractFile(
 /* @ts-nocheck */
 
 ${dappqlImports.length ? `import { ${dappqlImports.join(', ')}, AddressResolverFunction } from '@dappql/async'` : ''}
-${isSdk ? `import { PublicClient, WalletClient } from 'viem'` : ''}
+${isSdk || eventNames.length ? `import { ${eventNames.length ? 'encodeEventTopics, parseEventLogs, ParseEventLogsReturnType, Log, RpcLog' : ''}${isSdk && eventNames.length ? ', ' : ''}${isSdk ? 'PublicClient, WalletClient' : ''} } from 'viem'` : ''}
 
 ${hasRead || hasWrite ? `type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never` : ''}
 type Address = ${'`0x${string}`'}
@@ -166,12 +173,49 @@ ${writeMethods.map((m) => `\t\t${m}: getMutation('${m}'),`).join('\n')}
 }
 
 ${
+  eventNames.length
+    ? `
+export type ParsedEvent<T extends keyof Contract['events']> = {
+  event: RpcLog | Log
+  parsed: ParseEventLogsReturnType<typeof abi, T>
+}
+
+export function parseEvents<T extends keyof Contract['events']>(
+  eventName: T,
+  events: (RpcLog | Log)[],
+): ParsedEvent<T>[] {
+  return events.map((event) => {
+    return {
+      event,
+      parsed: parseEventLogs({
+        abi,
+        eventName,
+        logs: [event],
+      }),
+    }
+  })
+}
+
+export function getEventTopic<T extends keyof Contract['events']>(eventName: T): Address {
+  return encodeEventTopics({ abi, eventName })[0] as Address
+}
+`
+    : ''
+}
+${
   isSdk
     ? `
 
 export type SDK = {
     deployAddress: Address | undefined
-    abi: typeof abi
+    abi: typeof abi,${
+      eventNames.length
+        ? `
+    events: {
+${eventNames.map((e) => `\t\t${e}: {topic: Address, parse: (events: (RpcLog | Log)[]) => ParsedEvent<'${e}'>[]},`).join('\n')}
+    },`
+        : ''
+    }
 ${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>,) => Promise<CallReturn<'${m}'>>`).join('\n')}
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => Promise<Address>`).join('\n')}
 }
@@ -180,6 +224,14 @@ export function toSdk(${isTemplate ? 'deployAddress: Address, ' : ''}publicClien
   return {
     deployAddress,
     abi,
+${
+  eventNames.length
+    ? `
+    events: {
+${eventNames.map((e) => `\t\t${e}: {topic: getEventTopic('${e}'), parse: (events: (RpcLog | Log)[]) => parseEvents('${e}', events)},`).join('\n')}
+    },`
+    : ''
+}
     // Queries
 ${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}, {}, addressResolver) as Promise<CallReturn<'${m}'>>,`).join('\n')}
     
