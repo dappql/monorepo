@@ -168,7 +168,13 @@ export function ContextQueryProvider({
   const [blockNumber, setBlockNumber] = useState<bigint>()
 
   useEffect(() => {
-    const unsubscribe = onBlockChange((blockNumber) => setBlockNumber(blockNumber))
+    const unsubscribe = onBlockChange((block) => {
+      // Only set block number if it's a real block (not genesis)
+      // This prevents querying at block 0 before the subscription initializes
+      if (block > 0n) {
+        setBlockNumber(block)
+      }
+    })
     return () => {
       unsubscribe()
     }
@@ -184,7 +190,8 @@ export function ContextQueryProvider({
       notifyOnChangeProps: ['data', 'error'],
     },
     batchSize: defaultBatchSize,
-    blockNumber: blockNumber,
+    // Don't pass blockNumber until we have a real one - let wagmi use "latest"
+    blockNumber: blockNumber && blockNumber > 0n ? blockNumber : undefined,
   })
 
   useRefetchOnBlockChange(result.refetch, watchBlocks && !!query.calls.length, blocksRefetchInterval)

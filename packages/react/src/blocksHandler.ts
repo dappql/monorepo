@@ -5,12 +5,14 @@ type Subscriber = (blockNumber: bigint) => void
 
 export class BlockSubscriptionManager {
   private subscribers = new Set<Subscriber>()
-  private currentBlock: bigint = 0n
+  private currentBlock: bigint | undefined = undefined
 
   subscribe(callback: Subscriber) {
     this.subscribers.add(callback)
-    // Immediately call with current value
-    callback(this.currentBlock)
+    // Only call immediately if we have a real block number
+    if (this.currentBlock !== undefined && this.currentBlock > 0n) {
+      callback(this.currentBlock)
+    }
     return () => this.subscribers.delete(callback)
   }
 

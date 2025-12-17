@@ -27,8 +27,15 @@ const REQUEST_BALANCE = {
 // Add to mock section
 vi.mock('../src/blocksHandler.js', () => ({
   useBlockNumberSubscriber: vi.fn(() => {
+    // Store all callbacks to notify all subscribers
+    const callbacks: Array<(block: bigint) => void> = []
+    ;(useBlockNumberSubscriber as any).callbacks = callbacks
+    ;(useBlockNumberSubscriber as any).triggerBlock = (block: bigint) => {
+      callbacks.forEach((cb) => cb(block))
+    }
     return vi.fn((callback) => {
-      // Store the callback for testing
+      callbacks.push(callback)
+      // Also store last for backwards compatibility
       ;(useBlockNumberSubscriber as any).lastCallback = callback
       return vi.fn() // Return unsubscribe function
     })
@@ -235,10 +242,9 @@ describe('useQuery', () => {
 
     expect(result.current.data.balance).toBe(100n)
 
-    // Simulate block update by calling the stored callback
+    // Simulate block update by triggering all subscribers
     act(() => {
-      const blockCallback = (useBlockNumberSubscriber as any).lastCallback
-      blockCallback(123n)
+      ;(useBlockNumberSubscriber as any).triggerBlock(123n)
     })
 
     // Verify refetch was called
@@ -274,10 +280,9 @@ describe('useQuery', () => {
 
     expect(result.current.data.balance).toBe(100n)
 
-    // Simulate block update by calling the stored callback
+    // Simulate block update by triggering all subscribers
     act(() => {
-      const blockCallback = (useBlockNumberSubscriber as any).lastCallback
-      blockCallback(123n)
+      ;(useBlockNumberSubscriber as any).triggerBlock(123n)
     })
 
     // Verify refetch was called
@@ -309,8 +314,7 @@ describe('useQuery', () => {
 
     // Simulate block update
     act(() => {
-      const blockCallback = (useBlockNumberSubscriber as any).lastCallback
-      blockCallback(123n)
+      ;(useBlockNumberSubscriber as any).triggerBlock(123n)
     })
 
     // Verify refetch was not called

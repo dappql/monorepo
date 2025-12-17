@@ -8,7 +8,11 @@ import { mockPublicClient } from './setup'
 
 // Mock blocksHandler
 vi.mock('../src/blocksHandler.js', () => ({
-  useBlockNumberSubscriber: vi.fn(() => vi.fn()),
+  useBlockNumberSubscriber: vi.fn(() => {
+    return vi.fn((callback) => {
+      return vi.fn() // Return unsubscribe function
+    })
+  }),
   BlockSubscriptionManager: vi.fn(() => ({
     subscribe: vi.fn(),
     onBlockUptated: vi.fn(),

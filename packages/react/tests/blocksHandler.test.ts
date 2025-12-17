@@ -15,12 +15,28 @@ describe('BlockSubscriptionManager', () => {
     manager = new BlockSubscriptionManager()
   })
 
-  it('initializes with no subscribers and block 0', () => {
+  it('does not call callback immediately when no real block exists', () => {
     const callback = vi.fn()
     const unsubscribe = manager.subscribe(callback)
 
-    // Should be called immediately with initial block
-    expect(callback).toHaveBeenCalledWith(0n)
+    // Should NOT be called immediately (no real block yet)
+    expect(callback).not.toHaveBeenCalled()
+
+    // Cleanup
+    unsubscribe()
+  })
+
+  it('calls callback immediately if a real block exists', () => {
+    const callback = vi.fn()
+
+    // First, update to a real block
+    manager.onBlockUptated(100n)
+
+    // Now subscribe
+    const unsubscribe = manager.subscribe(callback)
+
+    // Should be called immediately with current block
+    expect(callback).toHaveBeenCalledWith(100n)
     expect(callback).toHaveBeenCalledTimes(1)
 
     // Cleanup
@@ -176,8 +192,8 @@ describe('useBlockNumberSubscriber', () => {
     const callback = vi.fn()
     const unsubscribe = result.current(callback)
 
-    // Initial block
-    expect(callback).toHaveBeenCalledWith(0n)
+    // Should NOT be called initially (no real block yet)
+    expect(callback).not.toHaveBeenCalled()
 
     // Block update
     if (onBlockNumberCallback) {
@@ -201,7 +217,8 @@ describe('useBlockNumberSubscriber', () => {
     const callback = vi.fn()
     const unsubscribe = result.current(callback)
 
-    expect(callback).toHaveBeenCalledWith(0n)
+    // Should NOT be called (no client, no real block)
+    expect(callback).not.toHaveBeenCalled()
     expect(() => unsubscribe()).not.toThrow()
   })
 })
