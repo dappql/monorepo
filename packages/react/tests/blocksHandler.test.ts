@@ -30,7 +30,7 @@ describe('BlockSubscriptionManager', () => {
     const callback = vi.fn()
 
     // First, update to a real block
-    manager.onBlockUptated(100n)
+    manager.onBlockUpdated(100n)
 
     // Now subscribe
     const unsubscribe = manager.subscribe(callback)
@@ -52,7 +52,7 @@ describe('BlockSubscriptionManager', () => {
     const unsubscribe2 = manager.subscribe(callback2)
 
     // Update block number
-    manager.onBlockUptated(123n)
+    manager.onBlockUpdated(123n)
 
     // Both callbacks should receive the update
     expect(callback1).toHaveBeenCalledWith(123n)
@@ -74,7 +74,7 @@ describe('BlockSubscriptionManager', () => {
     unsubscribe()
 
     // Update block
-    manager.onBlockUptated(456n)
+    manager.onBlockUpdated(456n)
 
     // Callback should not be called after unsubscribe
     expect(callback).not.toHaveBeenCalled()
@@ -94,7 +94,7 @@ describe('BlockSubscriptionManager', () => {
     const unsubscribe2 = manager.subscribe(callback2)
 
     // Update block
-    manager.onBlockUptated(789n)
+    manager.onBlockUpdated(789n)
 
     // Both should be called
     expect(callback1).toHaveBeenCalledWith(789n)
@@ -104,7 +104,7 @@ describe('BlockSubscriptionManager', () => {
     unsubscribe1()
 
     // Update block again
-    manager.onBlockUptated(1000n)
+    manager.onBlockUpdated(1000n)
 
     // Only second callback should receive the update
     expect(callback1).not.toHaveBeenCalledWith(1000n)
@@ -122,9 +122,9 @@ describe('BlockSubscriptionManager', () => {
     callback.mockClear()
 
     // Multiple updates
-    manager.onBlockUptated(1n)
-    manager.onBlockUptated(2n)
-    manager.onBlockUptated(3n)
+    manager.onBlockUpdated(1n)
+    manager.onBlockUpdated(2n)
+    manager.onBlockUpdated(3n)
 
     expect(callback).toHaveBeenCalledTimes(3)
     expect(callback).toHaveBeenNthCalledWith(1, 1n)

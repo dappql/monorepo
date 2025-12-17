@@ -16,7 +16,7 @@ export class BlockSubscriptionManager {
     return () => this.subscribers.delete(callback)
   }
 
-  onBlockUptated(newBlock: bigint) {
+  onBlockUpdated(newBlock: bigint) {
     this.currentBlock = newBlock
     this.subscribers.forEach((sub) => sub(newBlock))
   }
@@ -29,7 +29,7 @@ export function useBlockNumberSubscriber() {
   useEffect(() => {
     return client?.watchBlockNumber({
       onBlockNumber: (blockNumber) => {
-        manager.onBlockUptated(blockNumber)
+        manager.onBlockUpdated(blockNumber)
       },
     })
   }, [client, manager])

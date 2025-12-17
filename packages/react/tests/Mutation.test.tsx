@@ -15,7 +15,7 @@ vi.mock('../src/blocksHandler.js', () => ({
   }),
   BlockSubscriptionManager: vi.fn(() => ({
     subscribe: vi.fn(),
-    onBlockUptated: vi.fn(),
+    onBlockUpdated: vi.fn(),
   })),
 }))
 
