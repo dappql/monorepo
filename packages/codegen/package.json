@@ -1,0 +1,51 @@
+{
+  "name": "@dappql/codegen",
+  "version": "0.1.0",
+  "description": "Framework-agnostic code generation for DappQL — typed contract modules, SDK factory, and project AGENTS.md. Shared by the `dappql` CLI and the `@dappql/mcp` server.",
+  "author": "DappQL Team",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "keywords": [
+    "dappql",
+    "codegen",
+    "wagmi",
+    "viem",
+    "typescript",
+    "smart-contracts"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
+    "dev": "pnpm exec tsc -b -w",
+    "build": "del-cli dist && tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "version:bump": "bump patch --commit --push",
+    "publish:npm": "pnpm publish --access public --no-workspace-root",
+    "ship": "pnpm run build && pnpm run version:bump && pnpm run publish:npm --no-git-checks --access public"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "del-cli": "^6.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dappql/monorepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dappql/monorepo/issues"
+  },
+  "homepage": "https://github.com/dappql/monorepo#readme",
+  "license": "MIT"
+}

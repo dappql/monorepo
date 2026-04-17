@@ -95,6 +95,69 @@ export async function query<T extends RequestCollection>(
 }
 
 /**
+ * Per-call status returned by {@link queryWithStatus}.
+ */
+export type CallStatus<V> = { ok: true; result: V } | { ok: false; error: Error }
+
+/**
+ * Same batched multicall as {@link query}, but never throws on per-call revert.
+ * Returns a status-wrapped result per key, so callers can inspect which calls
+ * succeeded and which reverted. Useful for tools that need to report per-call
+ * errors inline (e.g. MCP servers, debug views) or for UIs that tolerate
+ * partial failures.
+ *
+ * @example
+ * ```ts
+ * const results = await queryWithStatus(client, {
+ *   supply: Token.call.totalSupply(),
+ *   balance: Token.call.balanceOf(account),
+ * })
+ *
+ * if (results.balance.ok) use(results.balance.result)
+ * else report(results.balance.error)
+ * ```
+ */
+export async function queryWithStatus<T extends RequestCollection>(
+  client: PublicClient | WalletClient,
+  requests: T,
+  options: { blockNumber?: bigint } = {},
+  addressResolver?: AddressResolverFunction,
+): Promise<{ [K in keyof T]: CallStatus<NonNullable<T[K]['defaultValue']>> }> {
+  const callKeys = Object.keys(requests) as (keyof T)[]
+  const calls = Object.values(requests).map((req) => {
+    return {
+      address: req.address || addressResolver?.(req.contractName) || req.deployAddress!,
+      abi: req
+        .getAbi()
+        .filter(
+          (abi) => (abi.type === 'function' && abi.name === req.method && abi.inputs.length === req.args?.length) ?? 0,
+        ),
+      functionName: req.method,
+      args: req.args,
+    }
+  })
+
+  const results = await multicall(client, {
+    contracts: calls,
+    blockNumber: options.blockNumber,
+    allowFailure: true,
+  })
+
+  return callKeys.reduce(
+    (acc, k, index) => {
+      const r = results[index]
+      acc[k] = (r && 'error' in r && r.error
+        ? { ok: false, error: r.error }
+        : { ok: true, result: (r as { result: unknown })?.result }) as CallStatus<
+        NonNullable<T[typeof k]['defaultValue']>
+      >
+      return acc
+    },
+    {} as { [K in keyof T]: CallStatus<NonNullable<T[K]['defaultValue']>> },
+  )
+}
+
+/**
  * Executes a single contract read call (non-hook version)
  * @param client Viem public client instance
  * @param request The contract request to execute

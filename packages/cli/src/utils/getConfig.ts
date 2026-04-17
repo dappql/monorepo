@@ -2,6 +2,8 @@ import { existsSync } from 'fs'
 import { join } from 'path'
 import { pathToFileURL } from 'url'
 
+import type { Config } from '@dappql/codegen'
+
 export default async function getConfig() {
   const CONFIG_PATH = join(process.cwd(), 'dapp.config.js')
   console.log('Looking for config at:', CONFIG_PATH)

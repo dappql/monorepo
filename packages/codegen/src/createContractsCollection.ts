@@ -1,9 +1,9 @@
 import { writeFileSync } from 'fs'
 import { join } from 'path'
 
-import { RUNNING_DIRECTORY } from '../utils/constants.js'
-import touchDirectory from '../utils/touchDir.js'
-import generateContractTypes from '../utils/generateTypes.js'
+import type { ContractConfig } from './types.js'
+import touchDirectory from './touchDir.js'
+import generateContractTypes from './generateTypes.js'
 
 function createContractFile(
   contract: ContractConfig & { contractName: string },
@@ -234,7 +234,7 @@ ${eventNames.map((e) => `\t\t${e}: {topic: getEventTopic('${e}'), parse: (events
 }
     // Queries
 ${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}, {}, addressResolver) as Promise<CallReturn<'${m}'>>,`).join('\n')}
-    
+
     // Mutations
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address: deployAddress, addressResolver}` : ', {addressResolver}'})(...args),`).join('\n')}
   }
@@ -252,8 +252,9 @@ export default function createContractsCollection(
   target: string,
   isModule?: boolean,
   isSdk?: boolean,
+  rootDir: string = process.cwd(),
 ) {
-  const collectionPath = join(RUNNING_DIRECTORY, target)
+  const collectionPath = join(rootDir, target)
   touchDirectory(collectionPath)
 
   const generated = contracts.map((c) => {
@@ -267,7 +268,7 @@ export default function createContractsCollection(
 /* tslint:disable */
 /* eslint-disable */
 /* @ts-nocheck */
-  
+
 ${generated.map((c) => `export * as ${c.contractName} from './${c.contractName}${isModule ? '.js' : ''}'`).join('\n')}
 `
 

@@ -292,13 +292,54 @@ const { data } = await protocol.multicall((c) => ({
 
 > See [Underscore Finance's SDK](https://github.com/underscore-finance/typescript-sdk) for a production example — a full protocol SDK generated from hundreds of ABIs with DappQL.
 
+## AI-agent ready out of the box
+
+DappQL meets AI coding agents where they are — twice over.
+
+### 1. Generated `AGENTS.md` in every project
+
+Every `dappql` run also emits an `AGENTS.md` at your project root — the emerging universal convention that Claude Code, Cursor, Codex, and friends read on project load. The file lists your actual contracts, their reads/writes/events, ABI-accurate argument placeholders, and the non-negotiable rules for using DappQL correctly in *your* project. Re-runs replace only the managed block (marked with `<!-- dappql:start --> ... <!-- dappql:end -->`), so anything you hand-write above or below it is preserved.
+
+```js
+// dapp.config.js
+export default {
+  // ...
+  agentsFile: true,              // default — writes ./AGENTS.md
+  // agentsFile: false,          // opt out
+  // agentsFile: './docs/AGENTS.md', // custom path
+}
+```
+
+### 2. Live MCP server — `@dappql/mcp`
+
+Static docs tell an agent what *could* happen. [`@dappql/mcp`](./packages/mcp) tells it what's happening *right now*. Point any [Model Context Protocol](https://modelcontextprotocol.io) client at `npx @dappql/mcp` and it will walk up to find your `dapp.config.js`, expose every contract by name, run real reads against the chain (batched through multicall), simulate writes, and — if you double-opt-in — sign and broadcast transactions. It's the same viem runtime DappQL uses internally, so an agent's queries behave identically to your React/SDK code.
+
+```json
+// ~/.claude.json or .mcp.json
+{
+  "mcpServers": {
+    "dappql": {
+      "command": "npx",
+      "args": ["-y", "@dappql/mcp"],
+      "env": { "DAPPQL_RPC_URL": "https://mainnet.base.org" }
+    }
+  }
+}
+```
+
+Writes are disabled by default and require **both** `mcp: { allowWrites: true }` in `dapp.config.js` and a signing key in env — either alone is not enough. See the [`@dappql/mcp` README](./packages/mcp) for the full tool + resource surface and safety model.
+
+The monorepo's own [AGENTS.md](./AGENTS.md) is the exhaustive reference — the generated per-project file links to it.
+
 ## Packages
 
 | Package | Version | Description |
 | --- | --- | --- |
 | [`@dappql/react`](./packages/react) | [![npm](https://img.shields.io/npm/v/@dappql/react.svg)](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, and query manager |
 | [`@dappql/async`](./packages/async) | [![npm](https://img.shields.io/npm/v/@dappql/async.svg)](https://www.npmjs.com/package/@dappql/async) | Non-React query + mutation runtime |
-| [`dappql`](./packages/cli) | [![npm](https://img.shields.io/npm/v/dappql.svg)](https://www.npmjs.com/package/dappql) | Codegen CLI |
+| [`@dappql/codegen`](./packages/codegen) | [![npm](https://img.shields.io/npm/v/@dappql/codegen.svg)](https://www.npmjs.com/package/@dappql/codegen) | Framework-agnostic codegen — typed contract modules, SDK factory, project `AGENTS.md`. Shared by the CLI and MCP server. |
+| [`@dappql/mcp`](./packages/mcp) | [![npm](https://img.shields.io/npm/v/@dappql/mcp.svg)](https://www.npmjs.com/package/@dappql/mcp) | MCP server — live contract context for AI agents |
+| [`dappql`](./packages/cli) | [![npm](https://img.shields.io/npm/v/dappql.svg)](https://www.npmjs.com/package/dappql) | Codegen CLI (thin wrapper around `@dappql/codegen` + ABI fetching) |
 
 ## Documentation
 

@@ -1,6 +1,8 @@
 import path from 'path'
 import { readFileSync } from 'fs'
 
+import type { AbiFunction, Config, ContractConfig } from '@dappql/codegen'
+
 async function getAbiFromEtherscan(
   contractName: string,
   contract: ContractConfig,

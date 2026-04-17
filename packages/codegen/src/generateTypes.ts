@@ -1,3 +1,5 @@
+import type { AbiFunction } from './types.js'
+
 type ABIParameter = {
   name: string
   type: string
@@ -47,7 +49,6 @@ function generateContractTypes(abi: readonly AbiFunction[]) {
   const functions = abi.filter((item) => item.type === 'function')
   const events = abi.filter((item) => item.type === 'event')
 
-  // Group overloaded functions
   const functionGroups = functions.reduce(
     (acc, func) => {
       if (!acc[func.name]) acc[func.name] = []

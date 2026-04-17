@@ -47,6 +47,7 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@dappql/codegen": "workspace:*",
     "figlet": "^1.8.0",
     "kleur": "^4.1.5"
   },

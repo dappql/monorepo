@@ -1,7 +1,9 @@
+import { createAgentsFile, createContractsCollection } from '@dappql/codegen'
 import figlet from 'figlet'
+import { relative } from 'path'
 
-import createContractsCollection from './templates/createContractsCollection.js'
 import clean from './utils/clean.js'
+import { RUNNING_DIRECTORY } from './utils/constants.js'
 import extractAbis from './utils/extractAbis.js'
 import getConfig from './utils/getConfig.js'
 import logger, { Severity } from './utils/logger.js'
@@ -26,6 +28,14 @@ async function main() {
   if (contractsWithAbis.length) {
     logger(`Generating DappQL code for:\n${contractsWithAbis.map((c) => `\n\t- ${c.contractName}`).join('')}\n`)
     createContractsCollection(contractsWithAbis, config.targetPath, config.isModule, config.isSdk)
+
+    const agents = createAgentsFile(contractsWithAbis, config)
+    if (agents) {
+      const rel = relative(RUNNING_DIRECTORY, agents.path) || agents.path
+      const verb = agents.mode === 'created' ? 'Created' : agents.mode === 'updated' ? 'Updated' : 'Appended to'
+      logger(`${verb} AI-agent guide at ./${rel}`, Severity.info)
+    }
+
     logger('\n\nDone! 🎉\n\n', Severity.success)
   }
 }

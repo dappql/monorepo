@@ -1,0 +1,30 @@
+# DappQL
+
+> The batteries-included data layer for dApp frontends, built on top of wagmi + viem. Typed codegen from ABIs, automatic multicall batching across the component tree, per-block reactivity, iterator queries, mutation tracking, and optional non-React SDK generation. Designed to be equally easy for humans and AI coding agents.
+
+DappQL does not replace wagmi or viem — it is a plugin layer that sits on top of them. Teams use it when a dApp talks to more than a handful of contracts and wants type-safe ABI-driven codegen plus call batching without hand-rolling either.
+
+## Core docs
+
+- [README](https://github.com/dappql/monorepo/blob/main/README.md): Quickstart, install, feature overview, React usage, SDK generation.
+- [Getting started](https://github.com/dappql/monorepo/blob/main/packages/docs/guide/getting-started.md): Step-by-step walkthrough from config to first query.
+- [AGENTS.md](https://github.com/dappql/monorepo/blob/main/AGENTS.md): Canonical instructions for AI coding agents — public API, DO/DON'T list, common pitfalls.
+
+## Packages
+
+- [@dappql/react](https://github.com/dappql/monorepo/blob/main/packages/react/README.md): React hooks (`useQuery`, `useContextQuery`, `useIteratorQuery`, `useMutation`), `DappQLProvider`, global multicall query manager.
+- [@dappql/async](https://github.com/dappql/monorepo/blob/main/packages/async/README.md): Framework-agnostic runtime — `query`, `iteratorQuery`, `mutate`. For scripts, servers, bots, indexers, and generated SDKs.
+- [dappql CLI](https://github.com/dappql/monorepo/blob/main/packages/cli/README.md): Codegen from `dapp.config.js`. Flags: `isModule`, `isSdk`, `isTemplate` (per contract).
+
+## Key source (for agents that want to ground on signatures)
+
+- [Query hooks](https://github.com/dappql/monorepo/blob/main/packages/react/src/Query.tsx): `useQuery`, `useSingleQuery`, `useIteratorQuery` signatures and options.
+- [Context query hooks](https://github.com/dappql/monorepo/blob/main/packages/react/src/ContextQuery.ts): cross-component batching via `useContextQuery`.
+- [Mutation hook](https://github.com/dappql/monorepo/blob/main/packages/react/src/Mutation.ts): `useMutation`, simulate/estimate/confirmation surface.
+- [Provider](https://github.com/dappql/monorepo/blob/main/packages/react/src/Provider.tsx): `DappQLProvider` options — `watchBlocks`, `simulateMutations`, `addressResolver`, `AddressResolverComponent`, `onMutationUpdate`.
+- [Async runtime](https://github.com/dappql/monorepo/blob/main/packages/async/src/index.ts): non-React `query`, `iteratorQuery`, `mutate`, and the `Request` / `RequestCollection` types.
+- [Codegen template](https://github.com/dappql/monorepo/blob/main/packages/cli/src/templates/createContractsCollection.ts): exactly what the CLI emits per contract — `call`, `mutation`, `abi`, events, optional `toSdk` factory.
+
+## Optional
+
+- [Underscore Finance SDK](https://github.com/underscore-finance/typescript-sdk): production example — a full protocol SDK generated from hundreds of ABIs using DappQL's `isSdk: true` mode. Shows how to wrap `createSdk` in a class with dynamic address resolution, multicall builder, and iterator helper.
