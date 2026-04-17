@@ -1,4 +1,6 @@
-<h1 align="center">DappQL</h1>
+<p align="center">
+  <img src="./logo-dappql.svg" width="220" alt="DappQL" />
+</p>
 
 <p align="center">
   <b>The batteries-included data layer for dApp frontends.</b><br/>
@@ -23,10 +25,10 @@ Wagmi gives you great primitives. DappQL is the productivity layer you reach for
 - **Iterator queries** for on-chain arrays and paginated data.
 - **Mutations with simulate, estimate, and confirmation tracking** — and a single callback for global transaction UX.
 - **Address resolver** for registries, proxies, or multi-deployment setups.
-- **Works outside React too.** `@dappql/async` gives you the same typed calls in scripts, servers, and bots.
+- **Works outside React too.** `@dappql/async` gives you the same typed calls in scripts, servers, and bots — or flip one flag and the CLI generates a publishable typed SDK for your whole protocol.
 - **AI-agent friendly.** The generated SDK, predictable APIs, and strict types mean Claude, Cursor, and friends produce working code on the first try.
 
-DappQL doesn't replace wagmi — it stands on top of it. If you know wagmi, you already know most of DappQL.
+DappQL doesn't replace wagmi or viem — it stands on top of them. If you know wagmi, you already know most of DappQL.
 
 ## Install
 
@@ -170,7 +172,13 @@ Token.call.balanceOf(account)
   .defaultTo(0n)           // default value until the call resolves
 ```
 
-## Non-React / server
+## Outside React
+
+DappQL has a fully typed non-React runtime. Two flavors, same generated code underneath.
+
+### Ad-hoc multicalls with `@dappql/async`
+
+For scripts, servers, bots, and indexers that just need to read or write on demand:
 
 ```ts
 import { createPublicClient, http } from 'viem'
@@ -186,6 +194,103 @@ const { data } = await query(client, {
 ```
 
 Same requests, same types — no React required.
+
+### Generate a full SDK
+
+Flip `isSdk: true` in `dapp.config.js` and the CLI emits a `createSdk(publicClient, walletClient, addressResolver)` factory alongside the typed modules. This is how you'd ship an npm-publishable SDK for your protocol.
+
+```js
+// dapp.config.js
+export default {
+  targetPath: './src/contracts',
+  chainId: 8453,
+  isModule: true,
+  isSdk: true,
+  contracts: {
+    Factory: { address: '0x...', abi: [/* ... */] },
+    Token:   { address: '0x...', abi: [/* ... */] },
+    // Contracts deployed at many addresses (user wallets, vaults, etc.):
+    UserWallet: { isTemplate: true, abi: [/* ... */] },
+    ERC20:      { isTemplate: true, abi: [/* ... */] },
+  },
+}
+```
+
+```ts
+import { createPublicClient, http, WalletClient } from 'viem'
+import { base } from 'viem/chains'
+
+import createSdk from './contracts/sdk'
+
+const publicClient = createPublicClient({ chain: base, transport: http() })
+
+const sdk = createSdk(publicClient, walletClient)
+
+// Singleton contracts — address baked in from the config
+const supply = await sdk.Token.totalSupply()
+const newWallet = await sdk.Factory.createUserWallet(owner, agent)
+
+// Template contracts — pass the address per call
+const erc20 = sdk.ERC20('0x...')
+const balance = await erc20.balanceOf(holder)
+
+// Events, fully typed
+const topic = sdk.Token.events.Transfer.topic
+const parsed = sdk.Token.events.Transfer.parse(logs)
+```
+
+Wrap it in your own class for extras — dynamic address resolution, custom helpers, chain config:
+
+```ts
+import { query, RequestCollection, GetItemCallFunction, iteratorQuery } from '@dappql/async'
+import * as CONTRACTS from './contracts'
+import createSdk, { SDK } from './contracts/sdk'
+
+export default class MyProtocol {
+  publicClient: PublicClient
+  walletClient: WalletClient | undefined
+  contracts: SDK
+  addresses: Partial<Record<keyof typeof CONTRACTS, Address>> = {}
+
+  constructor(config?: { publicClient?: PublicClient; walletClient?: WalletClient }) {
+    this.publicClient = config?.publicClient ?? createPublicClient({ chain: base, transport: http() })
+    this.walletClient = config?.walletClient
+    this.contracts = createSdk(this.publicClient, this.walletClient, this.addressResolver)
+  }
+
+  addressResolver = (name: string) => this.addresses[name as keyof typeof CONTRACTS]!
+
+  // Expose the multicall builder with full autocomplete on `contracts`
+  multicall<T extends RequestCollection>(
+    build: (contracts: typeof CONTRACTS) => T,
+    options: { blockNumber?: bigint } = {},
+  ) {
+    return query(this.publicClient, build(CONTRACTS), options, this.addressResolver)
+  }
+
+  iterate<T>(
+    build: (contracts: typeof CONTRACTS) => { total: bigint; getItem: GetItemCallFunction<T> },
+    options: { blockNumber?: bigint; firstIndex?: bigint } = {},
+  ) {
+    const { total, getItem } = build(CONTRACTS)
+    return iteratorQuery(this.publicClient, total, getItem, options, this.addressResolver)
+  }
+}
+```
+
+Consumers get a tight API with end-to-end types:
+
+```ts
+const protocol = new MyProtocol()
+
+const { data } = await protocol.multicall((c) => ({
+  totalSupply: c.Token.call.totalSupply(),
+  balance:     c.Token.call.balanceOf(user),
+  price:       c.Oracle.call.getPrice(asset),
+}))
+```
+
+> See [Underscore Finance's SDK](https://github.com/underscore-finance/typescript-sdk) for a production example — a full protocol SDK generated from hundreds of ABIs with DappQL.
 
 ## Packages
 
