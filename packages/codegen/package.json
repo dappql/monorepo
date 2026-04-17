@@ -1,6 +1,6 @@
 {
   "name": "@dappql/codegen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-agnostic code generation for DappQL — typed contract modules, SDK factory, and project AGENTS.md. Shared by the `dappql` CLI and the `@dappql/mcp` server.",
   "author": "DappQL Team",
   "type": "module",
