@@ -1,248 +1,208 @@
-# DappQL
+<h1 align="center">DappQL</h1>
 
-## Querying data from smart-contracts made easy.
+<p align="center">
+  <b>The batteries-included data layer for dApp frontends.</b><br/>
+  Built on top of <a href="https://wagmi.sh">wagmi</a> + <a href="https://viem.sh">viem</a>. Designed for humans and AI agents.
+</p>
 
-An extention of useDapp to help generate code for querying contract data with the power of typescript
+<p align="center">
+  <a href="https://www.npmjs.com/package/@dappql/react"><img src="https://img.shields.io/npm/v/@dappql/react.svg?label=%40dappql%2Freact" alt="npm @dappql/react" /></a>
+  <a href="https://www.npmjs.com/package/dappql"><img src="https://img.shields.io/npm/v/dappql.svg?label=dappql%20cli" alt="npm dappql" /></a>
+  <img src="https://img.shields.io/npm/l/@dappql/react.svg" alt="license" />
+</p>
 
-## Installation
+---
 
-In your terminal, run:
+## Why DappQL
+
+Wagmi gives you great primitives. DappQL is the productivity layer you reach for once your dApp talks to more than a handful of contracts.
+
+- **Typed codegen from your ABIs.** Point it at your contracts, get a fully typed SDK. When an ABI changes, TypeScript tells you exactly what broke.
+- **Automatic multicall batching** across a component *and* across your whole app — calls from unrelated components get fused into one RPC.
+- **Per-block reactivity** out of the box. Your UI stays in sync with chain state without hand-rolled subscriptions.
+- **Iterator queries** for on-chain arrays and paginated data.
+- **Mutations with simulate, estimate, and confirmation tracking** — and a single callback for global transaction UX.
+- **Address resolver** for registries, proxies, or multi-deployment setups.
+- **Works outside React too.** `@dappql/async` gives you the same typed calls in scripts, servers, and bots.
+- **AI-agent friendly.** The generated SDK, predictable APIs, and strict types mean Claude, Cursor, and friends produce working code on the first try.
+
+DappQL doesn't replace wagmi — it stands on top of it. If you know wagmi, you already know most of DappQL.
+
+## Install
 
 ```bash
-npm install -G dappql
+# The React bindings
+npm install @dappql/react wagmi viem @tanstack/react-query
+
+# The codegen CLI
+npm install -g dappql
 ```
 
-## Usage
+## Configure
 
-In the root of your project, add a `dapp.config.js` file like the following:
+Create `dapp.config.js` at the root of your project:
 
-```javascript
-module.exports = {
-  // Where the generate code is going to be located
-  targetPath: './contracts',
-
-  // Contract names:
+```js
+export default {
+  targetPath: './src/contracts',
   contracts: {
+    Token: {
+      address: '0x...',
+      abi: [/* ... */],
+    },
     ToDo: {
-      address: '0x29B63f08aBa4Be48873238C23693a5550bC1E93F',
-      abi: [
-        {
-          type: 'function',
-          name: 'addItem',
-          stateMutability: 'nonpayable',
-          inputs: [
-            {
-              name: '_content',
-              type: 'string',
-            },
-            {
-              name: '_status',
-              type: 'uint256',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-            },
-          ],
-        },
-        {
-          type: 'function',
-          name: 'updateItem',
-          stateMutability: 'nonpayable',
-          inputs: [
-            {
-              name: '_id',
-              type: 'uint256',
-            },
-            {
-              name: '_content',
-              type: 'string',
-            },
-            {
-              name: '_status',
-              type: 'uint256',
-            },
-          ],
-          outputs: [],
-        },
-        {
-          type: 'function',
-          name: 'updateStatus',
-          stateMutability: 'nonpayable',
-          inputs: [
-            {
-              name: '_id',
-              type: 'uint256',
-            },
-            {
-              name: '_status',
-              type: 'uint256',
-            },
-          ],
-          outputs: [],
-        },
-        {
-          type: 'function',
-          name: 'numItems',
-          stateMutability: 'view',
-          inputs: [
-            {
-              name: 'arg0',
-              type: 'address',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-            },
-          ],
-        },
-        {
-          type: 'function',
-          name: 'item',
-          stateMutability: 'view',
-          inputs: [
-            {
-              name: 'arg0',
-              type: 'address',
-            },
-            {
-              name: 'arg1',
-              type: 'uint256',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'tuple',
-              components: [
-                {
-                  name: 'user',
-                  type: 'address',
-                },
-                {
-                  name: 'timestamp',
-                  type: 'uint256',
-                },
-                {
-                  name: 'content',
-                  type: 'string',
-                },
-                {
-                  name: 'status',
-                  type: 'uint256',
-                },
-                {
-                  name: 'lastUpdated',
-                  type: 'uint256',
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      address: '0x...',
+      abi: [/* ... */],
     },
   },
 }
 ```
 
-## Generating the code:
-
-On your application folder, run the command:
+Then generate:
 
 ```bash
 dappql
 ```
 
-and see the magic happen!
+You get one typed module per contract plus an index — ready to import.
 
-<p align="center"><img src="./images/cli.png" width="400px" /></p>
+## Provider
 
-You'll see the process happening and the code should be in the generated folder.
+```tsx
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { DappQLProvider } from '@dappql/react'
 
-<p align="center"><img src="./images/output-files.png" width="400px" /></p>
+const queryClient = new QueryClient()
 
-## Using it:
-
-Below there's an example of how to make a single query to multiple contracts using the QueryContainer component:
-
-```typescript
-import { useEthers } from '@usedapp/core'
-import { formatEther } from 'ethers/lib/utils'
-
-import { call, QueryContainer, QueryData } from '../contracts'
-
-const QueryFunction = (account: string) => ({
-  bestUserTasksCount: call.ToDo('totalUserTasks', [account]),
-  totalTasks: call.ToDo('totalTasks', []),
-  openId: call.ToDo('statusCode', ['OPEN']),
-  inProgressId: call.ToDo('statusCode', ['IN_PROGRESS']),
-  doneId: call.ToDo('statusCode', ['COMPLETE']),
-  tokenTotal: call.Token('totalSupply', []),
-  tokenName: call.Token('name', []),
-  tokenSymbol: call.Token('symbol', []),
-  balanceOf: call.Token('balanceOf', [account]),
-})
-
-type Props = {
-  data: QueryData<ReturnType<typeof QueryFunction>>
+export function Root({ children }) {
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <DappQLProvider watchBlocks>{children}</DappQLProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  )
 }
+```
 
-function TestPage(props: Props) {
+## Query
+
+```tsx
+import { useQuery } from '@dappql/react'
+import { Token, ToDo } from './contracts'
+
+function Dashboard({ account }) {
+  const { data, isLoading } = useQuery({
+    balance: Token.call.balanceOf(account),
+    symbol: Token.call.symbol(),
+    totalTasks: ToDo.call.totalTasks(),
+    userTasks: ToDo.call.totalUserTasks(account),
+  })
+
+  if (isLoading) return <Spinner />
+
   return (
     <div>
-      <p>Best User Count: {props.data.bestUserTasksCount.toString()}</p>
-      <p>Total Tasks: {props.data.totalTasks.toString()}</p>
-      <p>OPEN ID: {props.data.openId}</p>
-      <p>IN_PROGRESS ID: {props.data.inProgressId}</p>
-      <p>DONE ID: {props.data.doneId}</p>
-      <p>Token Total Supply: {formatEther(props.data.tokenTotal)}</p>
-      <p>Token Symbol: {props.data.tokenSymbol}</p>
-      <p>Token Name: {props.data.tokenName}</p>
-      <p>Balance: {formatEther(props.data.balanceOf)}</p>
+      <p>{data.balance.toString()} {data.symbol}</p>
+      <p>{data.userTasks.toString()} / {data.totalTasks.toString()} tasks</p>
     </div>
   )
 }
+```
 
-export function TestPageQueryContainer({ account }: { account: string }) {
-  const query = QueryFunction(account)
-  return <QueryContainer query={query} component={TestPage} />
-}
+All four reads land in a single multicall. Types on `data` are inferred from the ABIs — no casts, no `any`.
 
-export default function Root() {
-  const { account } = useEthers()
-  if (account) {
-    return <TestPageQueryContainer account={account} />
-  }
+## Cross-component batching
 
-  return null
+`useContextQuery` has the same shape but batches *across your entire component tree*. Three components each asking for different data ship one RPC instead of three.
+
+```tsx
+import { useContextQuery } from '@dappql/react'
+
+const { data } = useContextQuery({
+  balance: Token.call.balanceOf(account),
+})
+```
+
+## Iterator queries
+
+For on-chain arrays and paginated reads:
+
+```tsx
+import { useIteratorQuery } from '@dappql/react'
+
+const { data } = useIteratorQuery(
+  totalTasks,
+  (i) => ToDo.call.taskAt(account, i),
+)
+```
+
+## Mutations
+
+```tsx
+import { useMutation } from '@dappql/react'
+import { ToDo } from './contracts'
+
+function NewTask() {
+  const mutation = useMutation(ToDo.mutation.addItem, 'Add task')
+
+  return (
+    <button
+      disabled={mutation.isLoading}
+      onClick={() => mutation.send('Buy milk', 0n)}
+    >
+      {mutation.confirmation.isSuccess ? 'Added' : 'Add task'}
+    </button>
+  )
 }
 ```
 
-All the return types should have typescript types and autocomplete based on the method calls.
+Pass `simulateMutations` at the provider to preflight every transaction, or `onMutationUpdate` for a single place to drive toasts, analytics, and receipts.
 
-## Hooks
+## Fluent request API
 
-Every contract in the configuration file will have it's own hook file with a `use{ContractName}Call` and `use{ContractName}Function` to execute the calls and transactions individually.
+Every generated call exposes a small fluent API for the cases where you need to override defaults:
 
-```typescript
-import { useToDoCall, useToDoFunction } from '../../contracts/hooks/useToDo'
-
-const [value, error, loading] = useToDoCall('statusName', [1])
-const transaction = useToDoFunction('createTask')
+```ts
+Token.call.balanceOf(account)
+  .at('0x...')            // override the deploy address
+  .defaultTo(0n)           // default value until the call resolves
 ```
+
+## Non-React / server
+
+```ts
+import { createPublicClient, http } from 'viem'
+import { query } from '@dappql/async'
+import { Token } from './contracts'
+
+const client = createPublicClient({ transport: http() })
+
+const { data } = await query(client, {
+  supply: Token.call.totalSupply(),
+  symbol: Token.call.symbol(),
+})
+```
+
+Same requests, same types — no React required.
+
+## Packages
+
+| Package | Version | Description |
+| --- | --- | --- |
+| [`@dappql/react`](./packages/react) | [![npm](https://img.shields.io/npm/v/@dappql/react.svg)](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, and query manager |
+| [`@dappql/async`](./packages/async) | [![npm](https://img.shields.io/npm/v/@dappql/async.svg)](https://www.npmjs.com/package/@dappql/async) | Non-React query + mutation runtime |
+| [`dappql`](./packages/cli) | [![npm](https://img.shields.io/npm/v/dappql.svg)](https://www.npmjs.com/package/dappql) | Codegen CLI |
+
+## Documentation
+
+Full docs live in [`packages/docs`](./packages/docs). Run them locally with `pnpm docs:dev`.
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## Example project
-
-https://github.com/VyperTraining/web-app
+PRs and issues are welcome. For anything larger than a small fix, please open an issue first so we can align on direction.
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+MIT
