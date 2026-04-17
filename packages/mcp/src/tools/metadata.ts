@@ -1,5 +1,6 @@
-import type { ProjectContext } from '../types.js'
+import { createPublic } from '../clients.js'
 import { getContractAbi, summarizeAllContracts, summarizeContract } from '../contracts.js'
+import type { ProjectContext } from '../types.js'
 
 export const listContractsTool = {
   name: 'listContracts',
@@ -153,6 +154,32 @@ export const projectInfoTool = {
       writesPolicy: ctx.writesReason,
       codegenEnabled: ctx.codegenEnabled,
       codegenPolicy: ctx.codegenReason,
+    }
+  },
+}
+
+export const chainStateTool = {
+  name: 'chainState',
+  description:
+    'Fetch current chain state: latest block number, block timestamp (unix + ISO), block hash, chain ID, and current gas price. Use this to pin historical queries to a specific block (pass the returned blockNumber as the `block` argument on callRead/multicall), calculate block offsets for time-windowed analysis (e.g. "what was this value 7 days ago"), or estimate transaction cost context.',
+  inputSchema: {
+    type: 'object',
+    properties: {},
+    additionalProperties: false,
+  },
+  handler: async (_args: unknown, ctx: ProjectContext) => {
+    const client = createPublic(ctx)
+    const [block, gasPrice] = await Promise.all([
+      client.getBlock({ blockTag: 'latest' }),
+      client.getGasPrice().catch(() => null),
+    ])
+    return {
+      chainId: ctx.chainId ?? null,
+      blockNumber: block.number?.toString() ?? null,
+      blockHash: block.hash ?? null,
+      blockTimestamp: block.timestamp.toString(),
+      blockTimestampISO: new Date(Number(block.timestamp) * 1000).toISOString(),
+      gasPrice: gasPrice !== null ? gasPrice.toString() : null,
     }
   },
 }

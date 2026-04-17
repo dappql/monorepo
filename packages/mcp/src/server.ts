@@ -10,11 +10,19 @@ import { listResources, readResource } from './resources.js'
 import {
   callReadTool,
   callWriteTool,
+  getEventsTool,
+  getTransactionTool,
   multicallTool,
   simulateWriteTool,
 } from './tools/chain.js'
 import { regenerateTool } from './tools/codegen.js'
-import { getContractTool, listContractsTool, projectInfoTool, searchMethodsTool } from './tools/metadata.js'
+import {
+  chainStateTool,
+  getContractTool,
+  listContractsTool,
+  projectInfoTool,
+  searchMethodsTool,
+} from './tools/metadata.js'
 import type { ProjectContext } from './types.js'
 
 type Tool = {
@@ -27,11 +35,14 @@ type Tool = {
 function makeToolRegistry(ctx: ProjectContext): Map<string, Tool> {
   const tools: Tool[] = [
     projectInfoTool,
+    chainStateTool,
     listContractsTool,
     getContractTool,
     searchMethodsTool,
     callReadTool,
     multicallTool,
+    getEventsTool,
+    getTransactionTool,
     simulateWriteTool,
     callWriteTool,
     regenerateTool,

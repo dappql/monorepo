@@ -64,12 +64,15 @@ export default {
 
 | Tool | What it does |
 | --- | --- |
-| `projectInfo` | Summary: config path, chain, RPC host, contract count, writes policy. |
+| `projectInfo` | Summary: config path, chain, RPC host, contract count, writes/codegen policy. |
+| `chainState` | Live chain state: latest block number, block timestamp (unix + ISO), block hash, gas price. Pair with `callRead`'s `block` argument for historical queries or time-windowed analysis. |
 | `listContracts` | Names, shape (singleton/template), deploy addresses, method/event counts. |
 | `getContract` | Full metadata for one contract: reads, writes, events, optional raw ABI. |
 | `searchMethods` | Ranked search across every method in every contract. Great when the agent knows what it wants to do but not which contract owns it. |
 | `callRead` | Execute a single view/pure method. Bigints stringified on the way out. `block` arg for historical reads. |
 | `multicall` | Batch multiple reads into one RPC. Per-call errors returned inline. Mirrors `useContextQuery` semantics. |
+| `getEvents` | Fetch and decode events for a named contract + event. Topic hashing and argument decoding handled from the ABI. Supports `fromBlock`/`toBlock`/`limit` and indexed-arg filtering. |
+| `getTransaction` | Fetch tx + receipt by hash. Returns `gasUsed`, `status`, the decoded input (method + args) when the target is a known contract, and every log auto-decoded against any project contract that emitted it. |
 | `simulateWrite` | Dry-run any non-view method via `eth_call`. **No signing key needed** — safe to expose to any agent. Returns decoded result + gas estimate, or revert reason. |
 | `callWrite` | Sign and broadcast. **Double-gated**: requires `mcp.allowWrites: true` and a signing key. Always simulates first and aborts on revert. `waitForReceipt: true` blocks until mined. |
 | `regenerate` | Re-run codegen against `dapp.config.js` — writes typed contract modules, SDK factory (if `isSdk`), and updates the project `AGENTS.md`. **Gated**: requires `mcp.allowCodegen: true`. Only emits for contracts whose ABI is embedded in the config (contracts relying on Etherscan must use the `dappql` CLI). Supports `dryRun: true`. |

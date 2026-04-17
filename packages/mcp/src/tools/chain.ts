@@ -1,11 +1,26 @@
 import { queryWithStatus, singleQuery, type Request } from '@dappql/async'
 import type { AbiFunction } from '@dappql/codegen'
-import type { Abi, Address } from 'viem'
+import { decodeEventLog, decodeFunctionData, type Abi, type Address, type Hash } from 'viem'
 
 import { createPublic, createWallet } from '../clients.js'
-import { findAbiFunction, getContractAbi, getContractAddress } from '../contracts.js'
+import {
+  findAbiEvent,
+  findAbiFunction,
+  findContractByAddress,
+  getContractAbi,
+  getContractAddress,
+} from '../contracts.js'
 import { coerceArgs, serializeValue } from '../serialize.js'
 import type { ProjectContext } from '../types.js'
+
+type BlockTag = 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized'
+const BLOCK_TAGS = new Set<BlockTag>(['latest', 'earliest', 'pending', 'safe', 'finalized'])
+
+function parseBlockParam(input: string | undefined, fallback: BlockTag): bigint | BlockTag {
+  if (!input) return fallback
+  if (BLOCK_TAGS.has(input as BlockTag)) return input as BlockTag
+  return BigInt(input)
+}
 
 type CallSpec = {
   contract: string
@@ -291,6 +306,210 @@ export const callWriteTool = {
       address,
       hash,
       note: 'Transaction broadcast — not waiting for confirmation. Poll with callRead or pass waitForReceipt=true to block.',
+    }
+  },
+}
+
+export const getEventsTool = {
+  name: 'getEvents',
+  description:
+    'Fetch and decode events emitted by a contract within a block range. Uses the contract\'s ABI from dapp.config.js — topic hashing and argument decoding handled automatically. Returns each event with block number, tx hash, log index, and decoded args (bigints stringified). Use this instead of crafting raw eth_getLogs calls.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      contract: { type: 'string', description: 'Contract name from dapp.config.js' },
+      event: { type: 'string', description: 'Event name as declared in the ABI' },
+      address: {
+        type: 'string',
+        description:
+          'Override deploy address. Required for template contracts; optional for singletons when you want to scope to a specific instance.',
+      },
+      fromBlock: {
+        type: 'string',
+        description:
+          'Starting block. Decimal, 0x-hex, or tag ("earliest" | "latest" | "pending" | "safe" | "finalized"). Default: "earliest".',
+      },
+      toBlock: {
+        type: 'string',
+        description: 'Ending block. Same format as fromBlock. Default: "latest".',
+      },
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 10000,
+        description: 'Max number of events to return. Default: 100. The full match count is reported regardless.',
+      },
+      args: {
+        type: 'object',
+        description:
+          'Filter by indexed args — e.g. { "from": "0xabc…" } for a Transfer event. Only indexed args can be filtered at the RPC level.',
+        additionalProperties: true,
+      },
+    },
+    required: ['contract', 'event'],
+    additionalProperties: false,
+  },
+  handler: async (
+    args: {
+      contract: string
+      event: string
+      address?: Address
+      fromBlock?: string
+      toBlock?: string
+      limit?: number
+      args?: Record<string, unknown>
+    },
+    ctx: ProjectContext,
+  ) => {
+    const abi = getContractAbi(ctx.config, args.contract)
+    const address = getContractAddress(ctx.config, args.contract, args.address)
+    const eventAbi = findAbiEvent(abi, args.event)
+    const client = createPublic(ctx)
+
+    const fromBlock = parseBlockParam(args.fromBlock, 'earliest')
+    const toBlock = parseBlockParam(args.toBlock, 'latest')
+    const limit = args.limit ?? 100
+
+    const logs = await client.getLogs({
+      address,
+      event: eventAbi as any,
+      args: args.args as any,
+      fromBlock,
+      toBlock,
+    } as Parameters<typeof client.getLogs>[0])
+
+    const returned = logs.slice(0, limit)
+    return {
+      contract: args.contract,
+      event: args.event,
+      address,
+      fromBlock: fromBlock.toString(),
+      toBlock: toBlock.toString(),
+      total: logs.length,
+      returned: returned.length,
+      truncated: logs.length > returned.length,
+      events: returned.map((log: any) => ({
+        blockNumber: log.blockNumber !== null && log.blockNumber !== undefined ? log.blockNumber.toString() : null,
+        txHash: log.transactionHash ?? null,
+        logIndex: log.logIndex ?? null,
+        args: serializeValue(log.args ?? {}),
+      })),
+    }
+  },
+}
+
+export const getTransactionTool = {
+  name: 'getTransaction',
+  description:
+    'Fetch a transaction + receipt by hash. Returns gasUsed, status, block context, the decoded input (method + args) when the target address is a known contract, and every log decoded against any project contract that emitted it. Answers both "how much gas did it burn" and "what happened" in one call.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      hash: { type: 'string', description: 'Transaction hash (0x-prefixed, 32 bytes).' },
+    },
+    required: ['hash'],
+    additionalProperties: false,
+  },
+  handler: async (args: { hash: string }, ctx: ProjectContext) => {
+    const client = createPublic(ctx)
+    const hash = args.hash as Hash
+
+    const [tx, receipt] = await Promise.all([
+      client.getTransaction({ hash }),
+      client.getTransactionReceipt({ hash }),
+    ])
+
+    let decodedInput: {
+      contract: string
+      method: string
+      args: unknown
+    } | null = null
+
+    const toContract = findContractByAddress(ctx.config, tx.to)
+    if (toContract && tx.input && tx.input.length >= 10) {
+      try {
+        const decoded = decodeFunctionData({
+          abi: toContract.abi as any,
+          data: tx.input as `0x${string}`,
+        })
+        decodedInput = {
+          contract: toContract.name,
+          method: decoded.functionName,
+          args: serializeValue(decoded.args ?? []),
+        }
+      } catch {
+        // input doesn't match any known function — leave as null
+      }
+    }
+
+    type DecodedEvent = { eventName: string; args: readonly unknown[] | Record<string, unknown> }
+
+    const decodedLogs = receipt.logs.map((log) => {
+      // First try the contract at the log's own address (most accurate)
+      const source = findContractByAddress(ctx.config, log.address)
+      const tryAbi = (abi: AbiFunction[]): DecodedEvent | null => {
+        try {
+          return decodeEventLog({
+            abi: abi as any,
+            data: log.data as `0x${string}`,
+            topics: log.topics as [`0x${string}`, ...`0x${string}`[]],
+          }) as DecodedEvent
+        } catch {
+          return null
+        }
+      }
+
+      let decoded: DecodedEvent | null = source ? tryAbi(source.abi) : null
+      let decodedBy: string | null = source && decoded ? source.name : null
+
+      // Fall back: iterate all contracts until something decodes (useful for templates,
+      // which have ABIs in config but no pinned address — e.g. ERC20 Transfer events
+      // emitted by arbitrary tokens).
+      if (!decoded) {
+        for (const [name, contract] of Object.entries(ctx.config.contracts)) {
+          if (!contract.abi) continue
+          const result = tryAbi(contract.abi)
+          if (result) {
+            decoded = result
+            decodedBy = name
+            break
+          }
+        }
+      }
+
+      return {
+        address: log.address,
+        logIndex: log.logIndex,
+        topics: log.topics,
+        data: log.data,
+        decoded: decoded
+          ? {
+              contract: decodedBy,
+              eventName: decoded.eventName,
+              args: serializeValue(decoded.args ?? {}),
+            }
+          : null,
+      }
+    })
+
+    return {
+      hash: tx.hash,
+      status: receipt.status,
+      blockNumber: receipt.blockNumber.toString(),
+      blockHash: receipt.blockHash,
+      transactionIndex: receipt.transactionIndex,
+      from: tx.from,
+      to: tx.to,
+      value: tx.value.toString(),
+      gasUsed: receipt.gasUsed.toString(),
+      gasPrice: tx.gasPrice ? tx.gasPrice.toString() : null,
+      effectiveGasPrice: receipt.effectiveGasPrice ? receipt.effectiveGasPrice.toString() : null,
+      decodedInput,
+      logs: decodedLogs,
+      note:
+        decodedInput === null && tx.to
+          ? 'Target address is not in dapp.config.js — input kept as raw hex. Add the contract to decode.'
+          : undefined,
     }
   },
 }

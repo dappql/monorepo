@@ -116,3 +116,23 @@ export function findAbiFunction(abi: AbiFunction[], methodName: string, argCount
   }
   return candidates[0]
 }
+
+export function findAbiEvent(abi: AbiFunction[], eventName: string): AbiFunction {
+  const event = abi.find((a) => a.type === 'event' && a.name === eventName)
+  if (!event) throw new Error(`Event not found: ${eventName}`)
+  return event
+}
+
+export function findContractByAddress(
+  config: DappConfig,
+  address: string | null | undefined,
+): { name: string; abi: AbiFunction[] } | null {
+  if (!address) return null
+  const lower = address.toLowerCase()
+  for (const [name, contract] of Object.entries(config.contracts)) {
+    if (contract.address && contract.address.toLowerCase() === lower && contract.abi) {
+      return { name, abi: contract.abi }
+    }
+  }
+  return null
+}
