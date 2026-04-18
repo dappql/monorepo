@@ -110,12 +110,22 @@ const { data, isLoading } = useContextQuery({
 
 ### 3.3 Fluent request customization
 
+`.at()`, `.defaultTo()`, and `.with()` live on the **Request object**, which is returned by `Contract.call.method(args)`. They are NOT methods on the contract namespace itself.
+
 ```ts
-Token.call.balanceOf(account)
-  .at('0x...')       // override deploy address for this call
-  .defaultTo(0n)     // default value returned until the query resolves
-  .with({ contractAddress, defaultValue })  // both at once
+// ✅ Correct — method first, then fluent-chain
+Token.call.balanceOf(account).at('0x...')
+Token.call.balanceOf(account).defaultTo(0n)
+Token.call.balanceOf(account).with({ contractAddress, defaultValue })
+
+// ❌ Wrong — Token.at() does not exist
+Token.at('0x...').call.balanceOf(account)
+
+// ❌ Wrong — there is no `.write` sub-namespace
+Token.at('0x...').write.transfer(...)
 ```
+
+For **template contracts** (deployed at many addresses), `.at(address)` is required — the generated code has no `deployAddress` baked in. For singletons, `.at()` is only an override.
 
 ### 3.4 Mutations
 
@@ -140,9 +150,108 @@ Second arg is either a transaction-name string or `{ transactionName, address, s
 import { query, iteratorQuery } from '@dappql/async'
 ```
 
-Same request shape, pass a viem `PublicClient` explicitly. For a full typed SDK (`createSdk` factory, events, templates), set `isSdk: true` in `dapp.config.js` — see `README.md` for the pattern.
+Same request shape as the React hooks, just pass a viem `PublicClient` explicitly.
 
-### 3.6 Things agents commonly get wrong — don't
+When `isSdk: true` is set in `dapp.config.js`, the CLI also emits a `createSdk(publicClient, walletClient, addressResolver)` factory. The SDK's public shape:
+
+```ts
+import createSdk from './contracts/sdk'
+
+const sdk = createSdk(publicClient, walletClient)
+
+// Singleton contract — address baked in from config
+const supply = await sdk.Token.totalSupply()
+const hash = await sdk.Token.transfer(recipient, 1000n)
+
+// Template contract — address is a FUNCTION ARGUMENT, not .at()
+const bound = sdk.UserWallet('0x...')       // ✅ correct
+const owner = await bound.owner()
+await bound.someMethod(...args)
+
+// ❌ Wrong — SDK templates are not chained with .at()
+sdk.UserWallet.at('0x...').method(...)
+
+// ❌ Wrong — there is no .write sub-namespace on the SDK
+sdk.UserWallet('0x...').write.method(...)
+
+// Events
+const topic = sdk.Token.events.Transfer.topic
+const parsed = sdk.Token.events.Transfer.parse(logs)
+```
+
+**Key difference between React-hooks world and SDK-factory world:**
+
+| Context | Template instance syntax |
+| --- | --- |
+| React hooks / `@dappql/async` | `Contract.call.method(args).at(address)` — chain on the Request |
+| SDK factory (`isSdk: true`) | `sdk.Contract(address).method(args)` — call the namespace as a function |
+
+### 3.6 Frontend consuming a published DappQL SDK (the common case)
+
+A published DappQL-generated SDK (e.g. `@underscore-finance/sdk`) re-exports its generated contract namespaces at the package root. A React frontend consumes **both** the SDK (for contract modules + address resolution) **and** `@dappql/react` (for hooks). You do NOT reimplement hooks on top of the SDK, and you do NOT use the SDK's imperative `multicall` from inside components — you use `useContextQuery`, which batches across the whole tree.
+
+The bridge is `DappQLProvider`'s `addressResolver`. The SDK's class (e.g. `Underscore`) exposes an `addressResolver` method after `loadAddresses()` resolves on-chain. Pass it to the provider and every `useContextQuery` call auto-resolves singletons correctly:
+
+```tsx
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { DappQLProvider } from '@dappql/react'
+import Underscore from '@underscore-finance/sdk'
+
+const underscore = new Underscore()
+await underscore.loadAddresses()   // one-time address resolution from a registry
+
+<WagmiProvider config={wagmiConfig}>
+  <QueryClientProvider client={queryClient}>
+    <DappQLProvider watchBlocks addressResolver={underscore.addressResolver}>
+      {children}
+    </DappQLProvider>
+  </QueryClientProvider>
+</WagmiProvider>
+```
+
+Reads, mutations, iterators, templates — use the hooks with the SDK's exported namespaces:
+
+```tsx
+import { Ledger, UndyUsd, LootDistributor, UserWallet } from '@underscore-finance/sdk'
+import { useContextQuery, useMutation, useIteratorQuery } from '@dappql/react'
+
+// Reads — batched across tree, address resolved via provider
+const { data } = useContextQuery({
+  wallets: Ledger.call.getNumUserWallets(),
+  supply:  UndyUsd.call.totalSupply(),
+  pending: LootDistributor.call.getPendingRewards(account),
+})
+
+// Template reads — .at() on the Request
+const { data } = useContextQuery({
+  owner: UserWallet.call.owner().at(walletAddress),
+})
+
+// Singleton write
+const claim = useMutation(LootDistributor.mutation.claim, 'Claim rewards')
+claim.send()
+
+// Template write — pass `address` in options
+const deposit = useMutation(UserWallet.mutation.deposit, { address: walletAddress })
+deposit.send(assetAddr, amount)
+
+// Iterator
+const { data: total } = useContextQuery({ total: Ledger.call.getNumUserWallets() })
+const { data: wallets } = useIteratorQuery(total ?? 0n, (i) => Ledger.call.getUserWalletAtIndex(i))
+```
+
+For anything imperative (swap instruction builders, off-chain helpers), use the SDK class directly — those aren't contract calls:
+
+```ts
+const swap = await underscore.getSwapInstructionsAmountOut({ ... })
+```
+
+**Don't:**
+- Don't recommend `underscore.multicall((c) => ...)` inside React components — use `useContextQuery`. The SDK's imperative multicall is for scripts/servers.
+- Don't confabulate contract names. If you're unsure what exists, call `listContracts` via MCP or check the SDK's exports.
+
+### 3.7 Things agents commonly get wrong — don't
 
 - **bigint, not number.** `uint256` args and returns are `bigint`. Use `0n`, `1n`, `BigInt(x)`. Never `Number(bigintValue)` for display — use `toString()` or viem's `formatUnits`.
 - **Address format.** Must be `\`0x${string}\``. Use viem's `getAddress` for checksum normalization if input is untrusted.
@@ -153,8 +262,12 @@ Same request shape, pass a viem `PublicClient` explicitly. For a full typed SDK 
 - **Generated files are autogenerated** (`/* @ts-nocheck */` header). Don't edit them. Re-run `dappql` after editing `dapp.config.js`.
 - **`@dappql/async` imports must not leak into React components.** Use `@dappql/react` hooks in the browser; `@dappql/async` is for scripts/servers/SDKs.
 - **Don't pass both `addressResolver` and `AddressResolverComponent` to the provider** — it throws at runtime.
+- **`.at()` lives on the Request, not the namespace.** `Token.call.balanceOf(account).at(addr)` — not `Token.at(addr).call.balanceOf(account)`, not `Token.at(addr).write.transfer(...)`. There is no `.write` sub-namespace anywhere.
+- **SDK templates are function calls, not chained.** `sdk.UserWallet('0x...').method(...)` — not `sdk.UserWallet.at('0x...').method(...)`.
+- **Don't reach for the SDK's imperative `multicall` inside React components.** Use `useContextQuery` — it batches across the whole tree. The imperative SDK path is for scripts, servers, and non-React runtimes.
+- **Don't confabulate contract names.** If you don't know what's in a project, call `listContracts` (via MCP) or read the project's `AGENTS.md` — don't guess at names like `WalletRegistry` that may not exist.
 
-### 3.7 When unsure, check
+### 3.8 When unsure, check
 
 - `README.md` — full quickstart, SDK generation, outside-React examples.
 - `packages/docs/guide/getting-started.md` — user-facing walkthrough.

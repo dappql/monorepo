@@ -154,6 +154,23 @@ export const projectInfoTool = {
       writesPolicy: ctx.writesReason,
       codegenEnabled: ctx.codegenEnabled,
       codegenPolicy: ctx.codegenReason,
+      resources: {
+        libraryReference: {
+          uri: 'dappql://docs/library',
+          description:
+            'Canonical reference for the DappQL toolchain — hook signatures, provider options, template vs singleton patterns, SDK factory syntax. Read this BEFORE writing any code that uses DappQL.',
+        },
+        projectGuide: {
+          uri: 'dappql://project/AGENTS.md',
+          description: 'The project-specific agent guide — tailored to THIS project\'s contracts and setup.',
+        },
+        contractDetail: {
+          uri: 'dappql://contracts/{Name}',
+          description: 'Per-contract summary + ABI. Replace {Name} with a contract name from listContracts.',
+        },
+      },
+      hint:
+        'Before writing or recommending DappQL code, read the library-reference resource. Agents that skip it reliably produce wrong syntax for `.at()`, SDK templates, and provider wiring.',
     }
   },
 }
