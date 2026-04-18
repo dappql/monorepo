@@ -1,6 +1,6 @@
 # @dappql/codegen
 
-> The framework-agnostic codegen engine for [DappQL](https://github.com/dappql/monorepo). Emits typed contract modules, the optional SDK factory, and the project-level `AGENTS.md` — from a plain `{ contracts, targetPath, ... }` config.
+> The framework-agnostic codegen engine for [DappQL](https://github.com/dappql/core). Emits typed contract modules, the optional SDK factory, and the project-level `AGENTS.md` — from a plain `{ contracts, targetPath, ... }` config.
 
 Shared core used by the [`dappql`](https://www.npmjs.com/package/dappql) CLI and the [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) server. Most users reach DappQL through the CLI — you only need `@dappql/codegen` directly if you're building tooling around it (an MCP server, a VSCode extension, a CI diff linter, a hosted platform).
 
@@ -88,7 +88,7 @@ For a vanilla dApp, use the [`dappql`](https://www.npmjs.com/package/dappql) CLI
 
 ## Full documentation
 
-[github.com/dappql/monorepo](https://github.com/dappql/monorepo)
+[github.com/dappql/core](https://github.com/dappql/core)
 
 ## License
 

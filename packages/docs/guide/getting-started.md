@@ -1,110 +1,147 @@
-# Getting Started
+# Getting started
 
-DappQL is a powerful layer built on top of [wagmi](https://wagmi.sh) that simplifies smart contract interactions while adding type safety and query optimization. It works alongside wagmi rather than replacing it, enhancing your dApp development experience.
+DappQL is a thin, typed data layer on top of [wagmi](https://wagmi.sh) and [viem](https://viem.sh). It generates typed contract modules from your ABIs, fuses reads across your component tree into one multicall, tracks mutations end-to-end, and ships an MCP server so AI coding agents get live, typed access to your project.
 
-## Prerequisites
+In three steps you go from zero to a React component that reads four contract methods in a single RPC, with types inferred from the ABIs.
 
-DappQL has the following peer dependencies:
-
-```bash
-"@tanstack/react-query": "^5.x"
-"viem": "^2.x"
-"wagmi": "^2.x"
-```
-
-## Installation
-
-1. Install the CLI for generating contracts:
+## 1. Install
 
 ```bash
+# React bindings + peer deps
+npm install @dappql/react wagmi viem @tanstack/react-query
+
+# The codegen CLI
+npm install --save-dev dappql
+# or globally
 npm install -g dappql
 ```
 
-2. Install the DappQL core package:
+Optional, depending on your use case:
 
-```bash
-npm install @dappql/react wagmi viem @tanstack/react-query
-```
+| Install | When |
+| --- | --- |
+| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Scripts, servers, bots, indexers, or anything non-React that talks to contracts. |
+| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | Expose your project to Claude Code, Cursor, or any MCP client. See [For AI agents](/agents/why-ai-first). |
 
-## Setup
+## 2. Configure your contracts
 
-1. Set up your wagmi config and query client as usual:
+Create `dapp.config.js` at your project root:
 
-```typescript
-import { createConfig, http } from 'wagmi'
-import { mainnet } from 'wagmi/chains'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { DappQLProvider } from '@dappql/react'
-
-export const config = createConfig({
-  chains: [mainnet],
-  transports: {
-    [mainnet.id]: http(),
-  },
-})
-
-const queryClient = new QueryClient()
-```
-
-2. Wrap your application with the `DappQLProvider` component:
-
-```tsx
-<WagmiProvider config={config}>
-  <QueryClientProvider client={queryClient}>
-    <DappQLProvider>{/* ... */}</DappQLProvider>
-  </QueryClientProvider>
-</WagmiProvider>
-```
-
-3. Create a DappQL configuration file:
-
-```javascript
-// dapp.config.js
+```js
 export default {
+  // Where generated contract modules go
   targetPath: './src/contracts',
+
+  // Emit ESM-style import paths (set true for modern TS/ESM projects)
+  isModule: true,
+
   contracts: {
-    MyContract: {
+    Token: {
       address: '0x...',
-      abi: [...],
+      abi: [/* ABI json */],
+    },
+    ToDo: {
+      address: '0x...',
+      abi: [/* ABI json */],
     },
   },
 }
 ```
 
-4. Generate contracts:
-
-On the root of your project, same folder as your `dapp.config.js`, run:
+Then generate:
 
 ```bash
-dappql
+npx dappql
 ```
 
-This will generate the contracts in the `targetPath` specified in your `dapp.config.js`.
+You'll get a typed module per contract plus an `index.ts`. You'll also get an `AGENTS.md` at your project root — a guide for AI coding agents tailored to your actual contracts. See [configuration](/guide/configuration) for the full reference, including SDK generation (`isSdk: true`) and template contracts.
 
-5. Use the generated contracts in your application:
+## 3. Wire up the provider
+
+Wrap your app in the three providers DappQL depends on:
 
 ```tsx
-import { useQuery, useMutation } from '@dappql/react'
-import { MyContract } from './src/contracts'
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { DappQLProvider } from '@dappql/react'
 
-function MyComponent() {
-  // DappQL automatically batches multiple reads into a single multicall
-  const { data, isLoading } = useQuery({
-    balance: contracts.MyContract.balanceOf(address),
-    totalSupply: contracts.MyContract.totalSupply(),
-  })
+const queryClient = new QueryClient()
 
-  // Type-safe mutations with built-in error handling
-  const mutation = useMutation(contracts.MyContract.mint)
-
-  if (isLoading) return <div>Loading...</div>
-
+export function Root({ children }) {
   return (
-    <div>
-      <p>Balance: {data.balance}</p>
-      <p>Total Supply: {data.totalSupply}</p>
-      <button onClick={() => mutation.send(1n)}>Mint</button>
-    </div>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <DappQLProvider watchBlocks>{children}</DappQLProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
 ```
+
+`watchBlocks` turns on per-block refetch — every read stays reactive as new blocks land. See [Provider setup](/guide/provider) for all options.
+
+## 4. Read from your contracts
+
+```tsx
+import { Token, ToDo } from './src/contracts'
+import { useContextQuery } from '@dappql/react'
+
+export function Dashboard({ account }: { account: `0x${string}` }) {
+  const { data, isLoading } = useContextQuery({
+    balance:    Token.call.balanceOf(account),
+    symbol:     Token.call.symbol(),
+    totalTasks: ToDo.call.totalTasks(),
+    openTasks:  ToDo.call.openTasksOf(account),
+  })
+
+  if (isLoading) return <Spinner />
+
+  return (
+    <p>
+      {data.balance.toString()} {data.symbol} · {data.openTasks.toString()} open
+    </p>
+  )
+}
+```
+
+Four reads, one multicall. Types on `data` are inferred from the ABI — no casts, no `any`. Run this component alongside another that calls `useContextQuery` and they will share the multicall. That's the key semantic: [`useContextQuery`](/guide/reads/use-context-query) batches *across the whole tree*, not just within one hook.
+
+## 5. Write to your contracts
+
+```tsx
+import { ToDo } from './src/contracts'
+import { useMutation } from '@dappql/react'
+
+export function AddTaskButton() {
+  const mutation = useMutation(ToDo.mutation.addItem, 'Add task')
+
+  return (
+    <button
+      disabled={mutation.isLoading}
+      onClick={() => mutation.send('Buy milk', 0n)}
+    >
+      {mutation.confirmation.isSuccess ? 'Added' : 'Add'}
+    </button>
+  )
+}
+```
+
+`mutation.send(...)` takes spread args (not an array). `mutation.isLoading` covers both signing and mining. `mutation.confirmation` is the full receipt hook. See [`useMutation`](/guide/mutations) for simulate/estimate/onUpdate patterns.
+
+## What you just built
+
+You now have:
+
+- A **React app** with end-to-end typed contract access.
+- **Cross-component multicall batching** without any manual work.
+- **Mutation lifecycle tracking** with simulate, estimate, and confirmation built in.
+- A **generated `AGENTS.md`** at your project root — whenever an AI coding agent opens this repo, it knows how to use DappQL correctly in *your* project.
+
+## What's next
+
+- [Configuration](/guide/configuration) — every option in `dapp.config.js`.
+- [Provider setup](/guide/provider) — `watchBlocks`, `addressResolver`, `onMutationUpdate`, and more.
+- [`useContextQuery`](/guide/reads/use-context-query) — the read hook you'll use most.
+- [Mutations](/guide/mutations) — simulate, estimate, wait-for-receipt, global UX.
+- [For AI agents](/agents/why-ai-first) — MCP server setup, the AGENTS.md story, Claude Code/Cursor integration.
+- [Migrating from wagmi](/guide/migrating-from-wagmi) — if you already have a wagmi app.

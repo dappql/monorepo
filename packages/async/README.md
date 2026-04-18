@@ -1,6 +1,6 @@
 # @dappql/async
 
-> Non-React runtime for [DappQL](https://github.com/dappql/monorepo). Typed contract reads (single, batched, iterator) and writes against viem clients — for scripts, servers, indexers, bots, and generated protocol SDKs.
+> Non-React runtime for [DappQL](https://github.com/dappql/core). Typed contract reads (single, batched, iterator) and writes against viem clients — for scripts, servers, indexers, bots, and generated protocol SDKs.
 
 Same typed contract calls as the React hooks, no React required. Works against any viem `PublicClient` / `WalletClient`.
 
@@ -95,7 +95,7 @@ const data = await query(client, requests, { blockNumber }, (contractName) => ad
 | Building a protocol SDK | Need per-block reactivity |
 | Anywhere React isn't present | Need cross-component multicall batching |
 
-For shipping a protocol SDK, see [SDK generation](https://github.com/dappql/monorepo#generate-a-full-sdk) in the root docs.
+For shipping a protocol SDK, see [SDK generation](https://github.com/dappql/core#generate-a-full-sdk) in the root docs.
 
 ## Related packages
 
@@ -108,7 +108,7 @@ For shipping a protocol SDK, see [SDK generation](https://github.com/dappql/mono
 
 ## Full documentation
 
-[github.com/dappql/monorepo](https://github.com/dappql/monorepo)
+[github.com/dappql/core](https://github.com/dappql/core)
 
 ## License
 

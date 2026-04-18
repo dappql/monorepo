@@ -35,12 +35,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dappql/monorepo.git"
+    "url": "git+https://github.com/dappql/core.git"
   },
   "bugs": {
-    "url": "https://github.com/dappql/monorepo/issues"
+    "url": "https://github.com/dappql/core/issues"
   },
-  "homepage": "https://github.com/dappql/monorepo#readme",
+  "homepage": "https://github.com/dappql/core#readme",
   "license": "MIT",
   "peerDependencies": {
     "typescript": ">=5.0.4",

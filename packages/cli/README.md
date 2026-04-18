@@ -2,7 +2,7 @@
 
 > Typed smart-contract codegen for dApps, built on [wagmi](https://wagmi.sh) + [viem](https://viem.sh). Point it at your ABIs, get back a fully typed SDK — plus a project-level `AGENTS.md` so AI coding agents produce correct code on the first try.
 
-Part of the [DappQL](https://github.com/dappql/monorepo) toolchain. The CLI is what you run; the runtime libraries (`@dappql/react`, `@dappql/async`) are what your app imports.
+Part of the [DappQL](https://github.com/dappql/core) toolchain. The CLI is what you run; the runtime libraries (`@dappql/react`, `@dappql/async`) are what your app imports.
 
 ## Install
 
@@ -124,7 +124,7 @@ Missing ABIs are reported and skipped.
 
 ## Full documentation
 
-[github.com/dappql/monorepo](https://github.com/dappql/monorepo)
+[github.com/dappql/core](https://github.com/dappql/core)
 
 ## License
 

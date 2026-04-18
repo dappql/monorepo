@@ -1,6 +1,6 @@
 # @dappql/mcp
 
-> MCP server that makes a [DappQL](https://github.com/dappql/monorepo) project first-class context for AI coding agents.
+> MCP server that makes a [DappQL](https://github.com/dappql/core) project first-class context for AI coding agents.
 
 `@dappql/mcp` walks up from the current directory, loads your `dapp.config.js`, and exposes your contracts to any [Model Context Protocol](https://modelcontextprotocol.io/) client — Claude Code, Cursor, Codex, and friends — via a small, stable tool + resource surface. Agents can list your contracts, inspect ABIs, run real reads against the chain (batched through multicall), dry-run writes, and — if you explicitly opt in — sign and broadcast transactions.
 

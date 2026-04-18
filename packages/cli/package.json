@@ -31,13 +31,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dappql/cli.git"
+    "url": "git+https://github.com/dappql/core.git"
   },
   "author": "DappQL Team",
   "bugs": {
-    "url": "https://github.com/dappql/cli/issues"
+    "url": "https://github.com/dappql/core/issues"
   },
-  "homepage": "https://github.com/dappql/cli#readme",
+  "homepage": "https://github.com/dappql/core#readme",
   "license": "MIT",
   "devDependencies": {
     "@types/figlet": "^1.5.4",

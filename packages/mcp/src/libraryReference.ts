@@ -23,4 +23,4 @@ export function loadLibraryReference(): string | null {
 
 export const LIBRARY_REFERENCE_FALLBACK =
   '# DappQL library reference\n\nNot bundled with this build.\n\n' +
-  'See https://github.com/dappql/monorepo/blob/main/AGENTS.md for the canonical reference.'
+  'See https://github.com/dappql/core/blob/main/AGENTS.md for the canonical reference.'

@@ -1,6 +1,6 @@
 # @dappql/react
 
-> React hooks for [DappQL](https://github.com/dappql/monorepo). Typed, batched smart-contract reads and writes on top of [wagmi](https://wagmi.sh) + [viem](https://viem.sh) — with automatic multicall fusion across your entire component tree, per-block reactivity, iterator queries, and mutation tracking.
+> React hooks for [DappQL](https://github.com/dappql/core). Typed, batched smart-contract reads and writes on top of [wagmi](https://wagmi.sh) + [viem](https://viem.sh) — with automatic multicall fusion across your entire component tree, per-block reactivity, iterator queries, and mutation tracking.
 
 ## Install
 
@@ -136,7 +136,7 @@ Token.call.balanceOf(account)
 
 ## Full documentation
 
-[github.com/dappql/monorepo](https://github.com/dappql/monorepo)
+[github.com/dappql/core](https://github.com/dappql/core)
 
 ## License
 
