@@ -19,6 +19,7 @@ import { regenerateTool } from './tools/codegen.js'
 import {
   chainStateTool,
   getContractTool,
+  getDappqlReferenceTool,
   listContractsTool,
   projectInfoTool,
   searchMethodsTool,
@@ -34,6 +35,7 @@ type Tool = {
 
 function makeToolRegistry(ctx: ProjectContext): Map<string, Tool> {
   const tools: Tool[] = [
+    getDappqlReferenceTool,
     projectInfoTool,
     chainStateTool,
     listContractsTool,

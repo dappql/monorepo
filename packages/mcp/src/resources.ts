@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
-import { fileURLToPath } from 'url'
 
 import { summarizeContract } from './contracts.js'
+import { LIBRARY_REFERENCE_FALLBACK, loadLibraryReference } from './libraryReference.js'
 import type { ProjectContext } from './types.js'
 
 export type ResourceDescriptor = {
@@ -10,26 +10,6 @@ export type ResourceDescriptor = {
   name: string
   description: string
   mimeType: string
-}
-
-// Bundled by scripts/copy-library-reference.mjs at build time. Lives at
-// <package>/assets/library-reference.md, one level up from dist/resources.js
-// after compilation.
-const LIBRARY_REFERENCE_PATH = (() => {
-  try {
-    return fileURLToPath(new URL('../assets/library-reference.md', import.meta.url))
-  } catch {
-    return null
-  }
-})()
-
-function loadLibraryReference(): string | null {
-  if (!LIBRARY_REFERENCE_PATH) return null
-  try {
-    return readFileSync(LIBRARY_REFERENCE_PATH, 'utf8')
-  } catch {
-    return null
-  }
 }
 
 export function listResources(ctx: ProjectContext): ResourceDescriptor[] {
@@ -98,14 +78,8 @@ export function readResource(uri: string, ctx: ProjectContext): { mimeType: stri
   }
 
   if (uri === 'dappql://docs/library') {
-    const text = loadLibraryReference()
-    if (text) return { mimeType: 'text/markdown', text }
-    return {
-      mimeType: 'text/markdown',
-      text:
-        '# DappQL library reference\n\nNot bundled with this build.\n\n' +
-        'See https://github.com/dappql/monorepo/blob/main/AGENTS.md for the canonical reference.',
-    }
+    const text = loadLibraryReference() ?? LIBRARY_REFERENCE_FALLBACK
+    return { mimeType: 'text/markdown', text }
   }
 
   throw new Error(`Unknown resource URI: ${uri}`)

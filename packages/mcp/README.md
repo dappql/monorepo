@@ -64,7 +64,8 @@ export default {
 
 | Tool | What it does |
 | --- | --- |
-| `projectInfo` | Summary: config path, chain, RPC host, contract count, writes/codegen policy. |
+| `getDappqlReference` | Returns the canonical DappQL library reference as markdown (React hooks, provider options, template/singleton patterns, SDK factory syntax, non-negotiables). **Call this first when asked "what is dappql" or before recommending any DappQL code.** |
+| `projectInfo` | Summary: config path, chain, RPC host, contract count, writes/codegen policy. Emits a `hint` + `resources` pointer to the library reference. |
 | `chainState` | Live chain state: latest block number, block timestamp (unix + ISO), block hash, gas price. Pair with `callRead`'s `block` argument for historical queries or time-windowed analysis. |
 | `listContracts` | Names, shape (singleton/template), deploy addresses, method/event counts. |
 | `getContract` | Full metadata for one contract: reads, writes, events, optional raw ABI. |

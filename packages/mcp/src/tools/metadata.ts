@@ -1,6 +1,10 @@
 import { createPublic } from '../clients.js'
 import { getContractAbi, summarizeAllContracts, summarizeContract } from '../contracts.js'
+import { LIBRARY_REFERENCE_FALLBACK, loadLibraryReference } from '../libraryReference.js'
 import type { ProjectContext } from '../types.js'
+
+const LIBRARY_HINT =
+  'Before writing or recommending DappQL code, call the getDappqlReference tool (or read the dappql://docs/library resource). Agents that skip it reliably produce wrong syntax for `.at()`, SDK templates, and provider wiring.'
 
 export const listContractsTool = {
   name: 'listContracts',
@@ -23,6 +27,7 @@ export const listContractsTool = {
         writeCount: s.writes.length,
         eventCount: s.events.length,
       })),
+      hint: LIBRARY_HINT,
     }
   },
 }
@@ -197,6 +202,25 @@ export const chainStateTool = {
       blockTimestamp: block.timestamp.toString(),
       blockTimestampISO: new Date(Number(block.timestamp) * 1000).toISOString(),
       gasPrice: gasPrice !== null ? gasPrice.toString() : null,
+    }
+  },
+}
+
+export const getDappqlReferenceTool = {
+  name: 'getDappqlReference',
+  description:
+    'Return the canonical DappQL library reference as markdown: React hooks (useContextQuery, useMutation, useIteratorQuery), DappQLProvider options, template vs singleton contract patterns (`.at()` placement), SDK factory syntax, non-React runtime, and the non-negotiable gotchas. Call this FIRST when asked "what is dappql", "how does dappql work", or before recommending any DappQL code — it covers the exact failure modes agents hit when guessing at the API.',
+  inputSchema: {
+    type: 'object',
+    properties: {},
+    additionalProperties: false,
+  },
+  handler: async (_args: unknown, _ctx: ProjectContext) => {
+    const text = loadLibraryReference() ?? LIBRARY_REFERENCE_FALLBACK
+    return {
+      format: 'markdown',
+      bundled: text !== LIBRARY_REFERENCE_FALLBACK,
+      content: text,
     }
   },
 }
