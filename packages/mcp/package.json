@@ -11,7 +11,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "bin",
-    "dist"
+    "dist",
+    "assets"
   ],
   "exports": {
     ".": {
@@ -33,6 +34,8 @@
   "scripts": {
     "clean": "rm -rf ./node_modules && rm -rf ./dist && rm -rf ./.turbo",
     "dev": "pnpm exec tsc -b -w",
+    "sync:docs": "node scripts/copy-library-reference.mjs",
+    "prebuild": "pnpm run sync:docs",
     "build": "del-cli dist && tsc",
     "test": "vitest run",
     "test:watch": "vitest",

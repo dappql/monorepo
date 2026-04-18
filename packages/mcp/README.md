@@ -84,6 +84,7 @@ export default {
 | `dappql://project/AGENTS.md` | The generated agent guide (when present at your project root). |
 | `dappql://project/config` | Normalized view of `dapp.config.js`. |
 | `dappql://contracts/{Name}` | Per-contract summary + full ABI. |
+| `dappql://docs/library` | Canonical DappQL library reference — React hooks, provider options, async runtime, SDK generation, codegen behavior, non-negotiables. Bundled with the server at build time from the monorepo's root `AGENTS.md` — no network dependency. |
 
 ## Safety
 

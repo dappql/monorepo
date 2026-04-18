@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
+import { fileURLToPath } from 'url'
 
 import { summarizeContract } from './contracts.js'
 import type { ProjectContext } from './types.js'
@@ -9,6 +10,26 @@ export type ResourceDescriptor = {
   name: string
   description: string
   mimeType: string
+}
+
+// Bundled by scripts/copy-library-reference.mjs at build time. Lives at
+// <package>/assets/library-reference.md, one level up from dist/resources.js
+// after compilation.
+const LIBRARY_REFERENCE_PATH = (() => {
+  try {
+    return fileURLToPath(new URL('../assets/library-reference.md', import.meta.url))
+  } catch {
+    return null
+  }
+})()
+
+function loadLibraryReference(): string | null {
+  if (!LIBRARY_REFERENCE_PATH) return null
+  try {
+    return readFileSync(LIBRARY_REFERENCE_PATH, 'utf8')
+  } catch {
+    return null
+  }
 }
 
 export function listResources(ctx: ProjectContext): ResourceDescriptor[] {
@@ -35,6 +56,13 @@ export function listResources(ctx: ProjectContext): ResourceDescriptor[] {
     name: 'dapp.config.js (summary)',
     description: 'Normalized view of the project config — chain, target path, flags, contract names.',
     mimeType: 'application/json',
+  })
+  out.push({
+    uri: 'dappql://docs/library',
+    name: 'DappQL library reference',
+    description:
+      'Canonical reference for the DappQL toolchain: React hooks, provider options, non-React runtime, SDK generation, codegen behavior, and non-negotiables for AI agents. Read this once to understand what\'s available beyond the project-specific AGENTS.md.',
+    mimeType: 'text/markdown',
   })
   return out
 }
@@ -67,6 +95,17 @@ export function readResource(uri: string, ctx: ProjectContext): { mimeType: stri
     const summary = summarizeContract(name, contract)
     const body = { ...summary, abi: contract.abi ?? null }
     return { mimeType: 'application/json', text: JSON.stringify(body, null, 2) }
+  }
+
+  if (uri === 'dappql://docs/library') {
+    const text = loadLibraryReference()
+    if (text) return { mimeType: 'text/markdown', text }
+    return {
+      mimeType: 'text/markdown',
+      text:
+        '# DappQL library reference\n\nNot bundled with this build.\n\n' +
+        'See https://github.com/dappql/monorepo/blob/main/AGENTS.md for the canonical reference.',
+    }
   }
 
   throw new Error(`Unknown resource URI: ${uri}`)
