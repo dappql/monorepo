@@ -4,7 +4,7 @@ A minimal Next.js app that exercises the core of [DappQL](https://dappql.com), a
 
 The app is a three-column ToDo board backed by a single Solidity contract on Sepolia. Every read, mutation, and refetch on screen is powered by DappQL hooks; there are no raw `useReadContract` / `useWriteContract` calls anywhere.
 
-**Live:** deployed on Vercel. **Contract:** [`0x29B6…1E93F`](https://sepolia.etherscan.io/address/0x29B63f08aBa4Be48873238C23693a5550bC1E93F#code) on Sepolia.
+**Live:** [todo.dappql.com](https://todo.dappql.com). **Contract:** [`0x29B6…1E93F`](https://sepolia.etherscan.io/address/0x29B63f08aBa4Be48873238C23693a5550bC1E93F#code) on Sepolia.
 
 ## What this demo proves
 

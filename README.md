@@ -13,6 +13,10 @@
   <img src="https://img.shields.io/npm/l/@dappql/react.svg" alt="license" />
 </p>
 
+<p align="center">
+  <a href="https://dappql.com"><b>Docs</b></a> · <a href="https://todo.dappql.com"><b>Live demo</b></a> · <a href="https://github.com/dappql/core"><b>GitHub</b></a>
+</p>
+
 ---
 
 ## Why DappQL
@@ -348,6 +352,10 @@ Full docs live in [`packages/docs`](./packages/docs). Run them locally with `pnp
 ## Contributing
 
 PRs and issues are welcome. For anything larger than a small fix, please open an issue first so we can align on direction.
+
+## Contact
+
+Questions, feedback, partnership, or want to ship something with DappQL? Reach us at [contact@dappql.com](mailto:contact@dappql.com).
 
 ## License
 

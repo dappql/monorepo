@@ -125,7 +125,8 @@ export default defineConfig({
       text: 'Edit this page on GitHub',
     },
     footer: {
-      message: 'Released under the MIT license.',
+      message:
+        'Released under the MIT license · <a href="mailto:contact@dappql.com">contact@dappql.com</a>',
       copyright: 'Copyright © DappQL Team',
     },
   },

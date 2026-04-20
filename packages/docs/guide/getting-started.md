@@ -4,6 +4,10 @@ DappQL is a thin, typed data layer on top of [wagmi](https://wagmi.sh) and [viem
 
 In three steps you go from zero to a React component that reads four contract methods in a single RPC, with types inferred from the ABIs.
 
+::: tip See it running
+Live demo: [todo.dappql.com](https://todo.dappql.com). Click the `< / >` icon in the header to see the annotated DappQL code behind every feature.
+:::
+
 ## 1. Install
 
 ```bash

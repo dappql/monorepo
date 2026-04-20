@@ -13,6 +13,7 @@
 
       <div class="hero-actions">
         <a href="/guide/getting-started" class="button primary">Get started</a>
+        <a href="https://todo.dappql.com" target="_blank" rel="noreferrer" class="button">Live demo</a>
         <a href="/agents/why-ai-first" class="button">For AI agents</a>
         <a href="https://github.com/dappql/core" class="button ghost">GitHub</a>
       </div>
@@ -82,6 +83,13 @@
         <span>·</span>
         <a href="https://underscore.finance" target="_blank" rel="noreferrer">Underscore</a>
       </div>
+    </div>
+
+    <div class="contact">
+      <p>
+        Questions, feedback, or want to ship something with DappQL?
+        <a href="mailto:contact@dappql.com">contact@dappql.com</a>
+      </p>
     </div>
   </div>
 </template>
@@ -283,6 +291,21 @@
 }
 .used-by-links span {
   color: var(--vp-c-text-3);
+}
+
+.contact {
+  margin-top: 56px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+}
+.contact a {
+  color: var(--vp-c-brand);
+  font-weight: 500;
+  text-decoration: none;
+}
+.contact a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
