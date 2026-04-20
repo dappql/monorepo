@@ -10,10 +10,10 @@ export default defineConfig({
   // progressively; this unblocks CI while pages land.
   ignoreDeadLinks: true,
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo-dappql.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/icon.png' }],
     ['meta', { name: 'theme-color', content: '#057aff' }],
     ['meta', { property: 'og:title', content: 'DappQL — data layer for dApp frontends' }],
-    ['meta', { property: 'og:image', content: 'https://dappql.com/logo-dappql.svg' }],
+    ['meta', { property: 'og:image', content: 'https://dappql.com/icon.png' }],
     ['meta', { property: 'og:url', content: 'https://dappql.com' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
   ],
