@@ -1,4 +1,3 @@
-import '@rainbow-me/rainbowkit/styles.css'
 import type { AppProps } from 'next/app'
 import { Provider } from '~/components/ui/provider'
 import DappProvider from '~/components/DappProvider'
