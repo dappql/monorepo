@@ -1,6 +1,6 @@
 # Tools reference
 
-`@dappql/mcp` exposes 13 tools. Agents call them over stdio via the Model Context Protocol. This page describes each one — purpose, inputs, outputs — with example invocations so you can debug sessions.
+`@dappql/mcp` exposes 13 tools. Agents call them over stdio via the Model Context Protocol. This page describes each one, purpose, inputs, outputs, with example invocations so you can debug sessions.
 
 For setup, see [MCP setup](/agents/mcp/setup). For the resources surface, see [Resources](/agents/mcp/resources).
 
@@ -18,10 +18,10 @@ Returns the canonical DappQL library reference as markdown. Covers React hooks, 
 
 **Output:**
 ```json
-{ "format": "markdown", "bundled": true, "content": "# AGENTS.md — DappQL\n..." }
+{ "format": "markdown", "bundled": true, "content": "# AGENTS.md, DappQL\n..." }
 ```
 
-`bundled: false` means the package's shipped asset is missing — the handler falls back to a pointer to the GitHub source.
+`bundled: false` means the package's shipped asset is missing, the handler falls back to a pointer to the GitHub source.
 
 ### `projectInfo`
 
@@ -124,8 +124,8 @@ Execute a single view/pure method. Decoded result with bigints stringified.
 }
 ```
 
-- `address` — override deploy address (required for templates).
-- `block` — pin to a historical block (decimal or 0x-hex).
+- `address`, override deploy address (required for templates).
+- `block`, pin to a historical block (decimal or 0x-hex).
 
 **Output:** `{ contract, method, address, result }`
 
@@ -165,9 +165,9 @@ Fetch and decode events emitted by a contract within a block range. Topic hashin
 }
 ```
 
-- `address` — override deploy address (required for templates).
-- `fromBlock` / `toBlock` — numeric or tags (`"earliest" | "latest" | "pending" | "safe" | "finalized"`). Defaults: `"earliest"` → `"latest"`.
-- `args` — filter by **indexed** event args only.
+- `address`, override deploy address (required for templates).
+- `fromBlock` / `toBlock`, numeric or tags (`"earliest" | "latest" | "pending" | "safe" | "finalized"`). Defaults: `"earliest"` → `"latest"`.
+- `args`, filter by **indexed** event args only.
 
 **Output:** `{ total, returned, truncated, events: [{ blockNumber, txHash, logIndex, args }, ...] }`
 
@@ -180,8 +180,8 @@ Fetch a tx + receipt by hash. Returns gasUsed, status, decoded input, and every 
 **Output:** full tx + receipt with:
 
 - `gasUsed`, `status`, `blockNumber`, `from`, `to`, `value`, `gasPrice`, `effectiveGasPrice`
-- `decodedInput: { contract, method, args } | null` — present when `tx.to` matches a known project contract.
-- `logs: [{ address, logIndex, topics, data, decoded: { contract, eventName, args } | null }, ...]` — each log attempted against every project ABI; first decode wins.
+- `decodedInput: { contract, method, args } | null`, present when `tx.to` matches a known project contract.
+- `logs: [{ address, logIndex, topics, data, decoded: { contract, eventName, args } | null }, ...]`, each log attempted against every project ABI; first decode wins.
 
 Use this to answer "how much gas did this tx burn" + "what did it actually do" in one call.
 
@@ -206,7 +206,7 @@ Returns the decoded simulated return value and gas estimate on success, or the r
 }
 ```
 
-`from` defaults to the zero address — usually fails with "insufficient balance." Pass a real address to get meaningful simulation.
+`from` defaults to the zero address, usually fails with "insufficient balance." Pass a real address to get meaningful simulation.
 
 **Output (success):** `{ ok: true, contract, method, address, from, result, gas }`
 
@@ -229,9 +229,9 @@ Always simulates first and aborts on revert. Never broadcasts a failing transact
 }
 ```
 
-- `address` — override deploy address (required for templates).
-- `value` — ETH value in wei for payable methods.
-- `waitForReceipt` — if true, blocks until the tx is mined and returns the receipt.
+- `address`, override deploy address (required for templates).
+- `value`, ETH value in wei for payable methods.
+- `waitForReceipt`, if true, blocks until the tx is mined and returns the receipt.
 
 **Output (broadcast):**
 ```json
@@ -250,7 +250,7 @@ See [Safety model](/agents/mcp/safety).
 
 Re-run DappQL codegen against the project's `dap.config.js`. Writes typed contract modules, `sdk.ts` (if `isSdk`), and updates the project `AGENTS.md`.
 
-**Gated**: requires `mcp.allowCodegen: true` in `dap.config.js` (default off). Also requires ABIs to be embedded in the config — contracts that rely on Etherscan fetching must go through the `dappql` CLI.
+**Gated**: requires `mcp.allowCodegen: true` in `dap.config.js` (default off). Also requires ABIs to be embedded in the config, contracts that rely on Etherscan fetching must go through the `dappql` CLI.
 
 **Input:** `{ "dryRun": false }`
 
@@ -291,7 +291,7 @@ Agents that scan tool names top-down see the library-reference tool immediately.
 
 ## Related
 
-- [MCP setup](/agents/mcp/setup) — client configuration.
-- [Resources](/agents/mcp/resources) — the docs + config + per-contract resources.
-- [Safety model](/agents/mcp/safety) — how writes and codegen gates compose.
-- [Underscore case study](/agents/case-studies/underscore) — sessions using these tools.
+- [MCP setup](/agents/mcp/setup), client configuration.
+- [Resources](/agents/mcp/resources), the docs + config + per-contract resources.
+- [Safety model](/agents/mcp/safety), how writes and codegen gates compose.
+- [Underscore case study](/agents/case-studies/underscore), sessions using these tools.

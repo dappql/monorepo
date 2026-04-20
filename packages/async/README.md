@@ -1,6 +1,6 @@
 # @dappql/async
 
-> Non-React runtime for [DappQL](https://github.com/dappql/core). Typed contract reads (single, batched, iterator) and writes against viem clients — for scripts, servers, indexers, bots, and generated protocol SDKs.
+> Non-React runtime for [DappQL](https://github.com/dappql/core). Typed contract reads (single, batched, iterator) and writes against viem clients, for scripts, servers, indexers, bots, and generated protocol SDKs.
 
 Same typed contract calls as the React hooks, no React required. Works against any viem `PublicClient` / `WalletClient`.
 
@@ -14,7 +14,7 @@ Pair with the [`dappql`](https://www.npmjs.com/package/dappql) CLI to generate y
 
 ## Reads
 
-### `query` — one multicall, all-or-nothing
+### `query`: one multicall, all-or-nothing
 
 ```ts
 import { createPublicClient, http } from 'viem'
@@ -30,9 +30,9 @@ const data = await query(client, {
 // data: { supply: bigint, symbol: string }
 ```
 
-Every request is fused into a single multicall. Throws on the first revert — use `queryWithStatus` if you need per-call error granularity.
+Every request is fused into a single multicall. Throws on the first revert, use `queryWithStatus` if you need per-call error granularity.
 
-### `queryWithStatus` — per-call results, never throws
+### `queryWithStatus`: per-call results, never throws
 
 ```ts
 import { queryWithStatus } from '@dappql/async'
@@ -48,7 +48,7 @@ else report(results.a.error)
 
 Same batching as `query`; each key resolves to `{ ok: true, result } | { ok: false, error }`. Useful for tools, debug views, and UIs that tolerate partial failures.
 
-### `singleQuery` — single typed read
+### `singleQuery`: single typed read
 
 ```ts
 import { singleQuery } from '@dappql/async'
@@ -56,7 +56,7 @@ import { singleQuery } from '@dappql/async'
 const balance = await singleQuery(client, Token.call.balanceOf(owner))
 ```
 
-### `iteratorQuery` — paginated on-chain arrays
+### `iteratorQuery`: paginated on-chain arrays
 
 ```ts
 import { iteratorQuery } from '@dappql/async'
@@ -102,9 +102,9 @@ For shipping a protocol SDK, see [SDK generation](https://github.com/dappql/core
 | Package | Purpose |
 | --- | --- |
 | [`@dappql/react`](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, query manager |
-| [`dappql`](https://www.npmjs.com/package/dappql) | Codegen CLI — generates the typed contract modules you import above |
+| [`dappql`](https://www.npmjs.com/package/dappql) | Codegen CLI, generates the typed contract modules you import above |
 | [`@dappql/codegen`](https://www.npmjs.com/package/@dappql/codegen) | Framework-agnostic codegen engine |
-| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server — live contract context for AI coding agents |
+| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server, live contract context for AI coding agents |
 
 ## Full documentation
 

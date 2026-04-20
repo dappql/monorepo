@@ -3,10 +3,12 @@
     <div class="hero-section">
       <img src="/logo-dappql.svg" alt="DappQL" class="hero-logo" />
 
-      <h1 class="hero-title">The data layer for dApp frontends</h1>
+      <h1 class="hero-title">
+        Make smart contracts fluent<br />for <span class="accent">humans</span> and <span class="accent">agents</span>.
+      </h1>
       <p class="hero-tagline">
-        Typed codegen on top of <a href="https://wagmi.sh" target="_blank" rel="noreferrer">wagmi</a> +
-        <a href="https://viem.sh" target="_blank" rel="noreferrer">viem</a>.<br />Built for humans and AI agents.
+        An agent-native data layer on <a href="https://wagmi.sh" target="_blank" rel="noreferrer">wagmi</a> +
+        <a href="https://viem.sh" target="_blank" rel="noreferrer">viem</a>.
       </p>
 
       <div class="hero-actions">
@@ -25,12 +27,12 @@
       <a href="/agents/why-ai-first" class="feature-card feature-card--accent">
         <div class="feature-icon">🤖</div>
         <h3>AI-agent ready</h3>
-        <p>Every project ships with a generated <code>AGENTS.md</code>. Plug in <code>@dappql/mcp</code> and Claude Code, Cursor, or any MCP client gets live, typed contract access — reads, simulated writes, events, gated execution.</p>
+        <p>Every project ships with a generated <code>AGENTS.md</code>. Plug in <code>@dappql/mcp</code> and Claude Code, Cursor, or any MCP client gets live, typed contract access: reads, simulated writes, events, gated execution.</p>
       </a>
       <a href="/guide/sdk-generation" class="feature-card">
         <div class="feature-icon">📦</div>
         <h3>Publishable typed SDK</h3>
-        <p>Flip <code>isSdk: true</code> and the CLI emits a <code>createSdk</code> factory — full typed protocol SDK, events included. Ship it to npm for your whole team or ecosystem.</p>
+        <p>Flip <code>isSdk: true</code> and the CLI emits a <code>createSdk</code> factory: a full typed protocol SDK, events included. Ship it to npm for your whole team or ecosystem.</p>
       </a>
       <a href="/guide/reads/use-context-query" class="feature-card">
         <div class="feature-icon">⚡</div>
@@ -109,10 +111,10 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: 20px;
-  background: linear-gradient(120deg, var(--vp-c-text-1) 30%, var(--vp-c-brand) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--vp-c-text-1);
+}
+.hero-title .accent {
+  color: var(--vp-c-brand);
 }
 
 .hero-tagline {
@@ -241,7 +243,7 @@
   color: var(--vp-c-text-1);
 }
 
-/* Minimal syntax highlighting — hand-styled because this is a Vue template,
+/* Minimal syntax highlighting, hand-styled because this is a Vue template,
    not a markdown code block (VitePress/Shiki doesn't reach here). Palette
    approximates one-dark-pro for the dark theme we're locked to. */
 .hl .k   { color: #c678dd; }           /* keywords: import, const, function, if, return, from */

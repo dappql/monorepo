@@ -1,6 +1,6 @@
 # Configuration
 
-`dap.config.js` is the single source of truth for DappQL codegen — which contracts to emit, where to put them, what flags to set, what MCP gates to open. This page is the full field reference.
+`dap.config.js` is the single source of truth for DappQL codegen, which contracts to emit, where to put them, what flags to set, what MCP gates to open. This page is the full field reference.
 
 ## Minimal config
 
@@ -63,7 +63,7 @@ contracts: {
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     abi: [/* ABI JSON */],
   },
-  // Template — no single canonical address; use .at() per call
+  // Template, no single canonical address; use .at() per call
   ERC20: {
     isTemplate: true,
     abi: [/* ERC20 ABI */],
@@ -73,21 +73,21 @@ contracts: {
 
 Per-contract fields:
 
-- **`address`** — the deploy address. Required for singletons. Optional for templates, but useful as a canonical-implementation reference.
-- **`abi`** — the full ABI array. If omitted and `etherscanApiKey` is set, the CLI will fetch it.
-- **`isTemplate`** — flag contracts deployed at many addresses. Generated code omits the baked-in `deployAddress`, and every call requires `.at(addr)` or an `address` option on mutations. See [Template contracts](/guide/templates).
+- **`address`**, the deploy address. Required for singletons. Optional for templates, but useful as a canonical-implementation reference.
+- **`abi`**, the full ABI array. If omitted and `etherscanApiKey` is set, the CLI will fetch it.
+- **`isTemplate`**, flag contracts deployed at many addresses. Generated code omits the baked-in `deployAddress`, and every call requires `.at(addr)` or an `address` option on mutations. See [Template contracts](/guide/templates).
 
 ### `targetPath` (required)
 
 Where to write generated contract modules. Relative to the config file's directory. Conventional: `'./src/contracts'`.
 
-The CLI cleans this directory before emitting, so keep it dedicated to generated output — don't mix in hand-written files.
+The CLI cleans this directory before emitting, so keep it dedicated to generated output, don't mix in hand-written files.
 
 ### `isModule`
 
 ```js
 isModule: true  // emits ESM import paths (import from './X.js')
-isModule: false // default — omits extensions, matches TS/CJS projects
+isModule: false // default, omits extensions, matches TS/CJS projects
 ```
 
 Set to `true` for modern ESM projects (your package.json has `"type": "module"`). For most Next.js/Vite apps, the default is fine.
@@ -98,12 +98,12 @@ Set to `true` for modern ESM projects (your package.json has `"type": "module"`)
 isSdk: true
 ```
 
-Flip on to additionally emit `${targetPath}/sdk.ts` — a `createSdk(publicClient, walletClient, addressResolver?)` factory that wraps every contract into a single typed object. This is how protocols ship their frontend primitives as publishable SDKs. See [SDK generation](/guide/sdk-generation).
+Flip on to additionally emit `${targetPath}/sdk.ts`, a `createSdk(publicClient, walletClient, addressResolver?)` factory that wraps every contract into a single typed object. This is how protocols ship their frontend primitives as publishable SDKs. See [SDK generation](/guide/sdk-generation).
 
 ### `agentsFile`
 
 ```js
-agentsFile: true                  // default — write ./AGENTS.md at repo root
+agentsFile: true                  // default, write ./AGENTS.md at repo root
 agentsFile: false                 // opt out
 agentsFile: './docs/AGENTS.md'    // custom location
 ```
@@ -137,7 +137,7 @@ etherscanApiKey: process.env.ETHERSCAN_API_KEY,
 etherscanApi: 'https://api.etherscan.io/v2/api',  // default
 ```
 
-If a contract omits `abi`, the CLI fetches it from Etherscan. Set `etherscanApi` to override — the v2 API works for Basescan, Arbiscan, and other chain explorers that mirror it.
+If a contract omits `abi`, the CLI fetches it from Etherscan. Set `etherscanApi` to override, the v2 API works for Basescan, Arbiscan, and other chain explorers that mirror it.
 
 ### `mcp`
 
@@ -213,7 +213,7 @@ export default {
   mcp: {
     rpc: 'https://mainnet.base.org',
     allowCodegen: true,   // lets the MCP regenerate tool run
-    // allowWrites left off — safest default
+    // allowWrites left off, safest default
   },
 }
 ```
@@ -226,7 +226,7 @@ After `npx dappql`:
 ./src/contracts/
   ├── Token.ts           # per-contract: abi, call, mutation, events, deployAddress
   ├── ToDo.ts
-  ├── ERC20.ts           # isTemplate: true — no deployAddress, .at() required
+  ├── ERC20.ts           # isTemplate: true, no deployAddress, .at() required
   ├── index.ts           # re-exports each contract as a namespace
   └── sdk.ts             # only when isSdk: true
 ```
@@ -235,13 +235,13 @@ Plus a project-level `AGENTS.md` (unless `agentsFile: false`).
 
 ## File format and extensions
 
-- `dap.config.js` — the conventional filename. The CLI also accepts `dap.config.mjs` and `dap.config.cjs`.
+- `dap.config.js`, the conventional filename. The CLI also accepts `dap.config.mjs` and `dap.config.cjs`.
 - Use `export default` (ESM) or `module.exports = { ... }` (CJS) depending on your project.
-- The file is imported at runtime by the CLI; any JavaScript you'd expect works — dynamic construction, env vars, conditional logic.
+- The file is imported at runtime by the CLI; any JavaScript you'd expect works, dynamic construction, env vars, conditional logic.
 
 ## Dynamic configurations
 
-The config file is just JavaScript — build it programmatically if that fits:
+The config file is just JavaScript, build it programmatically if that fits:
 
 ```js
 import manifest from './manifest.json' with { type: 'json' }
@@ -261,8 +261,8 @@ Perfect for generated manifests (Foundry's `out/` directory, a deploy pipeline t
 
 ## Related
 
-- [Getting started](/guide/getting-started) — the short walkthrough.
-- [SDK generation](/guide/sdk-generation) — the `isSdk: true` flow.
-- [Templates](/guide/templates) — when to flag a contract as a template.
-- [Generated AGENTS.md](/agents/generated-agents-md) — what the `agentsFile` flag controls.
-- [Safety model](/agents/mcp/safety) — the `mcp` block in depth.
+- [Getting started](/guide/getting-started), the short walkthrough.
+- [SDK generation](/guide/sdk-generation), the `isSdk: true` flow.
+- [Templates](/guide/templates), when to flag a contract as a template.
+- [Generated AGENTS.md](/agents/generated-agents-md), what the `agentsFile` flag controls.
+- [Safety model](/agents/mcp/safety), the `mcp` block in depth.

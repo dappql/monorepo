@@ -191,7 +191,7 @@ const { data } = await query(publicClient, {
 
 # DappQL — project context for AI agents
 
-This project reads and writes on-chain state via **[DappQL](https://github.com/dappql/core)**, a typed data layer on top of wagmi + viem. Use it for every contract interaction — don't reach for raw wagmi/viem primitives when a DappQL hook exists.
+This project reads and writes on-chain state via **[DappQL](https://github.com/dappql/core)**, an agent-native data layer on wagmi + viem that makes smart contracts fluent for humans and agents. Use it for every contract interaction; don't reach for raw wagmi/viem primitives when a DappQL hook exists.
 
 Full agent reference: https://github.com/dappql/core/blob/main/AGENTS.md`)
 

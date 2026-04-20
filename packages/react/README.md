@@ -1,6 +1,6 @@
 # @dappql/react
 
-> React hooks for [DappQL](https://github.com/dappql/core). Typed, batched smart-contract reads and writes on top of [wagmi](https://wagmi.sh) + [viem](https://viem.sh) — with automatic multicall fusion across your entire component tree, per-block reactivity, iterator queries, and mutation tracking.
+> React hooks for [DappQL](https://github.com/dappql/core). Typed, batched smart-contract reads and writes on top of [wagmi](https://wagmi.sh) + [viem](https://viem.sh), with automatic multicall fusion across your entire component tree, per-block reactivity, iterator queries, and mutation tracking.
 
 ## Install
 
@@ -34,15 +34,15 @@ Provider options:
 
 | Option | Purpose |
 | --- | --- |
-| `watchBlocks` | Refetch on every new block — makes reads reactive to chain state. |
+| `watchBlocks` | Refetch on every new block, makes reads reactive to chain state. |
 | `simulateMutations` | Preflight every tx via `eth_call`. Aborts on revert. |
-| `onMutationUpdate` | Single callback for every transaction lifecycle event — one place to drive toasts, analytics, receipts. |
-| `addressResolver` | Function that resolves contract names to addresses — for registries, proxies, multi-deploy. |
+| `onMutationUpdate` | Single callback for every transaction lifecycle event, one place to drive toasts, analytics, receipts. |
+| `addressResolver` | Function that resolves contract names to addresses, for registries, proxies, multi-deploy. |
 | `AddressResolverComponent` | Async alternative to `addressResolver` when the resolver needs hooks. |
 
 ## Reads
 
-### `useContextQuery` — the default
+### `useContextQuery`: the default
 
 Batches calls across your **entire** component tree into one multicall.
 
@@ -62,9 +62,9 @@ function Dashboard({ account }) {
 }
 ```
 
-If `<Dashboard>` and `<Sidebar>` both use `useContextQuery`, their calls fuse into one RPC — not two.
+If `<Dashboard>` and `<Sidebar>` both use `useContextQuery`, their calls fuse into one RPC, not two.
 
-### `useQuery` — component-scoped batching
+### `useQuery`: component-scoped batching
 
 Same shape as `useContextQuery`, but scoped to this hook call. Use when you need `blockNumber`, `paused`, custom `refetchInterval`, or `batchSize` overrides.
 
@@ -75,7 +75,7 @@ const { data } = useSingleContextQuery(Token.call.balanceOf(account))
 // data: bigint (inferred from the ABI)
 ```
 
-### `useIteratorQuery` — on-chain arrays
+### `useIteratorQuery`: on-chain arrays
 
 ```tsx
 import { useIteratorQuery } from '@dappql/react'
@@ -129,10 +129,10 @@ Token.call.balanceOf(account)
 
 | Package | Purpose |
 | --- | --- |
-| [`dappql`](https://www.npmjs.com/package/dappql) | Codegen CLI — generates the typed contract modules you import above |
-| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime — same typed calls, no React required |
+| [`dappql`](https://www.npmjs.com/package/dappql) | Codegen CLI, generates the typed contract modules you import above |
+| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime, same typed calls, no React required |
 | [`@dappql/codegen`](https://www.npmjs.com/package/@dappql/codegen) | Framework-agnostic codegen engine |
-| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server — live contract context for AI coding agents |
+| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server, live contract context for AI coding agents |
 
 ## Full documentation
 

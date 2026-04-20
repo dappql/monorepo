@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'DappQL',
   description:
-    'The batteries-included data layer for dApp frontends. Typed codegen on top of wagmi and viem — designed for humans and AI agents.',
+    'Make smart contracts fluent for humans and agents. An agent-native data layer on wagmi + viem.',
   appearance: 'dark',
   cleanUrls: true,
   // TODO: drop once all sidebar pages are filled in. Content is being written
@@ -12,10 +12,19 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: '/icon.png' }],
     ['meta', { name: 'theme-color', content: '#057aff' }],
-    ['meta', { property: 'og:title', content: 'DappQL — data layer for dApp frontends' }],
+    ['meta', { property: 'og:title', content: 'DappQL: make smart contracts fluent for humans and agents' }],
+    ['meta', {
+      property: 'og:description',
+      content: 'An agent-native data layer on wagmi + viem. Typed codegen, React hooks, publishable SDKs, live MCP server.',
+    }],
     ['meta', { property: 'og:image', content: 'https://dappql.com/icon.png' }],
     ['meta', { property: 'og:url', content: 'https://dappql.com' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'DappQL: make smart contracts fluent for humans and agents' }],
+    ['meta', {
+      name: 'twitter:description',
+      content: 'An agent-native data layer on wagmi + viem.',
+    }],
   ],
   themeConfig: {
     logo: '/logo-dappql.svg',

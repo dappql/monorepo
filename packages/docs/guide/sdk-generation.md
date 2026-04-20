@@ -1,6 +1,6 @@
 # SDK generation
 
-Set `isSdk: true` in `dapp.config.js` and DappQL emits a full, publishable typed SDK alongside the per-contract modules. This is how protocols ship their frontend primitives — one npm package your whole team and ecosystem imports.
+Set `isSdk: true` in `dapp.config.js` and DappQL emits a full, publishable typed SDK alongside the per-contract modules. This is how protocols ship their frontend primitives, one npm package your whole team and ecosystem imports.
 
 ```js
 export default {
@@ -22,7 +22,7 @@ Re-run `dappql`. You'll now get a `sdk.ts` in your target path with a `createSdk
 export type SDK = {
   Token:      Token.SDK                     // singleton
   Factory:    Factory.SDK
-  UserWallet: (address: Address) => UserWallet.SDK  // template — function call
+  UserWallet: (address: Address) => UserWallet.SDK  // template, function call
   ERC20:      (address: Address) => ERC20.SDK
   // ...
 }
@@ -48,13 +48,13 @@ const walletClient = createWalletClient({ account, chain: base, transport: http(
 
 const sdk = createSdk(publicClient, walletClient)
 
-// Singleton read — address baked in from config
+// Singleton read, address baked in from config
 const supply = await sdk.Token.totalSupply()
 
-// Singleton write — returns tx hash
+// Singleton write, returns tx hash
 const hash = await sdk.Token.transfer(recipient, 1000n)
 
-// Template — bind the instance address via function call
+// Template, bind the instance address via function call
 const userWallet = sdk.UserWallet('0x...')
 const owner = await userWallet.owner()
 const balance = await userWallet.balanceOf(asset)
@@ -75,14 +75,14 @@ The most common agent and human mistake: templates in the SDK factory are **not*
 const wallet = sdk.UserWallet(walletAddress)
 await wallet.owner()
 
-// ❌ Wrong — .at() is the React/async pattern, not the SDK pattern
+// ❌ Wrong, .at() is the React/async pattern, not the SDK pattern
 sdk.UserWallet.at(walletAddress).owner()
 
-// ❌ Wrong — there's no .write sub-namespace
+// ❌ Wrong, there's no .write sub-namespace
 sdk.UserWallet(walletAddress).write.deposit(...)
 ```
 
-The SDK factory is deliberately flatter than the React hooks surface — reads and writes live side-by-side on the same object, and templates are parameterized at bind time.
+The SDK factory is deliberately flatter than the React hooks surface, reads and writes live side-by-side on the same object, and templates are parameterized at bind time.
 
 ## Wrapping the SDK in a class
 
@@ -155,7 +155,7 @@ const { data } = await protocol.multicall((c) => ({
 }))
 ```
 
-This is the pattern `@underscore-finance/sdk` ships — go read [its `src/index.ts`](https://github.com/underscore-finance/typescript-sdk/blob/main/src/index.ts) for a full production example.
+This is the pattern `@underscore-finance/sdk` ships, go read [its `src/index.ts`](https://github.com/underscore-finance/typescript-sdk/blob/main/src/index.ts) for a full production example.
 
 ## Frontends on top of an SDK
 
@@ -173,7 +173,7 @@ await underscore.loadAddresses()
 </DappQLProvider>
 ```
 
-Then inside components, use the SDK's exported contract namespaces with the hooks — not the imperative `sdk.X.method()` calls:
+Then inside components, use the SDK's exported contract namespaces with the hooks, not the imperative `sdk.X.method()` calls:
 
 ```tsx
 import { Ledger, UndyUsd } from '@underscore-finance/sdk'
@@ -185,7 +185,7 @@ const { data } = useContextQuery({
 })
 ```
 
-You get all the React benefits — cross-component batching, per-block reactivity, mutation lifecycle — on top of the SDK's address resolution.
+You get all the React benefits, cross-component batching, per-block reactivity, mutation lifecycle, on top of the SDK's address resolution.
 
 ## When to ship an SDK vs plain contracts
 
@@ -200,7 +200,7 @@ For most dApp frontends: start without `isSdk`. Flip it on when you find yoursel
 
 ## Related
 
-- [Configuration](/guide/configuration) — `isSdk`, `isTemplate`, `isModule` flags.
-- [Template contracts](/guide/templates) — why templates are function-calls in SDK mode.
-- [Outside React](/guide/outside-react) — `@dappql/async` under the hood.
-- [Provider setup](/guide/provider) — wiring an SDK's `addressResolver` into React.
+- [Configuration](/guide/configuration), `isSdk`, `isTemplate`, `isModule` flags.
+- [Template contracts](/guide/templates), why templates are function-calls in SDK mode.
+- [Outside React](/guide/outside-react), `@dappql/async` under the hood.
+- [Provider setup](/guide/provider), wiring an SDK's `addressResolver` into React.

@@ -1,20 +1,20 @@
 # Migrating from wagmi
 
-If you already have a wagmi app, migrating to DappQL is **additive**, not a rewrite. You keep wagmi's configuration, connectors, chain setup, account hooks — everything that already works — and layer DappQL on top for contract reads and writes.
+If you already have a wagmi app, migrating to DappQL is **additive**, not a rewrite. You keep wagmi's configuration, connectors, chain setup, account hooks, everything that already works, and layer DappQL on top for contract reads and writes.
 
 This page is a side-by-side: wagmi patterns on the left, their DappQL equivalents on the right.
 
-## Setup — add a provider, keep everything
+## Setup: add a provider, keep everything
 
 ```tsx
-// Before — pure wagmi
+// Before, pure wagmi
 <WagmiProvider config={wagmiConfig}>
   <QueryClientProvider client={queryClient}>
     {children}
   </QueryClientProvider>
 </WagmiProvider>
 
-// After — wrap one more layer
+// After, wrap one more layer
 <WagmiProvider config={wagmiConfig}>
   <QueryClientProvider client={queryClient}>
     <DappQLProvider watchBlocks>{children}</DappQLProvider>
@@ -22,9 +22,9 @@ This page is a side-by-side: wagmi patterns on the left, their DappQL equivalent
 </WagmiProvider>
 ```
 
-`DappQLProvider` sits inside the existing providers. It doesn't replace them — it adds a contract-read query manager and mutation tracker that wagmi doesn't have natively. See [Provider setup](/guide/provider).
+`DappQLProvider` sits inside the existing providers. It doesn't replace them, it adds a contract-read query manager and mutation tracker that wagmi doesn't have natively. See [Provider setup](/guide/provider).
 
-## Codegen — one-time
+## Codegen: one-time
 
 Wagmi's typed helpers come from your `wagmi.config.ts`. DappQL's come from `dap.config.js`:
 
@@ -39,7 +39,7 @@ export default {
 }
 ```
 
-Run `npx dappql`. You get a typed module per contract plus an `index.ts`. Keep using wagmi's generated code or viem's `getContract` for anything DappQL doesn't cover — they happily coexist.
+Run `npx dappql`. You get a typed module per contract plus an `index.ts`. Keep using wagmi's generated code or viem's `getContract` for anything DappQL doesn't cover, they happily coexist.
 
 ## Reads
 
@@ -71,13 +71,13 @@ Same result, 40% less boilerplate, fully typed.
 ### Multiple reads (this is where DappQL shines)
 
 ```tsx
-// Before — four hook calls, four RPCs
+// Before, four hook calls, four RPCs
 const { data: balance } = useReadContract({ address, abi, functionName: 'balanceOf', args: [account] })
 const { data: symbol } = useReadContract({ address, abi, functionName: 'symbol' })
 const { data: decimals } = useReadContract({ address, abi, functionName: 'decimals' })
 const { data: total } = useReadContract({ address, abi, functionName: 'totalSupply' })
 
-// Or with useReadContracts — one RPC but verbose
+// Or with useReadContracts, one RPC but verbose
 const { data } = useReadContracts({
   contracts: [
     { address, abi, functionName: 'balanceOf', args: [account] },
@@ -88,7 +88,7 @@ const { data } = useReadContracts({
 })
 // data[0].result, data[1].result, ... unlabeled
 
-// After — one RPC, labeled, typed per-field
+// After, one RPC, labeled, typed per-field
 const { data } = useContextQuery({
   balance:  Token.call.balanceOf(account),
   symbol:   Token.call.symbol(),
@@ -142,7 +142,7 @@ tx.confirmation.isSuccess  // receipt confirmed
 ### Preflight + central UX
 
 ```tsx
-// Before — each mutation rolls its own toast/analytics
+// Before, each mutation rolls its own toast/analytics
 onClick={() => {
   writeContract({ ... }, {
     onSuccess: (hash) => toast.info('Submitted', { hash }),
@@ -150,7 +150,7 @@ onClick={() => {
   })
 }}
 
-// After — one provider callback covers every mutation
+// After, one provider callback covers every mutation
 <DappQLProvider
   simulateMutations
   onMutationUpdate={({ status, transactionName, txHash, error }) => {
@@ -169,7 +169,7 @@ See [Global transaction UX](/guide/mutations-global) and [Mutations](/guide/muta
 ### Reading an on-chain array
 
 ```tsx
-// Before — manual loop, N separate RPCs
+// Before, manual loop, N separate RPCs
 const { data: total } = useReadContract({ ..., functionName: 'totalItems' })
 const items = await Promise.all(
   Array.from({ length: Number(total) }, (_, i) =>
@@ -177,7 +177,7 @@ const items = await Promise.all(
   )
 )
 
-// After — one hook, one multicall
+// After, one hook, one multicall
 const { data: total } = useContextQuery({ total: Registry.call.totalItems() })
 const { data: items } = useIteratorQuery(total, (i) => Registry.call.itemAt(i))
 ```
@@ -197,10 +197,10 @@ contracts: {
 Then pass the address at the call site:
 
 ```tsx
-// Before — pass address to every useReadContract
+// Before, pass address to every useReadContract
 useReadContract({ address: USDC, abi: erc20Abi, functionName: 'balanceOf', args: [account] })
 
-// After — .at() on the Request
+// After, .at() on the Request
 useContextQuery({
   usdc: ERC20.call.balanceOf(account).at(USDC),
   dai:  ERC20.call.balanceOf(account).at(DAI),
@@ -211,13 +211,13 @@ See [Template contracts](/guide/templates).
 
 ## What stays wagmi
 
-DappQL doesn't replace wagmi — it layers over it. Keep using wagmi directly for:
+DappQL doesn't replace wagmi, it layers over it. Keep using wagmi directly for:
 
-- **Wallet connection** — `useAccount`, `useConnect`, `useDisconnect`, connectors, etc.
-- **Chain + network** — `useChainId`, `useSwitchChain`, chain configs.
-- **Signing messages** — `useSignMessage`, `useSignTypedData`.
-- **Balance** — `useBalance` for native ETH (contract balances go through DappQL).
-- **Watching** — `useWatchContractEvent`, `useBlock`, etc. (or see [Events](/guide/events) for DappQL's typed event decoding).
+- **Wallet connection**, `useAccount`, `useConnect`, `useDisconnect`, connectors, etc.
+- **Chain + network**, `useChainId`, `useSwitchChain`, chain configs.
+- **Signing messages**, `useSignMessage`, `useSignTypedData`.
+- **Balance**, `useBalance` for native ETH (contract balances go through DappQL).
+- **Watching**, `useWatchContractEvent`, `useBlock`, etc. (or see [Events](/guide/events) for DappQL's typed event decoding).
 
 DappQL's surface is deliberately narrow: typed contract reads, typed writes, multicall batching, mutation lifecycle. Everything else is wagmi's job.
 
@@ -225,21 +225,21 @@ DappQL's surface is deliberately narrow: typed contract reads, typed writes, mul
 
 If your app:
 - Only reads from 1-2 contracts and does nothing else complex, wagmi alone is fine.
-- Needs per-read `select` transforms that DappQL doesn't expose — `useReadContract` is more flexible there.
+- Needs per-read `select` transforms that DappQL doesn't expose, `useReadContract` is more flexible there.
 - Is already happy with its `useReadContracts` patterns and no cross-component batching would help.
 
-For everyone else — especially apps with growing contract surface area — the switch pays off fast.
+For everyone else, especially apps with growing contract surface area, the switch pays off fast.
 
 ## Gotchas during migration
 
 - **Types from wagmi and DappQL are independent.** Mixing them in the same render (e.g., passing `wagmi`'s `data` into a DappQL-typed prop) needs explicit casts.
-- **`watchBlocks` is off by default.** Wagmi's `useReadContract` subscribes to block changes via `watch: true`. DappQL doesn't — turn on `watchBlocks` at the provider if you want parity.
+- **`watchBlocks` is off by default.** Wagmi's `useReadContract` subscribes to block changes via `watch: true`. DappQL doesn't, turn on `watchBlocks` at the provider if you want parity.
 - **`useContextQuery`'s keys are arbitrary.** Name them for what they mean, not the method they came from.
 - **Mutation args are spread, not an array.** `tx.send(a, b, c)`, never `tx.send([a, b, c])`.
 
 ## Related
 
-- [Getting started](/guide/getting-started) — start from zero.
-- [Provider setup](/guide/provider) — wagmi + DappQL provider wiring.
-- [`useContextQuery`](/guide/reads/use-context-query) — the hook you'll use most.
-- [Mutations](/guide/mutations) — `useWriteContract`'s typed superset.
+- [Getting started](/guide/getting-started), start from zero.
+- [Provider setup](/guide/provider), wagmi + DappQL provider wiring.
+- [`useContextQuery`](/guide/reads/use-context-query), the hook you'll use most.
+- [Mutations](/guide/mutations), `useWriteContract`'s typed superset.

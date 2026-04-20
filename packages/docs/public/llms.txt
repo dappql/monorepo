@@ -1,8 +1,8 @@
 # DappQL
 
-> The batteries-included data layer for dApp frontends, built on top of wagmi + viem. Typed codegen from ABIs, automatic multicall batching across the component tree, per-block reactivity, iterator queries, mutation tracking, and optional non-React SDK generation. Designed to be equally easy for humans and AI coding agents.
+> Make smart contracts fluent for humans and agents. An agent-native data layer on wagmi + viem. Typed codegen from ABIs, automatic multicall batching across the component tree, per-block reactivity, iterator queries, mutation tracking, optional non-React SDK generation, and a live MCP server so AI coding agents get first-class access to your contracts.
 
-DappQL does not replace wagmi or viem — it is a plugin layer that sits on top of them. Teams use it when a dApp talks to more than a handful of contracts and wants type-safe ABI-driven codegen plus call batching without hand-rolling either.
+DappQL does not replace wagmi or viem — it is a plugin layer that sits on top of them. Teams use it when a dApp talks to more than a handful of contracts and wants type-safe ABI-driven codegen plus call batching, with AI coding agents treated as first-class consumers of the same typed surface.
 
 ## Core docs
 

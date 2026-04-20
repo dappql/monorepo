@@ -54,7 +54,7 @@ Then generate:
 npx dappql
 ```
 
-You'll get a typed module per contract plus an `index.ts`. You'll also get an `AGENTS.md` at your project root — a guide for AI coding agents tailored to your actual contracts. See [configuration](/guide/configuration) for the full reference, including SDK generation (`isSdk: true`) and template contracts.
+You'll get a typed module per contract plus an `index.ts`. You'll also get an `AGENTS.md` at your project root, a guide for AI coding agents tailored to your actual contracts. See [configuration](/guide/configuration) for the full reference, including SDK generation (`isSdk: true`) and template contracts.
 
 ## 3. Wire up the provider
 
@@ -78,7 +78,7 @@ export function Root({ children }) {
 }
 ```
 
-`watchBlocks` turns on per-block refetch — every read stays reactive as new blocks land. See [Provider setup](/guide/provider) for all options.
+`watchBlocks` turns on per-block refetch, every read stays reactive as new blocks land. See [Provider setup](/guide/provider) for all options.
 
 ## 4. Read from your contracts
 
@@ -104,7 +104,7 @@ export function Dashboard({ account }: { account: `0x${string}` }) {
 }
 ```
 
-Four reads, one multicall. Types on `data` are inferred from the ABI — no casts, no `any`. Run this component alongside another that calls `useContextQuery` and they will share the multicall. That's the key semantic: [`useContextQuery`](/guide/reads/use-context-query) batches *across the whole tree*, not just within one hook.
+Four reads, one multicall. Types on `data` are inferred from the ABI, no casts, no `any`. Run this component alongside another that calls `useContextQuery` and they will share the multicall. That's the key semantic: [`useContextQuery`](/guide/reads/use-context-query) batches *across the whole tree*, not just within one hook.
 
 ## 5. Write to your contracts
 
@@ -135,13 +135,13 @@ You now have:
 - A **React app** with end-to-end typed contract access.
 - **Cross-component multicall batching** without any manual work.
 - **Mutation lifecycle tracking** with simulate, estimate, and confirmation built in.
-- A **generated `AGENTS.md`** at your project root — whenever an AI coding agent opens this repo, it knows how to use DappQL correctly in *your* project.
+- A **generated `AGENTS.md`** at your project root, whenever an AI coding agent opens this repo, it knows how to use DappQL correctly in *your* project.
 
 ## What's next
 
-- [Configuration](/guide/configuration) — every option in `dapp.config.js`.
-- [Provider setup](/guide/provider) — `watchBlocks`, `addressResolver`, `onMutationUpdate`, and more.
-- [`useContextQuery`](/guide/reads/use-context-query) — the read hook you'll use most.
-- [Mutations](/guide/mutations) — simulate, estimate, wait-for-receipt, global UX.
-- [For AI agents](/agents/why-ai-first) — MCP server setup, the AGENTS.md story, Claude Code/Cursor integration.
-- [Migrating from wagmi](/guide/migrating-from-wagmi) — if you already have a wagmi app.
+- [Configuration](/guide/configuration), every option in `dapp.config.js`.
+- [Provider setup](/guide/provider), `watchBlocks`, `addressResolver`, `onMutationUpdate`, and more.
+- [`useContextQuery`](/guide/reads/use-context-query), the read hook you'll use most.
+- [Mutations](/guide/mutations), simulate, estimate, wait-for-receipt, global UX.
+- [For AI agents](/agents/why-ai-first), MCP server setup, the AGENTS.md story, Claude Code/Cursor integration.
+- [Migrating from wagmi](/guide/migrating-from-wagmi), if you already have a wagmi app.

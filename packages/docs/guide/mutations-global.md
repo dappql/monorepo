@@ -28,7 +28,7 @@ Every event fires with the same object:
 
 ```ts
 type MutationInfo = {
-  id: string                    // unique per send() — stable across the lifecycle
+  id: string                    // unique per send(), stable across the lifecycle
   status: 'submitted' | 'signed' | 'success' | 'error'
   account?: Address             // signer
   address: Address              // contract address
@@ -42,7 +42,7 @@ type MutationInfo = {
 }
 ```
 
-Use `id` to correlate events across the same transaction — the same `id` fires on `submitted`, then `signed` (with `txHash`), then either `success` (with `receipt`) or `error`.
+Use `id` to correlate events across the same transaction, the same `id` fires on `submitted`, then `signed` (with `txHash`), then either `success` (with `receipt`) or `error`.
 
 ## Lifecycle
 
@@ -139,7 +139,7 @@ const [pending, setPending] = useState<MutationInfo[]>([])
         const idx = prev.findIndex((p) => p.id === info.id)
         return idx === -1 ? [...prev, info] : prev.map((p) => (p.id === info.id ? info : p))
       }
-      // success / error — remove from pending
+      // success / error, remove from pending
       return prev.filter((p) => p.id !== info.id)
     })
   }}
@@ -150,7 +150,7 @@ A growing tray of in-flight transactions for the UI shell, kept in sync with eve
 
 ## `transactionName` matters
 
-Pass meaningful names to `useMutation` — they're what appears in the global callback and the UI:
+Pass meaningful names to `useMutation`, they're what appears in the global callback and the UI:
 
 ```tsx
 // Generic, boring
@@ -168,11 +168,11 @@ useMutation(Token.mutation.transfer, 'Send USDC')
 
 `onMutationUpdate` fires for **every** mutation, regardless of whether individual `useMutation` hooks override `simulate`, `address`, etc. The callback is global.
 
-If you want per-hook side effects, layer them on top of the provider callback — the per-hook state (`mutation.isSuccess`, etc.) is still available in your component.
+If you want per-hook side effects, layer them on top of the provider callback, the per-hook state (`mutation.isSuccess`, etc.) is still available in your component.
 
 ## Server-rendered / no-window contexts
 
-`onMutationUpdate` only fires on client-side mutations (writes require a wallet). On the server, no mutations happen, so the callback is never invoked. Safe to pass a callback that uses browser-only APIs — just handle the undefined window case if needed:
+`onMutationUpdate` only fires on client-side mutations (writes require a wallet). On the server, no mutations happen, so the callback is never invoked. Safe to pass a callback that uses browser-only APIs, just handle the undefined window case if needed:
 
 ```tsx
 onMutationUpdate={(info) => {
@@ -183,6 +183,6 @@ onMutationUpdate={(info) => {
 
 ## Related
 
-- [`useMutation`](/guide/mutations) — per-hook surface and options.
-- [Provider setup](/guide/provider) — all provider options.
-- [Safety model](/agents/mcp/safety) — MCP-side write gating.
+- [`useMutation`](/guide/mutations), per-hook surface and options.
+- [Provider setup](/guide/provider), all provider options.
+- [Safety model](/agents/mcp/safety), MCP-side write gating.

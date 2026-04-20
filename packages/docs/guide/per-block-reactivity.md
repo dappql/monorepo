@@ -1,6 +1,6 @@
 # Per-block reactivity
 
-Chain state changes every block. DappQL can keep every `useContextQuery` / `useQuery` in your app in sync automatically — opt in with one flag, and reads refetch as new blocks land.
+Chain state changes every block. DappQL can keep every `useContextQuery` / `useQuery` in your app in sync automatically, opt in with one flag, and reads refetch as new blocks land.
 
 ## Turning it on
 
@@ -19,7 +19,7 @@ That's it. Every query that doesn't opt out refetches on every new block. No per
 Under the hood:
 
 1. The provider subscribes to wagmi's block-number watcher once, at the root.
-2. On every new block, the internal query manager triggers a refetch across every active `useContextQuery` and `useQuery` hook — **batched into one multicall**.
+2. On every new block, the internal query manager triggers a refetch across every active `useContextQuery` and `useQuery` hook, **batched into one multicall**.
 3. Data flows back to components; React re-renders what actually changed.
 
 One block → one multicall → every view updated. No fan-out, no per-hook polling, no cascading re-renders.
@@ -38,7 +38,7 @@ If per-block is too aggressive, refetch every N blocks:
 
 ## Per-query opt-out
 
-For queries where chain freshness doesn't matter — chain-static values like `decimals`, `name`, `symbol`, `owner` on immutable contracts — flag them `isStatic`:
+For queries where chain freshness doesn't matter, chain-static values like `decimals`, `name`, `symbol`, `owner` on immutable contracts, flag them `isStatic`:
 
 ```tsx
 const { data } = useQuery(
@@ -49,7 +49,7 @@ const { data } = useQuery(
 
 Static queries fetch once and stay. They don't participate in block-driven refetches, which saves RPC calls without any correctness cost.
 
-For `useContextQuery`, there's no per-query `isStatic` — by design, since the whole point of context batching is grouping. If you need a mix of static and live reads, split them: static ones via `useQuery({ ... }, { isStatic: true })`, live ones via `useContextQuery({ ... })`.
+For `useContextQuery`, there's no per-query `isStatic`, by design, since the whole point of context batching is grouping. If you need a mix of static and live reads, split them: static ones via `useQuery({ ... }, { isStatic: true })`, live ones via `useContextQuery({ ... })`.
 
 ## Per-query custom interval
 
@@ -78,11 +78,11 @@ const { data } = useQuery(
 )
 ```
 
-Paused queries don't fetch at all — no initial load, no refetch. Toggle `paused: false` to resume. Paired with `defaultTo()` this gives you a stable fallback for the paused window.
+Paused queries don't fetch at all, no initial load, no refetch. Toggle `paused: false` to resume. Paired with `defaultTo()` this gives you a stable fallback for the paused window.
 
 ## Pinning to a block
 
-Historical queries bypass the watcher entirely — they resolve once at the specified block and don't refetch:
+Historical queries bypass the watcher entirely, they resolve once at the specified block and don't refetch:
 
 ```tsx
 const { data } = useQuery(
@@ -103,15 +103,15 @@ Useful for TWAP calculations, "as of last snapshot" dashboards, or auditing.
 ## When to turn off `watchBlocks`
 
 - **Server-rendered pages** that don't need live updates. Use `@dappql/async`'s `query` for SSR data, `watchBlocks` for hydrated client state (or skip it if stale-on-load is fine).
-- **Heavily static views** (about pages, deploy addresses, immutable token metadata) — if the whole view is static, leave `watchBlocks` off at the provider and let wagmi handle any dynamic state you still need.
-- **RPC-budget-conscious deployments** — per-block refetch burns RPC credits. Increase `blocksRefetchInterval` or turn off globally, with per-query `watchBlocks: true` overrides on the few reads that need live freshness.
+- **Heavily static views** (about pages, deploy addresses, immutable token metadata), if the whole view is static, leave `watchBlocks` off at the provider and let wagmi handle any dynamic state you still need.
+- **RPC-budget-conscious deployments**, per-block refetch burns RPC credits. Increase `blocksRefetchInterval` or turn off globally, with per-query `watchBlocks: true` overrides on the few reads that need live freshness.
 
 ## Interaction with mutations
 
-Mutations do NOT trigger per-block refetches — they trigger a refetch after the transaction confirms. If you need a read to refresh on a mutation, it'll happen automatically via the next block-driven refetch with `watchBlocks` on, or you can call `refetch()` manually from the query result.
+Mutations do NOT trigger per-block refetches, they trigger a refetch after the transaction confirms. If you need a read to refresh on a mutation, it'll happen automatically via the next block-driven refetch with `watchBlocks` on, or you can call `refetch()` manually from the query result.
 
 ## Related
 
-- [Provider setup](/guide/provider) — `watchBlocks`, `blocksRefetchInterval` options.
-- [`useContextQuery`](/guide/reads/use-context-query) — the primary reactive hook.
-- [`useQuery`](/guide/reads/use-query) — per-query options (`isStatic`, `paused`, `blockNumber`).
+- [Provider setup](/guide/provider), `watchBlocks`, `blocksRefetchInterval` options.
+- [`useContextQuery`](/guide/reads/use-context-query), the primary reactive hook.
+- [`useQuery`](/guide/reads/use-query), per-query options (`isStatic`, `paused`, `blockNumber`).

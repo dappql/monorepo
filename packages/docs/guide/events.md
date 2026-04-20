@@ -1,6 +1,6 @@
 # Events
 
-Every contract module DappQL generates ships typed event helpers. You can decode logs you already have, compute topic hashes, and parse receipts — all with the ABI embedded, no hand-rolled topic0 math.
+Every contract module DappQL generates ships typed event helpers. You can decode logs you already have, compute topic hashes, and parse receipts, all with the ABI embedded, no hand-rolled topic0 math.
 
 ## Generated surface
 
@@ -20,7 +20,7 @@ Token.parseEvents('Transfer', logs)
 
 These are thin wrappers over viem's `encodeEventTopics` and `parseEventLogs`, but with the ABI baked in so you never pass it manually.
 
-## Typical flow — filter by topic, parse to typed args
+## Typical flow: filter by topic, parse to typed args
 
 ```ts
 import { createPublicClient, http } from 'viem'
@@ -29,7 +29,7 @@ import { Token } from './src/contracts'
 
 const client = createPublicClient({ chain: base, transport: http() })
 
-// Filter logs by topic — topic hash comes from the generated helper
+// Filter logs by topic, topic hash comes from the generated helper
 const logs = await client.getLogs({
   address: Token.deployAddress,
   topics: [Token.getEventTopic('Transfer')],
@@ -48,7 +48,7 @@ for (const { event, parsed: [decoded] } of parsed) {
 
 ## Watching live
 
-Wagmi's `useWatchContractEvent` is the React way to subscribe. DappQL doesn't wrap it — use wagmi directly for live event subscriptions:
+Wagmi's `useWatchContractEvent` is the React way to subscribe. DappQL doesn't wrap it, use wagmi directly for live event subscriptions:
 
 ```tsx
 import { useWatchContractEvent } from 'wagmi'
@@ -65,9 +65,9 @@ useWatchContractEvent({
 })
 ```
 
-Pass the generated `Token.abi` straight in — it's already typed.
+Pass the generated `Token.abi` straight in, it's already typed.
 
-## Via `@dappql/mcp` — `getEvents` tool
+## Via `@dappql/mcp`: `getEvents` tool
 
 For scripts, debugging, or agent workflows, `@dappql/mcp` exposes events via a tool:
 
@@ -89,7 +89,7 @@ Returns decoded events with `{ blockNumber, txHash, logIndex, args }`. No topic 
 
 ## Decoding an unknown log
 
-If you have a log but don't know which contract emitted it, `@dappql/mcp`'s `getTransaction` tool auto-decodes every log in a receipt against every project contract's ABI — first match wins. Useful for "what did this tx do":
+If you have a log but don't know which contract emitted it, `@dappql/mcp`'s `getTransaction` tool auto-decodes every log in a receipt against every project contract's ABI, first match wins. Useful for "what did this tx do":
 
 ```json
 {
@@ -106,9 +106,9 @@ Indexed args come from topics; non-indexed args come from the log's `data` field
 
 ```ts
 // ABI: event Transfer(address indexed from, address indexed to, uint256 value)
-decoded.args.from   // `0x${string}` — indexed
-decoded.args.to     // `0x${string}` — indexed
-decoded.args.value  // bigint — non-indexed
+decoded.args.from   // `0x${string}`, indexed
+decoded.args.to     // `0x${string}`, indexed
+decoded.args.value  // bigint, non-indexed
 ```
 
 ## Gotchas
@@ -120,6 +120,6 @@ decoded.args.value  // bigint — non-indexed
 
 ## Related
 
-- [`getEvents` MCP tool](/agents/mcp/tools#getevents) — agent-callable event reader.
-- [`getTransaction` MCP tool](/agents/mcp/tools#gettransaction) — full tx + auto-decoded logs.
-- [Templates](/guide/templates) — event patterns across many instances.
+- [`getEvents` MCP tool](/agents/mcp/tools#getevents), agent-callable event reader.
+- [`getTransaction` MCP tool](/agents/mcp/tools#gettransaction), full tx + auto-decoded logs.
+- [Templates](/guide/templates), event patterns across many instances.

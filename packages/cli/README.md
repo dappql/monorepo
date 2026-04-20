@@ -1,6 +1,6 @@
 # dappql
 
-> Typed smart-contract codegen for dApps, built on [wagmi](https://wagmi.sh) + [viem](https://viem.sh). Point it at your ABIs, get back a fully typed SDK — plus a project-level `AGENTS.md` so AI coding agents produce correct code on the first try.
+> Typed smart-contract codegen for dApps, built on [wagmi](https://wagmi.sh) + [viem](https://viem.sh). Point it at your ABIs, get back a fully typed SDK, plus a project-level `AGENTS.md` so AI coding agents produce correct code on the first try.
 
 Part of the [DappQL](https://github.com/dappql/core) toolchain. The CLI is what you run; the runtime libraries (`@dappql/react`, `@dappql/async`) are what your app imports.
 
@@ -8,7 +8,7 @@ Part of the [DappQL](https://github.com/dappql/core) toolchain. The CLI is what 
 
 ```bash
 npm install -g dappql
-# or run via npx — no global install required
+# or run via npx, no global install required
 npx dappql
 ```
 
@@ -24,7 +24,7 @@ export default {
   // Set to true for an ESM project
   isModule: true,
 
-  // Set to true to emit `sdk.ts` — a `createSdk(publicClient, walletClient)` factory
+  // Set to true to emit `sdk.ts`, a `createSdk(publicClient, walletClient)` factory
   // for shipping a publishable protocol SDK
   isSdk: false,
 
@@ -34,7 +34,7 @@ export default {
   // - '<path>': custom location
   agentsFile: true,
 
-  // Optional — needed if any contract omits its abi and you want dappql to fetch it
+  // Optional, needed if any contract omits its abi and you want dappql to fetch it
   etherscanApiKey: process.env.ETHERSCAN_API_KEY,
   chainId: 1,
 
@@ -72,10 +72,10 @@ src/contracts/
 ├── ToDo.ts
 ├── ERC20.ts
 ├── index.ts          # re-exports each contract as a namespace
-└── sdk.ts            # only if isSdk: true — createSdk() factory
+└── sdk.ts            # only if isSdk: true, createSdk() factory
 ```
 
-Plus `AGENTS.md` at your project root, containing a table of every contract, its reads/writes/events, ABI-accurate argument placeholders, and the non-negotiable rules for using DappQL correctly — curated for AI coding agents.
+Plus `AGENTS.md` at your project root, containing a table of every contract, its reads/writes/events, ABI-accurate argument placeholders, and the non-negotiable rules for using DappQL correctly, curated for AI coding agents.
 
 Re-runs replace only the managed block in `AGENTS.md` (marked with `<!-- dappql:start --> ... <!-- dappql:end -->`), so hand-written content around it is preserved.
 
@@ -118,8 +118,8 @@ Missing ABIs are reported and skipped.
 | Package | Purpose |
 | --- | --- |
 | [`@dappql/react`](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, query manager |
-| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime — `query`, `mutate`, `iteratorQuery` |
-| [`@dappql/codegen`](https://www.npmjs.com/package/@dappql/codegen) | The codegen engine — programmatic API, used by this CLI and by `@dappql/mcp` |
+| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime, `query`, `mutate`, `iteratorQuery` |
+| [`@dappql/codegen`](https://www.npmjs.com/package/@dappql/codegen) | The codegen engine, programmatic API, used by this CLI and by `@dappql/mcp` |
 | [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server exposing your DappQL project to AI coding agents |
 
 ## Full documentation

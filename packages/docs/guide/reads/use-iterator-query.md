@@ -1,6 +1,6 @@
 # useIteratorQuery
 
-Paginate on-chain arrays with a single hook. Give it a total count and a function that builds a request for each index; it does the rest — one multicall for all items, deterministic batching, bigint-safe indexing.
+Paginate on-chain arrays with a single hook. Give it a total count and a function that builds a request for each index; it does the rest, one multicall for all items, deterministic batching, bigint-safe indexing.
 
 ## Basic usage
 
@@ -34,7 +34,7 @@ function TaskList({ account }: { account: `0x${string}` }) {
 
 ```ts
 const { data, isLoading, isError } = useIteratorQuery(
-  total,                                    // bigint — the count to iterate
+  total,                                    // bigint, the count to iterate
   (index: bigint) => Contract.call.at(index), // one Request per index
   options,                                  // same as useQuery + `firstIndex`
 )
@@ -47,15 +47,15 @@ const { data, isLoading, isError } = useIteratorQuery(
 | Parameter | Type | Purpose |
 | --- | --- | --- |
 | `total` | `bigint` | How many items to fetch. Usually comes from another `useContextQuery` read (`totalTasks`, `numWallets`, etc.). |
-| `getItem` | `(i: bigint) => Request` | Called `total` times — each returns a typed Request. |
+| `getItem` | `(i: bigint) => Request` | Called `total` times, each returns a typed Request. |
 | `options` | `QueryOptions & { firstIndex?: bigint }` | Per-query options (same as [`useQuery`](/guide/reads/use-query)) plus `firstIndex` for offset-based pagination. |
 
 ### Return
 
 An array where each entry is `{ value, queryIndex }`:
 
-- `value` — the decoded return value, typed from the ABI.
-- `queryIndex` — the index this entry was fetched at (as `bigint`).
+- `value`, the decoded return value, typed from the ABI.
+- `queryIndex`, the index this entry was fetched at (as `bigint`).
 
 ## Pagination with `firstIndex`
 
@@ -99,7 +99,7 @@ const { data } = useIteratorQuery(
 )
 ```
 
-## Cross-component flavor — `useIteratorContextQuery`
+## Cross-component flavor: `useIteratorContextQuery`
 
 `useIteratorContextQuery` is the context-batched variant: the iterator fuses with every other `useContextQuery` in the app tree.
 
@@ -130,17 +130,17 @@ When `total === 0n`, the hook returns an empty array without issuing an RPC:
 useIteratorQuery(0n, fn).data // []
 ```
 
-Useful as a degenerate case — no special-casing needed in render.
+Useful as a degenerate case, no special-casing needed in render.
 
 ## Gotchas
 
 - `total` is a **bigint**. Don't pass a plain number.
 - `queryIndex` in the return is also bigint. Convert with `Number()` only when the index is guaranteed to fit.
-- `getItem` runs `total` times — don't let it do expensive work per call. Pre-compute anything outside.
+- `getItem` runs `total` times, don't let it do expensive work per call. Pre-compute anything outside.
 - Every Request produced by `getItem` **must** be for the same return type. TypeScript will infer from the first one.
 
 ## Related
 
-- [`useContextQuery`](/guide/reads/use-context-query) — fetch the total count first.
-- [Fluent request API](/guide/reads/fluent-api) — `.at()` inside the getter for templates.
-- [`useQuery`](/guide/reads/use-query) — for single-scope batching options.
+- [`useContextQuery`](/guide/reads/use-context-query), fetch the total count first.
+- [Fluent request API](/guide/reads/fluent-api), `.at()` inside the getter for templates.
+- [`useQuery`](/guide/reads/use-query), for single-scope batching options.

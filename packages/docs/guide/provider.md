@@ -30,13 +30,13 @@ export function Root({ children }) {
 | `blocksRefetchInterval` | `number` | Refetch every *N* blocks when `watchBlocks` is on. Default `1`. |
 | `defaultBatchSize` | `number` | Max calls per multicall chunk. Default `1024`. |
 | `simulateMutations` | `boolean` | Run `eth_call` simulation before signing every mutation. Aborts on revert. Default `false`. |
-| `onMutationUpdate` | `(info: MutationInfo) => void` | Single callback for every transaction lifecycle event — `'submitted' \| 'signed' \| 'success' \| 'error'`. The global place for toasts, analytics, receipts. |
+| `onMutationUpdate` | `(info: MutationInfo) => void` | Single callback for every transaction lifecycle event, `'submitted' \| 'signed' \| 'success' \| 'error'`. The global place for toasts, analytics, receipts. |
 | `addressResolver` | `(contractName: string) => Address` | Function that resolves contract names to addresses at call time. Use when addresses live in a registry or proxy. |
 | `AddressResolverComponent` | `React.ComponentType` | Async version of `addressResolver` for when resolution itself needs hooks. **Mutually exclusive with `addressResolver`.** |
 
 ## Typical configurations
 
-### DeFi dashboard — reactive, simulated, centralized tx UX
+### DeFi dashboard: reactive, simulated, centralized tx UX
 
 ```tsx
 <DappQLProvider
@@ -71,7 +71,7 @@ const addresses = {
 </DappQLProvider>
 ```
 
-Every `useContextQuery` call that references a registered contract automatically resolves its address via this function — no need to thread it through props.
+Every `useContextQuery` call that references a registered contract automatically resolves its address via this function, no need to thread it through props.
 
 ### Async address resolution (needs hooks)
 
@@ -96,7 +96,7 @@ function Resolver({ onResolved }) {
 </DappQLProvider>
 ```
 
-Children don't render until `onResolved` fires — the rest of your app always has a fully populated resolver.
+Children don't render until `onResolved` fires, the rest of your app always has a fully populated resolver.
 
 ::: warning
 `addressResolver` and `AddressResolverComponent` are **mutually exclusive**. Passing both throws at runtime.
@@ -104,7 +104,7 @@ Children don't render until `onResolved` fires — the rest of your app always h
 
 ## Consuming a published DappQL SDK
 
-If you're building a frontend on top of an SDK that someone else generated with DappQL — for example [`@underscore-finance/sdk`](https://github.com/underscore-finance/typescript-sdk) — the SDK exposes its own address resolver. Wire it straight into the provider:
+If you're building a frontend on top of an SDK that someone else generated with DappQL, for example [`@underscore-finance/sdk`](https://github.com/underscore-finance/typescript-sdk), the SDK exposes its own address resolver. Wire it straight into the provider:
 
 ```tsx
 import Underscore from '@underscore-finance/sdk'
@@ -118,16 +118,16 @@ await underscore.loadAddresses()  // on-chain registry lookup, once
 </DappQLProvider>
 ```
 
-Now every `useContextQuery({ supply: UndyUsd.call.totalSupply() })` in the app resolves `UndyUsd`'s address via the SDK's registry-backed resolver. This is the canonical pattern for frontends on dappql-generated SDKs — see [SDK generation](/guide/sdk-generation) for the publisher's side.
+Now every `useContextQuery({ supply: UndyUsd.call.totalSupply() })` in the app resolves `UndyUsd`'s address via the SDK's registry-backed resolver. This is the canonical pattern for frontends on dappql-generated SDKs, see [SDK generation](/guide/sdk-generation) for the publisher's side.
 
 ## What to put outside the provider
 
-- **Connect/disconnect UI** — wagmi hooks work independently; the connect button doesn't need to be inside `DappQLProvider`.
-- **Routing, theme, analytics** — out.
-- **Everything that calls `useContextQuery`, `useQuery`, `useMutation`, `useIteratorQuery`** — must be a descendant of `DappQLProvider`.
+- **Connect/disconnect UI**, wagmi hooks work independently; the connect button doesn't need to be inside `DappQLProvider`.
+- **Routing, theme, analytics**, out.
+- **Everything that calls `useContextQuery`, `useQuery`, `useMutation`, `useIteratorQuery`**, must be a descendant of `DappQLProvider`.
 
 ## Next
 
-- [`useContextQuery`](/guide/reads/use-context-query) — the read hook you'll use most.
-- [Mutations](/guide/mutations) — simulate, estimate, wait-for-receipt.
-- [Address resolution](/guide/address-resolver) — deeper patterns for multi-deployment setups.
+- [`useContextQuery`](/guide/reads/use-context-query), the read hook you'll use most.
+- [Mutations](/guide/mutations), simulate, estimate, wait-for-receipt.
+- [Address resolution](/guide/address-resolver), deeper patterns for multi-deployment setups.

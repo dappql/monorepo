@@ -2,20 +2,20 @@
 
 > MCP server that makes a [DappQL](https://github.com/dappql/core) project first-class context for AI coding agents.
 
-`@dappql/mcp` walks up from the current directory, loads your `dapp.config.js`, and exposes your contracts to any [Model Context Protocol](https://modelcontextprotocol.io/) client — Claude Code, Cursor, Codex, and friends — via a small, stable tool + resource surface. Agents can list your contracts, inspect ABIs, run real reads against the chain (batched through multicall), dry-run writes, and — if you explicitly opt in — sign and broadcast transactions.
+`@dappql/mcp` walks up from the current directory, loads your `dapp.config.js`, and exposes your contracts to any [Model Context Protocol](https://modelcontextprotocol.io/) client, Claude Code, Cursor, Codex, and friends, via a small, stable tool + resource surface. Agents can list your contracts, inspect ABIs, run real reads against the chain (batched through multicall), dry-run writes, and, if you explicitly opt in, sign and broadcast transactions.
 
 It never asks the agent to hand-craft ABIs or guess addresses. Everything is derived from your `dapp.config.js` and executed through viem, the same runtime DappQL uses.
 
 ## Install
 
 ```bash
-# Usually invoked via npx in an MCP client config, not installed globally
+# Usually invoked via npx in an MCP client config: not installed globally
 npx -y @dappql/mcp
 ```
 
 ## Client setup
 
-**Claude Code** — add to `~/.claude.json` (or `.mcp.json` in your project):
+**Claude Code**, add to `~/.claude.json` (or `.mcp.json` in your project):
 
 ```json
 {
@@ -31,9 +31,9 @@ npx -y @dappql/mcp
 }
 ```
 
-**Cursor** — `~/.cursor/mcp.json` with the same shape.
+**Cursor**, `~/.cursor/mcp.json` with the same shape.
 
-The server must be launched from (or walk up to) a directory containing `dapp.config.js`. If you invoke it from a subfolder of your project, that's fine — it searches upward.
+The server must be launched from (or walk up to) a directory containing `dapp.config.js`. If you invoke it from a subfolder of your project, that's fine, it searches upward.
 
 ## Configuration
 
@@ -57,8 +57,8 @@ export default {
 | --- | --- | --- |
 | RPC URL | `mcp.rpc` (config) → `DAPPQL_RPC_URL` (env) | Viem transport. Config wins if both are set. |
 | Signing key | `DAPPQL_PRIVATE_KEY` or `MNEMONIC` (env only) | Required for `callWrite`. Never put this in `dapp.config.js`. |
-| Write permission | `mcp.allowWrites: true` (config) | Second gate — **both** this AND a key must be present for writes to be enabled. |
-| Codegen permission | `mcp.allowCodegen: true` (config) | Gates the `regenerate` tool. Default off — MCP doesn't write into your repo unless you opt in. |
+| Write permission | `mcp.allowWrites: true` (config) | Second gate, **both** this AND a key must be present for writes to be enabled. |
+| Codegen permission | `mcp.allowCodegen: true` (config) | Gates the `regenerate` tool. Default off, MCP doesn't write into your repo unless you opt in. |
 
 ## Tools
 
@@ -74,9 +74,9 @@ export default {
 | `multicall` | Batch multiple reads into one RPC. Per-call errors returned inline. Mirrors `useContextQuery` semantics. |
 | `getEvents` | Fetch and decode events for a named contract + event. Topic hashing and argument decoding handled from the ABI. Supports `fromBlock`/`toBlock`/`limit` and indexed-arg filtering. |
 | `getTransaction` | Fetch tx + receipt by hash. Returns `gasUsed`, `status`, the decoded input (method + args) when the target is a known contract, and every log auto-decoded against any project contract that emitted it. |
-| `simulateWrite` | Dry-run any non-view method via `eth_call`. **No signing key needed** — safe to expose to any agent. Returns decoded result + gas estimate, or revert reason. |
+| `simulateWrite` | Dry-run any non-view method via `eth_call`. **No signing key needed**, safe to expose to any agent. Returns decoded result + gas estimate, or revert reason. |
 | `callWrite` | Sign and broadcast. **Double-gated**: requires `mcp.allowWrites: true` and a signing key. Always simulates first and aborts on revert. `waitForReceipt: true` blocks until mined. |
-| `regenerate` | Re-run codegen against `dapp.config.js` — writes typed contract modules, SDK factory (if `isSdk`), and updates the project `AGENTS.md`. **Gated**: requires `mcp.allowCodegen: true`. Only emits for contracts whose ABI is embedded in the config (contracts relying on Etherscan must use the `dappql` CLI). Supports `dryRun: true`. |
+| `regenerate` | Re-run codegen against `dapp.config.js`, writes typed contract modules, SDK factory (if `isSdk`), and updates the project `AGENTS.md`. **Gated**: requires `mcp.allowCodegen: true`. Only emits for contracts whose ABI is embedded in the config (contracts relying on Etherscan must use the `dappql` CLI). Supports `dryRun: true`. |
 
 ## Resources
 
@@ -85,7 +85,7 @@ export default {
 | `dappql://project/AGENTS.md` | The generated agent guide (when present at your project root). |
 | `dappql://project/config` | Normalized view of `dapp.config.js`. |
 | `dappql://contracts/{Name}` | Per-contract summary + full ABI. |
-| `dappql://docs/library` | Canonical DappQL library reference — React hooks, provider options, async runtime, SDK generation, codegen behavior, non-negotiables. Bundled with the server at build time from the monorepo's root `AGENTS.md` — no network dependency. |
+| `dappql://docs/library` | Canonical DappQL library reference, React hooks, provider options, async runtime, SDK generation, codegen behavior, non-negotiables. Bundled with the server at build time from the monorepo's root `AGENTS.md`, no network dependency. |
 
 ## Safety
 
@@ -96,7 +96,7 @@ export default {
 
 ## Status
 
-v0.1 — first cut. On the roadmap for v0.2: an `estimateMulticall` tool, watch/subscribe resources for live block state, and a prompts layer for common dApp scaffolding tasks.
+v0.1, first cut. On the roadmap for v0.2: an `estimateMulticall` tool, watch/subscribe resources for live block state, and a prompts layer for common dApp scaffolding tasks.
 
 ## License
 

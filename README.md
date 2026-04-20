@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <b>The batteries-included data layer for dApp frontends.</b><br/>
-  Built on top of <a href="https://wagmi.sh">wagmi</a> + <a href="https://viem.sh">viem</a>. Designed for humans and AI agents.
+  <b>Make smart contracts fluent for humans and agents.</b><br/>
+  An agent-native data layer on <a href="https://wagmi.sh">wagmi</a> + <a href="https://viem.sh">viem</a>.
 </p>
 
 <p align="center">
@@ -20,15 +20,15 @@
 Wagmi gives you great primitives. DappQL is the productivity layer you reach for once your dApp talks to more than a handful of contracts.
 
 - **Typed codegen from your ABIs.** Point it at your contracts, get a fully typed SDK. When an ABI changes, TypeScript tells you exactly what broke.
-- **Automatic multicall batching** across a component *and* across your whole app — calls from unrelated components get fused into one RPC.
+- **Automatic multicall batching** across a component *and* across your whole app, calls from unrelated components get fused into one RPC.
 - **Per-block reactivity** out of the box. Your UI stays in sync with chain state without hand-rolled subscriptions.
 - **Iterator queries** for on-chain arrays and paginated data.
-- **Mutations with simulate, estimate, and confirmation tracking** — and a single callback for global transaction UX.
+- **Mutations with simulate, estimate, and confirmation tracking**, and a single callback for global transaction UX.
 - **Address resolver** for registries, proxies, or multi-deployment setups.
-- **Works outside React too.** `@dappql/async` gives you the same typed calls in scripts, servers, and bots — or flip one flag and the CLI generates a publishable typed SDK for your whole protocol.
+- **Works outside React too.** `@dappql/async` gives you the same typed calls in scripts, servers, and bots, or flip one flag and the CLI generates a publishable typed SDK for your whole protocol.
 - **AI-agent friendly.** The generated SDK, predictable APIs, and strict types mean Claude, Cursor, and friends produce working code on the first try.
 
-DappQL doesn't replace wagmi or viem — it stands on top of them. If you know wagmi, you already know most of DappQL.
+DappQL doesn't replace wagmi or viem, it stands on top of them. If you know wagmi, you already know most of DappQL.
 
 ## Install
 
@@ -66,7 +66,7 @@ Then generate:
 dappql
 ```
 
-You get one typed module per contract plus an index — ready to import.
+You get one typed module per contract plus an index, ready to import.
 
 ## Provider
 
@@ -113,7 +113,7 @@ function Dashboard({ account }) {
 }
 ```
 
-All four reads land in a single multicall. Types on `data` are inferred from the ABIs — no casts, no `any`.
+All four reads land in a single multicall. Types on `data` are inferred from the ABIs, no casts, no `any`.
 
 ## Cross-component batching
 
@@ -193,7 +193,7 @@ const { data } = await query(client, {
 })
 ```
 
-Same requests, same types — no React required.
+Same requests, same types, no React required.
 
 ### Generate a full SDK
 
@@ -226,11 +226,11 @@ const publicClient = createPublicClient({ chain: base, transport: http() })
 
 const sdk = createSdk(publicClient, walletClient)
 
-// Singleton contracts — address baked in from the config
+// Singleton contracts, address baked in from the config
 const supply = await sdk.Token.totalSupply()
 const newWallet = await sdk.Factory.createUserWallet(owner, agent)
 
-// Template contracts — pass the address per call
+// Template contracts, pass the address per call
 const erc20 = sdk.ERC20('0x...')
 const balance = await erc20.balanceOf(holder)
 
@@ -239,7 +239,7 @@ const topic = sdk.Token.events.Transfer.topic
 const parsed = sdk.Token.events.Transfer.parse(logs)
 ```
 
-Wrap it in your own class for extras — dynamic address resolution, custom helpers, chain config:
+Wrap it in your own class for extras, dynamic address resolution, custom helpers, chain config:
 
 ```ts
 import { query, RequestCollection, GetItemCallFunction, iteratorQuery } from '@dappql/async'
@@ -290,29 +290,29 @@ const { data } = await protocol.multicall((c) => ({
 }))
 ```
 
-> See [Underscore Finance's SDK](https://github.com/underscore-finance/typescript-sdk) for a production example — a full protocol SDK generated from hundreds of ABIs with DappQL.
+> See [Underscore Finance's SDK](https://github.com/underscore-finance/typescript-sdk) for a production example, a full protocol SDK generated from hundreds of ABIs with DappQL.
 
 ## AI-agent ready out of the box
 
-DappQL meets AI coding agents where they are — twice over.
+DappQL meets AI coding agents where they are, twice over.
 
 ### 1. Generated `AGENTS.md` in every project
 
-Every `dappql` run also emits an `AGENTS.md` at your project root — the emerging universal convention that Claude Code, Cursor, Codex, and friends read on project load. The file lists your actual contracts, their reads/writes/events, ABI-accurate argument placeholders, and the non-negotiable rules for using DappQL correctly in *your* project. Re-runs replace only the managed block (marked with `<!-- dappql:start --> ... <!-- dappql:end -->`), so anything you hand-write above or below it is preserved.
+Every `dappql` run also emits an `AGENTS.md` at your project root, the emerging universal convention that Claude Code, Cursor, Codex, and friends read on project load. The file lists your actual contracts, their reads/writes/events, ABI-accurate argument placeholders, and the non-negotiable rules for using DappQL correctly in *your* project. Re-runs replace only the managed block (marked with `<!-- dappql:start --> ... <!-- dappql:end -->`), so anything you hand-write above or below it is preserved.
 
 ```js
 // dapp.config.js
 export default {
   // ...
-  agentsFile: true,              // default — writes ./AGENTS.md
+  agentsFile: true,              // default, writes ./AGENTS.md
   // agentsFile: false,          // opt out
   // agentsFile: './docs/AGENTS.md', // custom path
 }
 ```
 
-### 2. Live MCP server — `@dappql/mcp`
+### 2. Live MCP server: `@dappql/mcp`
 
-Static docs tell an agent what *could* happen. [`@dappql/mcp`](./packages/mcp) tells it what's happening *right now*. Point any [Model Context Protocol](https://modelcontextprotocol.io) client at `npx @dappql/mcp` and it will walk up to find your `dapp.config.js`, expose every contract by name, run real reads against the chain (batched through multicall), simulate writes, and — if you double-opt-in — sign and broadcast transactions. It's the same viem runtime DappQL uses internally, so an agent's queries behave identically to your React/SDK code.
+Static docs tell an agent what *could* happen. [`@dappql/mcp`](./packages/mcp) tells it what's happening *right now*. Point any [Model Context Protocol](https://modelcontextprotocol.io) client at `npx @dappql/mcp` and it will walk up to find your `dapp.config.js`, expose every contract by name, run real reads against the chain (batched through multicall), simulate writes, and, if you double-opt-in, sign and broadcast transactions. It's the same viem runtime DappQL uses internally, so an agent's queries behave identically to your React/SDK code.
 
 ```json
 // ~/.claude.json or .mcp.json
@@ -327,9 +327,9 @@ Static docs tell an agent what *could* happen. [`@dappql/mcp`](./packages/mcp) t
 }
 ```
 
-Writes are disabled by default and require **both** `mcp: { allowWrites: true }` in `dapp.config.js` and a signing key in env — either alone is not enough. See the [`@dappql/mcp` README](./packages/mcp) for the full tool + resource surface and safety model.
+Writes are disabled by default and require **both** `mcp: { allowWrites: true }` in `dapp.config.js` and a signing key in env, either alone is not enough. See the [`@dappql/mcp` README](./packages/mcp) for the full tool + resource surface and safety model.
 
-The monorepo's own [AGENTS.md](./AGENTS.md) is the exhaustive reference — the generated per-project file links to it.
+The monorepo's own [AGENTS.md](./AGENTS.md) is the exhaustive reference, the generated per-project file links to it.
 
 ## Packages
 
@@ -337,8 +337,8 @@ The monorepo's own [AGENTS.md](./AGENTS.md) is the exhaustive reference — the 
 | --- | --- | --- |
 | [`@dappql/react`](./packages/react) | [![npm](https://img.shields.io/npm/v/@dappql/react.svg)](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, and query manager |
 | [`@dappql/async`](./packages/async) | [![npm](https://img.shields.io/npm/v/@dappql/async.svg)](https://www.npmjs.com/package/@dappql/async) | Non-React query + mutation runtime |
-| [`@dappql/codegen`](./packages/codegen) | [![npm](https://img.shields.io/npm/v/@dappql/codegen.svg)](https://www.npmjs.com/package/@dappql/codegen) | Framework-agnostic codegen — typed contract modules, SDK factory, project `AGENTS.md`. Shared by the CLI and MCP server. |
-| [`@dappql/mcp`](./packages/mcp) | [![npm](https://img.shields.io/npm/v/@dappql/mcp.svg)](https://www.npmjs.com/package/@dappql/mcp) | MCP server — live contract context for AI agents |
+| [`@dappql/codegen`](./packages/codegen) | [![npm](https://img.shields.io/npm/v/@dappql/codegen.svg)](https://www.npmjs.com/package/@dappql/codegen) | Framework-agnostic codegen, typed contract modules, SDK factory, project `AGENTS.md`. Shared by the CLI and MCP server. |
+| [`@dappql/mcp`](./packages/mcp) | [![npm](https://img.shields.io/npm/v/@dappql/mcp.svg)](https://www.npmjs.com/package/@dappql/mcp) | MCP server, live contract context for AI agents |
 | [`dappql`](./packages/cli) | [![npm](https://img.shields.io/npm/v/dappql.svg)](https://www.npmjs.com/package/dappql) | Codegen CLI (thin wrapper around `@dappql/codegen` + ABI fetching) |
 
 ## Documentation

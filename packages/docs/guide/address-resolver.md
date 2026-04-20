@@ -22,7 +22,7 @@ Wire it into the provider:
 
 Every `useContextQuery` / `useQuery` / `useMutation` that references a singleton contract consults this function to resolve the address. Templates still use `.at(addr)` or the `address` option (the resolver doesn't apply to templates since they're address-per-use).
 
-## Static map — simplest case
+## Static map: simplest case
 
 ```tsx
 const addresses: Record<string, `0x${string}`> = {
@@ -72,9 +72,9 @@ const resolver = useCallback(
 ```
 :::
 
-## Async resolution — `AddressResolverComponent`
+## Async resolution: `AddressResolverComponent`
 
-Some addresses only exist after an async lookup (calling an on-chain registry, fetching from an API, reading a subgraph). For that, use `AddressResolverComponent` — a component that renders alongside children, resolves asynchronously, and calls `onResolved` when ready:
+Some addresses only exist after an async lookup (calling an on-chain registry, fetching from an API, reading a subgraph). For that, use `AddressResolverComponent`, a component that renders alongside children, resolves asynchronously, and calls `onResolved` when ready:
 
 ```tsx
 import { useContextQuery } from '@dappql/react'
@@ -125,7 +125,7 @@ await underscore.loadAddresses()
 
 One line wires the SDK's registry-backed resolution into every hook in your app. See [SDK generation](/guide/sdk-generation) for the publisher's side.
 
-## Hybrid — some static, some resolved
+## Hybrid: some static, some resolved
 
 The resolver is a plain function; combine sources freely:
 
@@ -148,12 +148,12 @@ const resolver = (name: string) =>
 If a hook errors with "Contract X has no deploy address," check:
 
 1. Is `X` declared in `contracts: {}` in `dap.config.js`?
-2. Is it a template (`isTemplate: true`)? Templates ignore the resolver — use `.at(addr)` or the `address` option on mutations.
+2. Is it a template (`isTemplate: true`)? Templates ignore the resolver, use `.at(addr)` or the `address` option on mutations.
 3. Does the resolver return a valid address for name `X`? Log it inside the function.
 4. If using `AddressResolverComponent`, has `onResolved` been called yet? Children don't render until it does.
 
 ## Related
 
-- [Provider setup](/guide/provider) — `addressResolver` and `AddressResolverComponent` basics.
-- [Template contracts](/guide/templates) — `.at(addr)` for per-instance addressing.
-- [SDK generation](/guide/sdk-generation) — publisher's side of registry-backed resolution.
+- [Provider setup](/guide/provider), `addressResolver` and `AddressResolverComponent` basics.
+- [Template contracts](/guide/templates), `.at(addr)` for per-instance addressing.
+- [SDK generation](/guide/sdk-generation), publisher's side of registry-backed resolution.

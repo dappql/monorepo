@@ -1,8 +1,8 @@
 # @dappql/codegen
 
-> The framework-agnostic codegen engine for [DappQL](https://github.com/dappql/core). Emits typed contract modules, the optional SDK factory, and the project-level `AGENTS.md` — from a plain `{ contracts, targetPath, ... }` config.
+> The framework-agnostic codegen engine for [DappQL](https://github.com/dappql/core). Emits typed contract modules, the optional SDK factory, and the project-level `AGENTS.md`, from a plain `{ contracts, targetPath, ... }` config.
 
-Shared core used by the [`dappql`](https://www.npmjs.com/package/dappql) CLI and the [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) server. Most users reach DappQL through the CLI — you only need `@dappql/codegen` directly if you're building tooling around it (an MCP server, a VSCode extension, a CI diff linter, a hosted platform).
+Shared core used by the [`dappql`](https://www.npmjs.com/package/dappql) CLI and the [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) server. Most users reach DappQL through the CLI, you only need `@dappql/codegen` directly if you're building tooling around it (an MCP server, a VSCode extension, a CI diff linter, a hosted platform).
 
 ## Install
 
@@ -33,10 +33,10 @@ const contracts: (ContractConfig & { contractName: string })[] = [
 // outside the project (tooling, agents, CI).
 createContractsCollection(
   contracts,
-  './src/contracts',  // targetPath — relative to rootDir
-  true,               // isModule  — emit ESM import paths
-  false,              // isSdk     — emit the createSdk factory
-  '/path/to/project', // rootDir   — optional
+  './src/contracts',  // targetPath, relative to rootDir
+  true,               // isModule , emit ESM import paths
+  false,              // isSdk    , emit the createSdk factory
+  '/path/to/project', // rootDir  , optional
 )
 
 // Emit (or update) the project's AGENTS.md file for AI coding agents.
@@ -75,16 +75,16 @@ These replace the ambient globals that used to live in the `dappql` CLI, so tool
 - Writing a CI check that compares freshly regenerated output against what's committed.
 - Embedding codegen into a framework adapter (custom Vite plugin, Next.js integration, etc.).
 
-For a vanilla dApp, use the [`dappql`](https://www.npmjs.com/package/dappql) CLI instead — it handles config loading, ABI fetching from Etherscan, and logging.
+For a vanilla dApp, use the [`dappql`](https://www.npmjs.com/package/dappql) CLI instead, it handles config loading, ABI fetching from Etherscan, and logging.
 
 ## Related packages
 
 | Package | Purpose |
 | --- | --- |
-| [`dappql`](https://www.npmjs.com/package/dappql) | The CLI — `dappql` binary wrapping this engine with ABI fetching and logging |
+| [`dappql`](https://www.npmjs.com/package/dappql) | The CLI, `dappql` binary wrapping this engine with ABI fetching and logging |
 | [`@dappql/react`](https://www.npmjs.com/package/@dappql/react) | React hooks, provider, query manager |
-| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime — `query`, `mutate`, `iteratorQuery` |
-| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server — consumes `@dappql/codegen` to expose a `regenerate` tool to AI coding agents |
+| [`@dappql/async`](https://www.npmjs.com/package/@dappql/async) | Non-React runtime, `query`, `mutate`, `iteratorQuery` |
+| [`@dappql/mcp`](https://www.npmjs.com/package/@dappql/mcp) | MCP server, consumes `@dappql/codegen` to expose a `regenerate` tool to AI coding agents |
 
 ## Full documentation
 

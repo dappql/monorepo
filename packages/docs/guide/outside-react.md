@@ -1,6 +1,6 @@
 # Outside React
 
-The React hooks are one surface; they're not the only one. `@dappql/async` is the framework-agnostic runtime — same generated contract modules, same typed calls, against a viem `PublicClient` or `WalletClient` instead of a provider-tree.
+The React hooks are one surface; they're not the only one. `@dappql/async` is the framework-agnostic runtime, same generated contract modules, same typed calls, against a viem `PublicClient` or `WalletClient` instead of a provider-tree.
 
 Use it for scripts, servers, bots, cron jobs, indexers, CI checks, and inside published SDKs.
 
@@ -10,7 +10,7 @@ npm install @dappql/async viem
 
 ## Reads
 
-### `query` — one multicall, all-or-nothing
+### `query`: one multicall, all-or-nothing
 
 ```ts
 import { createPublicClient, http } from 'viem'
@@ -31,7 +31,7 @@ const data = await query(client, {
 
 Every request fused into a single multicall. Throws on the first revert. Results returned as a plain object keyed exactly like the input.
 
-### `queryWithStatus` — per-call results, never throws
+### `queryWithStatus`: per-call results, never throws
 
 ```ts
 import { queryWithStatus } from '@dappql/async'
@@ -46,9 +46,9 @@ if (results.a.ok) console.log(results.a.result)
 if (!results.c.ok) console.error(results.c.error)
 ```
 
-Same batching as `query`, same inputs — but each entry resolves to `{ ok: true, result } | { ok: false, error }`. Useful for tools, debug views, indexers that tolerate partial failures, and anything that needs to inspect which calls failed without losing the batch.
+Same batching as `query`, same inputs, but each entry resolves to `{ ok: true, result } | { ok: false, error }`. Useful for tools, debug views, indexers that tolerate partial failures, and anything that needs to inspect which calls failed without losing the batch.
 
-### `singleQuery` — single typed read
+### `singleQuery`: single typed read
 
 ```ts
 import { singleQuery } from '@dappql/async'
@@ -59,7 +59,7 @@ const balance = await singleQuery(client, Token.call.balanceOf(owner))
 
 Thin wrapper over `query` for the common one-call case. Returns the decoded value directly.
 
-### `iteratorQuery` — paginated arrays
+### `iteratorQuery`: paginated arrays
 
 ```ts
 import { iteratorQuery } from '@dappql/async'
@@ -94,7 +94,7 @@ const send = mutate(walletClient, Token.mutation.transfer)
 const hash = await send(recipient, 1000n)
 ```
 
-`mutate` returns a send function with args typed from the ABI — spread args, exactly like `useMutation.send(...)` in React.
+`mutate` returns a send function with args typed from the ABI, spread args, exactly like `useMutation.send(...)` in React.
 
 For template contracts, pass `address` in the options:
 
@@ -120,7 +120,7 @@ Useful for TWAP calculations, historical APR/APY derivation, or "what did this l
 
 ## Address resolution
 
-Every function accepts an optional `addressResolver` — same shape as the React provider's resolver:
+Every function accepts an optional `addressResolver`, same shape as the React provider's resolver:
 
 ```ts
 const addresses: Record<string, `0x${string}`> = {
@@ -152,7 +152,7 @@ Inside a React app, **always prefer the hooks**. You lose auto-refetch, tree-wid
 
 ## Real-world use cases
 
-**CI check — address registry hasn't drifted:**
+**CI check, address registry hasn't drifted:**
 
 ```ts
 import { query } from '@dappql/async'
@@ -167,7 +167,7 @@ assert.equal(ledger, EXPECTED_LEDGER_ADDRESS)
 assert.equal(missionControl, EXPECTED_MISSION_CONTROL_ADDRESS)
 ```
 
-**Indexer — backfill ERC20 balances across a cohort:**
+**Indexer, backfill ERC20 balances across a cohort:**
 
 ```ts
 import { iteratorQuery } from '@dappql/async'
@@ -180,10 +180,10 @@ const balances = await iteratorQuery(
 )
 ```
 
-**Publishable SDK** — wrap `createSdk` in a class and expose typed helpers. See [SDK generation](/guide/sdk-generation).
+**Publishable SDK**, wrap `createSdk` in a class and expose typed helpers. See [SDK generation](/guide/sdk-generation).
 
 ## Related
 
-- [SDK generation](/guide/sdk-generation) — `createSdk` factory, protocol-library pattern.
-- [`useContextQuery`](/guide/reads/use-context-query) — the React equivalent of `query`.
-- [Mutations](/guide/mutations) — the React equivalent of `mutate`.
+- [SDK generation](/guide/sdk-generation), `createSdk` factory, protocol-library pattern.
+- [`useContextQuery`](/guide/reads/use-context-query), the React equivalent of `query`.
+- [Mutations](/guide/mutations), the React equivalent of `mutate`.
