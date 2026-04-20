@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://dappql.com"><b>Docs</b></a> · <a href="https://todo.dappql.com"><b>Live demo</b></a> · <a href="https://github.com/dappql/core"><b>GitHub</b></a>
+  <a href="https://dappql.com"><b>Docs</b></a> · <a href="https://todo.dappql.com"><b>Live demo</b></a> · <a href="https://github.com/dappql/core"><b>GitHub</b></a> · <a href="https://x.com/DappQl"><b>@DappQl</b></a>
 </p>
 
 ---
@@ -355,7 +355,7 @@ PRs and issues are welcome. For anything larger than a small fix, please open an
 
 ## Contact
 
-Questions, feedback, partnership, or want to ship something with DappQL? Reach us at [contact@dappql.com](mailto:contact@dappql.com).
+Questions, feedback, partnership, or want to ship something with DappQL? Reach us at [contact@dappql.com](mailto:contact@dappql.com) or on [X / Twitter @DappQl](https://x.com/DappQl).
 
 ## License
 

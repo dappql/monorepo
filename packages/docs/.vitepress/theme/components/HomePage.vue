@@ -89,6 +89,8 @@
       <p>
         Questions, feedback, or want to ship something with DappQL?
         <a href="mailto:contact@dappql.com">contact@dappql.com</a>
+        ·
+        <a href="https://x.com/DappQl" target="_blank" rel="noreferrer">@DappQl</a>
       </p>
     </div>
   </div>
