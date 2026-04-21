@@ -7,3 +7,6 @@ packages:
   - '!**/test/**'
   # exclude packages that are inside node_modules
   - '!**/node_modules/**'
+  # exclude build output from `dappql pack` — it's a standalone publishable
+  # package, not a workspace member
+  - '!**/dappql-package/**'
