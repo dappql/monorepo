@@ -118,6 +118,16 @@ export default defineConfig({
           items: [{ text: 'Underscore Finance', link: '/agents/case-studies/underscore' }],
         },
       ],
+      '/showcase/': [
+        {
+          text: 'Showcase',
+          items: [
+            { text: 'Overview', link: '/showcase/' },
+            { text: 'Ripe Finance', link: '/showcase/ripe-finance' },
+            { text: 'Underscore Finance', link: '/agents/case-studies/underscore' },
+          ],
+        },
+      ],
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/dappql/core' },
