@@ -1,5 +1,7 @@
 import type { Config as CodegenConfig, ContractConfig } from '@dappql/codegen'
 
+import type { Plugin } from './plugins.js'
+
 export type McpConfigExtension = {
   rpc?: string
   allowWrites?: boolean
@@ -22,4 +24,8 @@ export type ProjectContext = {
   writesReason: string
   codegenEnabled: boolean
   codegenReason: string
+  /** DappQL packages discovered in the project's node_modules via their
+   *  `dappql` manifest field. Each plugin contributes typed contracts that
+   *  agents can query alongside the project's own contracts. */
+  plugins: Plugin[]
 }

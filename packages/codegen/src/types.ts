@@ -24,6 +24,31 @@ export type ContractConfig = {
 
 export type Contracts = Record<string, ContractConfig>
 
+export type ProtocolMeta = {
+  name?: string
+  description?: string
+  website?: string
+  docs?: string
+  explorer?: string
+  repo?: string
+}
+
+export type PackageConfig = {
+  name: string
+  version: string
+  description?: string
+  license?: string
+  outDir?: string
+  /** Path to a directory of user-authored TypeScript to bundle alongside the
+   *  generated contracts. When set, generated contracts are nested under
+   *  `./contracts/` inside the output source tree; user code imports from
+   *  `'./contracts/sdk.js'` to get the typed `createSdk` factory. */
+  source?: string
+  /** Entry file within `source`, relative path. Defaults to `'index.ts'`. */
+  main?: string
+  protocol?: ProtocolMeta
+}
+
 export type Config = {
   contracts: Contracts
   targetPath: string
@@ -34,4 +59,5 @@ export type Config = {
   isModule?: boolean
   isSdk?: boolean
   agentsFile?: boolean | string
+  package?: PackageConfig
 }

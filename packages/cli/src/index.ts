@@ -1,43 +1,47 @@
-import { createAgentsFile, createContractsCollection } from '@dappql/codegen'
 import figlet from 'figlet'
-import { relative } from 'path'
 
-import clean from './utils/clean.js'
-import { RUNNING_DIRECTORY } from './utils/constants.js'
-import extractAbis from './utils/extractAbis.js'
-import getConfig from './utils/getConfig.js'
+import generate from './commands/generate.js'
+import pack from './commands/pack.js'
 import logger, { Severity } from './utils/logger.js'
+
+const HELP = `
+Usage: dappql [command]
+
+Commands:
+  generate   Generate typed contract modules + AGENTS.md (default)
+  pack       Build a publishable npm package from your DappQL project
+  help       Show this message
+
+Run with no command to use 'generate'.
+`
 
 async function main() {
   logger(figlet.textSync('DappQL', { horizontalLayout: 'full' }), Severity.info)
   logger('Querying data from smart-contracts made easy.\n', Severity.info)
 
-  logger('Loading config file ...\n', Severity.warning)
-  const config = await getConfig()
+  const cmd = process.argv[2]
 
-  clean(config.targetPath)
-
-  logger('Fetching ABIs...')
-  const contracts = (await extractAbis(config)).sort((c1, c2) => (c1.contractName < c2.contractName ? -1 : 1))
-
-  const missingAbis = contracts.filter((c) => !c.abi)
-  if (missingAbis.length)
-    logger(`Missing ABIs for:\n${missingAbis.map((c) => `\n\t- ${c.contractName}`).join('')}\n`, Severity.error)
-
-  const contractsWithAbis = contracts.filter((c) => !!c.abi)
-  if (contractsWithAbis.length) {
-    logger(`Generating DappQL code for:\n${contractsWithAbis.map((c) => `\n\t- ${c.contractName}`).join('')}\n`)
-    createContractsCollection(contractsWithAbis, config.targetPath, config.isModule, config.isSdk)
-
-    const agents = createAgentsFile(contractsWithAbis, config)
-    if (agents) {
-      const rel = relative(RUNNING_DIRECTORY, agents.path) || agents.path
-      const verb = agents.mode === 'created' ? 'Created' : agents.mode === 'updated' ? 'Updated' : 'Appended to'
-      logger(`${verb} AI-agent guide at ./${rel}`, Severity.info)
-    }
-
-    logger('\n\nDone! 🎉\n\n', Severity.success)
+  switch (cmd) {
+    case undefined:
+    case 'generate':
+      await generate()
+      return
+    case 'pack':
+      await pack()
+      return
+    case 'help':
+    case '--help':
+    case '-h':
+      console.log(HELP)
+      return
+    default:
+      logger(`Unknown command: ${cmd}`, Severity.error)
+      console.log(HELP)
+      process.exit(1)
   }
 }
 
-main().catch((e) => logger(e.message, Severity.error))
+main().catch((e) => {
+  logger(e.message, Severity.error)
+  process.exit(1)
+})

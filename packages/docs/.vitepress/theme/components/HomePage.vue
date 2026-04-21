@@ -45,6 +45,11 @@
                 <div class="ps-arrow">→</div>
                 <div class="ps-solution"><span>One flag, full <code>createSdk</code> factory with events included.</span></div>
               </a>
+              <a class="ps-row" href="/agents/mcp/plugins">
+                <div class="ps-problem"><span>"I want typed context for protocols I build on."</span></div>
+                <div class="ps-arrow">→</div>
+                <div class="ps-solution"><span>Install any DappQL-packaged protocol; <code>@dappql/mcp</code> auto-discovers its contracts.</span></div>
+              </a>
             </div>
             <a href="/showcase/ripe-finance" class="origin-callout">
               <div class="origin-copy">
@@ -71,10 +76,10 @@
         <h3>AI-agent ready</h3>
         <p>Every project ships with a generated <code>AGENTS.md</code>. Plug in <code>@dappql/mcp</code> and Claude Code, Cursor, or any MCP client gets live, typed contract access: reads, simulated writes, events, gated execution.</p>
       </a>
-      <a href="/guide/sdk-generation" class="feature-card">
+      <a href="/guide/publishing" class="feature-card">
         <div class="feature-icon">📦</div>
         <h3>Publishable typed SDK</h3>
-        <p>Flip <code>isSdk: true</code> and the CLI emits a <code>createSdk</code> factory: a full typed protocol SDK, events included. Ship it to npm for your whole team or ecosystem.</p>
+        <p>Flip <code>isSdk: true</code>, run <code>dappql pack</code>, publish to npm. Your package ships typed contracts + ABIs + a manifest that <code>@dappql/mcp</code> auto-discovers. Consumers, humans and AI agents, import and get full context.</p>
       </a>
       <a href="/guide/reads/use-context-query" class="feature-card">
         <div class="feature-icon">⚡</div>
@@ -143,6 +148,54 @@
   max-width: 1120px;
   margin: 0 auto;
   padding: 64px 24px 96px;
+
+  /* Theme-aware tints. Defaults target dark mode (the original palette);
+     the :root:not(.dark) block below overrides for light mode. Using CSS
+     vars keeps every tint in one place and avoids duplicating selectors. */
+  --ps-problem-bg: rgba(255, 255, 255, 0.02);
+  --ps-arrow-bg: rgba(5, 122, 255, 0.06);
+  --ps-solution-bg: rgba(255, 255, 255, 0.04);
+
+  --origin-gradient: linear-gradient(135deg, rgba(5, 122, 255, 0.04) 0%, rgba(5, 122, 255, 0.12) 100%);
+  --origin-gradient-hover: linear-gradient(135deg, rgba(5, 122, 255, 0.07) 0%, rgba(5, 122, 255, 0.18) 100%);
+
+  --feature-accent-gradient: linear-gradient(135deg, var(--vp-c-bg-soft) 0%, rgba(5, 122, 255, 0.08) 100%);
+  --feature-accent-border: rgba(5, 122, 255, 0.35);
+  --feature-hover-shadow: 0 8px 24px -12px rgba(5, 122, 255, 0.25);
+
+  /* one-dark-pro palette (dark mode default) */
+  --hl-keyword: #c678dd;
+  --hl-string: #98c379;
+  --hl-fn: #61afef;
+  --hl-id: #e5c07b;
+  --hl-prop: #e06c75;
+  --hl-tag: #56b6c2;
+}
+
+:root:not(.dark) .home-container {
+  /* Light-mode column tints: subtle dark overlays so the three problem /
+     arrow / solution columns remain distinguishable on a light background.
+     White overlays (the dark defaults) are invisible on light. */
+  --ps-problem-bg: rgba(0, 0, 0, 0.025);
+  --ps-arrow-bg: rgba(5, 122, 255, 0.08);
+  --ps-solution-bg: rgba(0, 0, 0, 0.045);
+
+  /* Brand-blue tints need higher opacity on light to read with the same
+     visual weight as on dark. */
+  --origin-gradient: linear-gradient(135deg, rgba(5, 122, 255, 0.06) 0%, rgba(5, 122, 255, 0.18) 100%);
+  --origin-gradient-hover: linear-gradient(135deg, rgba(5, 122, 255, 0.1) 0%, rgba(5, 122, 255, 0.24) 100%);
+
+  --feature-accent-gradient: linear-gradient(135deg, var(--vp-c-bg-soft) 0%, rgba(5, 122, 255, 0.12) 100%);
+  --feature-accent-border: rgba(5, 122, 255, 0.45);
+  --feature-hover-shadow: 0 8px 24px -12px rgba(5, 122, 255, 0.35);
+
+  /* one-light palette for the hand-rolled code block */
+  --hl-keyword: #a626a4;
+  --hl-string: #50a14f;
+  --hl-fn: #4078f2;
+  --hl-id: #c18401;
+  --hl-prop: #e45649;
+  --hl-tag: #0184bc;
 }
 
 .hero-section {
@@ -290,7 +343,7 @@
   color: var(--vp-c-text-2);
   font-style: italic;
   line-height: 1.5;
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--ps-problem-bg);
   padding: 18px 22px;
   display: flex;
   align-items: center;
@@ -300,7 +353,7 @@
   font-size: 20px;
   font-weight: 600;
   line-height: 1;
-  background-color: rgba(5, 122, 255, 0.06);
+  background-color: var(--ps-arrow-bg);
   padding: 0 20px;
   display: flex;
   align-items: center;
@@ -311,7 +364,7 @@
   color: var(--vp-c-text-1);
   line-height: 1.5;
   font-weight: 500;
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: var(--ps-solution-bg);
   padding: 18px 22px;
   display: flex;
   align-items: center;
@@ -330,13 +383,13 @@
   justify-content: space-between;
   gap: 28px;
   padding: 28px 32px 40px;
-  background: linear-gradient(135deg, rgba(5, 122, 255, 0.04) 0%, rgba(5, 122, 255, 0.12) 100%);
+  background: var(--origin-gradient);
   text-decoration: none;
   color: inherit;
   transition: background 0.2s;
 }
 .origin-callout:hover {
-  background: linear-gradient(135deg, rgba(5, 122, 255, 0.07) 0%, rgba(5, 122, 255, 0.18) 100%);
+  background: var(--origin-gradient-hover);
 }
 .origin-copy {
   flex: 1;
@@ -393,14 +446,14 @@
 .feature-card:hover {
   border-color: var(--vp-c-brand);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -12px rgba(5, 122, 255, 0.25);
+  box-shadow: var(--feature-hover-shadow);
 }
 .feature-card:hover h3 {
   color: var(--vp-c-brand);
 }
 .feature-card--accent {
-  background: linear-gradient(135deg, var(--vp-c-bg-soft) 0%, rgba(5, 122, 255, 0.08) 100%);
-  border-color: rgba(5, 122, 255, 0.35);
+  background: var(--feature-accent-gradient);
+  border-color: var(--feature-accent-border);
 }
 .feature-icon {
   font-size: 28px;
@@ -452,14 +505,15 @@
 }
 
 /* Minimal syntax highlighting, hand-styled because this is a Vue template,
-   not a markdown code block (VitePress/Shiki doesn't reach here). Palette
-   approximates one-dark-pro for the dark theme we're locked to. */
-.hl .k   { color: #c678dd; }           /* keywords: import, const, function, if, return, from */
-.hl .s   { color: #98c379; }           /* strings */
-.hl .fn  { color: #61afef; }           /* function calls */
-.hl .id  { color: #e5c07b; }           /* identifiers (Token, useContextQuery, formatUnits) */
-.hl .p   { color: #e06c75; }           /* properties (.call) */
-.hl .t   { color: #56b6c2; }           /* JSX tags (<Spinner />, <p>) */
+   not a markdown code block (VitePress/Shiki doesn't reach here). Tokens
+   pull from CSS vars declared on .home-container: one-dark-pro in dark mode,
+   one-light in light mode. */
+.hl .k   { color: var(--hl-keyword); }  /* keywords: import, const, function, if, return, from */
+.hl .s   { color: var(--hl-string); }   /* strings */
+.hl .fn  { color: var(--hl-fn); }       /* function calls */
+.hl .id  { color: var(--hl-id); }       /* identifiers (Token, useContextQuery, formatUnits) */
+.hl .p   { color: var(--hl-prop); }     /* properties (.call) */
+.hl .t   { color: var(--hl-tag); }      /* JSX tags (<Spinner />, <p>) */
 
 .used-by {
   text-align: center;

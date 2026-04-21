@@ -2,6 +2,7 @@ import { existsSync } from 'fs'
 import { dirname, join, resolve } from 'path'
 import { pathToFileURL } from 'url'
 
+import { discoverPlugins } from './plugins.js'
 import type { DappConfig, ProjectContext } from './types.js'
 
 const CONFIG_FILENAMES = ['dapp.config.js', 'dapp.config.mjs', 'dapp.config.cjs']
@@ -73,6 +74,7 @@ export async function loadProjectContext(startDir: string = process.cwd()): Prom
   const rpcUrl = resolveRpcUrl(config)
   const { enabled: writesEnabled, reason: writesReason } = resolveWritesPolicy(config)
   const { enabled: codegenEnabled, reason: codegenReason } = resolveCodegenPolicy(config)
+  const plugins = discoverPlugins(root)
 
   return {
     root,
@@ -84,5 +86,6 @@ export async function loadProjectContext(startDir: string = process.cwd()): Prom
     writesReason,
     codegenEnabled,
     codegenReason,
+    plugins,
   }
 }

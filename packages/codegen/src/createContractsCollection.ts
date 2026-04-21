@@ -216,7 +216,7 @@ ${eventNames.map((e) => `\t\t${e}: {topic: Address, parse: (events: (RpcLog | Lo
     },`
         : ''
     }
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>,) => Promise<CallReturn<'${m}'>>`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => Promise<CallReturn<'${m}'>>`).join('\n')}
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => Promise<Address>`).join('\n')}
 }
 
@@ -233,7 +233,7 @@ ${eventNames.map((e) => `\t\t${e}: {topic: getEventTopic('${e}'), parse: (events
     : ''
 }
     // Queries
-${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => singleQuery(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}, {}, addressResolver) as Promise<CallReturn<'${m}'>>,`).join('\n')}
+${readMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['calls']['${m}']>) => (singleQuery as any)(publicClient!, call.${m}(...args)${isTemplate ? `.at(deployAddress)` : ''}, {}, addressResolver) as Promise<CallReturn<'${m}'>>,`).join('\n')}
 
     // Mutations
 ${writeMethods.map((m) => `\t\t${m}: (...args: ExtractArgs<Contract['mutations']['${m}']>) => mutate(walletClient!, mutation.${m}${isTemplate ? `, {address: deployAddress, addressResolver}` : ', {addressResolver}'})(...args),`).join('\n')}

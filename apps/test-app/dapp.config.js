@@ -1,5 +1,21 @@
 export default {
   'targetPath': './src/contracts',
+  "chainId": 11155111,
+  "package": {
+    "name": "@dappql/test-app-contracts",
+    "version": "0.0.1",
+    "description": "ToDo demo contracts (Sepolia) packaged via dappql pack",
+    "license": "MIT",
+    "source": "./sdk-src",
+    "main": "index.ts",
+    "protocol": {
+      "name": "DappQL ToDo Demo",
+      "website": "https://todo.dappql.com",
+      "docs": "https://dappql.com",
+      "repo": "https://github.com/dappql/core",
+      "explorer": "https://sepolia.etherscan.io"
+    }
+  },
   "contracts": {
     "ToDo": {
       "address": "0x29B63f08aBa4Be48873238C23693a5550bC1E93F",

@@ -1,7 +1,14 @@
 import type { AbiFunction, AbiParameter, ContractConfig } from '@dappql/codegen'
 import type { Address } from 'viem'
 
-import type { DappConfig } from './types.js'
+import type { Plugin } from './plugins.js'
+import type { DappConfig, ProjectContext } from './types.js'
+
+/** Identifies where a contract came from — either the local DappQL project
+ *  or a plugin package discovered in node_modules. */
+export type ContractSource =
+  | { kind: 'project' }
+  | { kind: 'plugin'; name: string }
 
 export type MethodSummary = {
   name: string
@@ -86,22 +93,94 @@ export function summarizeAllContracts(config: DappConfig): ContractSummary[] {
   return Object.entries(config.contracts).map(([name, c]) => summarizeContract(name, c))
 }
 
-export function getContractAbi(config: DappConfig, name: string): AbiFunction[] {
-  const contract = config.contracts[name]
-  if (!contract) throw new Error(`Contract not found: ${name}`)
+export type SourcedContractSummary = ContractSummary & { source: string }
+
+/** Returns every contract known to the MCP server: the local project's, plus
+ *  any plugins discovered in node_modules. Each entry carries a `source` field
+ *  ('project' for local, or the plugin package name). Names are NOT prefixed —
+ *  agents disambiguate via the source field when two packages share a name. */
+export function summarizeAllSources(ctx: ProjectContext): SourcedContractSummary[] {
+  const out: SourcedContractSummary[] = Object.entries(ctx.config.contracts).map(([name, c]) => ({
+    ...summarizeContract(name, c),
+    source: 'project',
+  }))
+  for (const plugin of ctx.plugins) {
+    for (const [name, contract] of Object.entries(plugin.contracts)) {
+      const cfg: ContractConfig = {
+        abi: contract.abi,
+        address: contract.address,
+        isTemplate: contract.isTemplate,
+      }
+      out.push({ ...summarizeContract(name, cfg), source: plugin.name })
+    }
+  }
+  return out
+}
+
+/** Resolve a (name, source?) pair to a ContractConfig, drawing from the project
+ *  or a named plugin. If `source` is omitted, prefers the project, then falls
+ *  back to plugins — throws on ambiguity. */
+export function resolveContract(
+  ctx: ProjectContext,
+  name: string,
+  source?: string,
+): { source: string; contract: ContractConfig } {
+  // Explicit source
+  if (source === 'project') {
+    const c = ctx.config.contracts[name]
+    if (!c) throw new Error(`Contract not found in project: ${name}`)
+    return { source: 'project', contract: c }
+  }
+  if (source) {
+    const plugin = ctx.plugins.find((p) => p.name === source)
+    if (!plugin) throw new Error(`Plugin not found: ${source}`)
+    const c = plugin.contracts[name]
+    if (!c) throw new Error(`Contract not found in plugin ${source}: ${name}`)
+    return { source, contract: { abi: c.abi, address: c.address, isTemplate: c.isTemplate } }
+  }
+
+  // Unspecified — prefer project, then disambiguate across plugins
+  const inProject = ctx.config.contracts[name]
+  const matchingPlugins = ctx.plugins.filter((p) => p.contracts[name])
+  const totalMatches = (inProject ? 1 : 0) + matchingPlugins.length
+  if (totalMatches === 0) throw new Error(`Contract not found: ${name}`)
+  if (totalMatches > 1) {
+    const sources = [
+      ...(inProject ? ['project'] : []),
+      ...matchingPlugins.map((p) => p.name),
+    ]
+    throw new Error(
+      `Ambiguous contract name "${name}" — exists in: ${sources.join(', ')}. Pass the \`source\` argument to disambiguate.`,
+    )
+  }
+  if (inProject) return { source: 'project', contract: inProject }
+  const plugin = matchingPlugins[0]
+  const c = plugin.contracts[name]
+  return { source: plugin.name, contract: { abi: c.abi, address: c.address, isTemplate: c.isTemplate } }
+}
+
+export function getContractAbi(ctx: ProjectContext, name: string, source?: string): AbiFunction[] {
+  const { contract } = resolveContract(ctx, name, source)
   if (!contract.abi) throw new Error(`Contract ${name} has no ABI available`)
   return contract.abi
 }
 
-export function getContractAddress(config: DappConfig, name: string, override?: Address): Address {
-  const contract = config.contracts[name]
-  if (!contract) throw new Error(`Contract not found: ${name}`)
+export function getContractAddress(
+  ctx: ProjectContext,
+  name: string,
+  source?: string,
+  override?: Address,
+): Address {
   if (override) return override
+  const { contract, source: resolvedSource } = resolveContract(ctx, name, source)
   if (contract.isTemplate) {
     throw new Error(`Contract ${name} is a template — pass an explicit \`address\` argument`)
   }
   if (!contract.address) {
-    throw new Error(`Contract ${name} has no deploy address in dapp.config.js`)
+    throw new Error(
+      `Contract ${name} (${resolvedSource}) has no deploy address. ` +
+        'Pass an explicit `address` argument, or check if the plugin uses dynamic resolution.',
+    )
   }
   return contract.address
 }
@@ -124,15 +203,35 @@ export function findAbiEvent(abi: AbiFunction[], eventName: string): AbiFunction
 }
 
 export function findContractByAddress(
-  config: DappConfig,
+  ctx: ProjectContext,
   address: string | null | undefined,
-): { name: string; abi: AbiFunction[] } | null {
+): { name: string; source: string; abi: AbiFunction[] } | null {
   if (!address) return null
   const lower = address.toLowerCase()
-  for (const [name, contract] of Object.entries(config.contracts)) {
+  for (const [name, contract] of Object.entries(ctx.config.contracts)) {
     if (contract.address && contract.address.toLowerCase() === lower && contract.abi) {
-      return { name, abi: contract.abi }
+      return { name, source: 'project', abi: contract.abi }
+    }
+  }
+  for (const plugin of ctx.plugins) {
+    for (const [name, contract] of Object.entries(plugin.contracts)) {
+      if (contract.address && contract.address.toLowerCase() === lower) {
+        return { name, source: plugin.name, abi: contract.abi }
+      }
     }
   }
   return null
+}
+
+/** Iterate every ABI known to the MCP: project + plugins. Used for blind log
+ *  decoding when the emitter's address isn't in any contracts map. */
+export function* iterateAllAbis(ctx: ProjectContext): Generator<{ name: string; source: string; abi: AbiFunction[] }> {
+  for (const [name, contract] of Object.entries(ctx.config.contracts)) {
+    if (contract.abi) yield { name, source: 'project', abi: contract.abi }
+  }
+  for (const plugin of ctx.plugins) {
+    for (const [name, contract] of Object.entries(plugin.contracts)) {
+      yield { name, source: plugin.name, abi: contract.abi }
+    }
+  }
 }

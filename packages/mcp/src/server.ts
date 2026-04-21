@@ -21,6 +21,7 @@ import {
   getContractTool,
   getDappqlReferenceTool,
   listContractsTool,
+  listPluginsTool,
   projectInfoTool,
   searchMethodsTool,
 } from './tools/metadata.js'
@@ -39,6 +40,7 @@ function makeToolRegistry(ctx: ProjectContext): Map<string, Tool> {
     projectInfoTool,
     chainStateTool,
     listContractsTool,
+    listPluginsTool,
     getContractTool,
     searchMethodsTool,
     callReadTool,

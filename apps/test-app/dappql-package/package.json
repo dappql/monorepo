@@ -1,0 +1,55 @@
+{
+  "name": "@dappql/test-app-contracts",
+  "version": "0.0.1",
+  "description": "ToDo demo contracts (Sepolia) packaged via dappql pack",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./contracts": {
+      "import": "./dist/contracts/index.js",
+      "types": "./dist/contracts/index.d.ts"
+    },
+    "./sdk": {
+      "import": "./dist/contracts/sdk.js",
+      "types": "./dist/contracts/sdk.d.ts"
+    },
+    "./abis": "./abis.json",
+    "./addresses": "./addresses.json",
+    "./agents": "./AGENTS.md"
+  },
+  "files": [
+    "dist",
+    "abis.json",
+    "addresses.json",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "viem": "^2.0.0"
+  },
+  "dependencies": {
+    "@dappql/async": "^1.0.0"
+  },
+  "dappql": {
+    "manifestVersion": 1,
+    "chainId": 11155111,
+    "protocol": {
+      "name": "DappQL ToDo Demo",
+      "website": "https://todo.dappql.com",
+      "docs": "https://dappql.com",
+      "repo": "https://github.com/dappql/core",
+      "explorer": "https://sepolia.etherscan.io"
+    },
+    "contracts": "./dist/contracts/index.js",
+    "sdk": "./dist/contracts/sdk.js",
+    "abis": "./abis.json",
+    "addresses": "./addresses.json",
+    "agents": "./AGENTS.md"
+  }
+}

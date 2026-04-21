@@ -15,6 +15,12 @@ async function main() {
   process.stderr.write(`[@dappql/mcp] Project: ${ctx.configPath}\n`)
   process.stderr.write(`[@dappql/mcp] Chain: ${ctx.chainId ?? 'unspecified'}\n`)
   process.stderr.write(`[@dappql/mcp] Contracts: ${Object.keys(ctx.config.contracts).length}\n`)
+  if (ctx.plugins.length) {
+    const pluginSummary = ctx.plugins
+      .map((p) => `${p.name}${p.version ? `@${p.version}` : ''} (${Object.keys(p.contracts).length})`)
+      .join(', ')
+    process.stderr.write(`[@dappql/mcp] Plugins: ${ctx.plugins.length} — ${pluginSummary}\n`)
+  }
   process.stderr.write(`[@dappql/mcp] Writes: ${ctx.writesEnabled ? 'ENABLED' : 'disabled'} — ${ctx.writesReason}\n`)
   process.stderr.write(`[@dappql/mcp] Codegen: ${ctx.codegenEnabled ? 'ENABLED' : 'disabled'} — ${ctx.codegenReason}\n`)
 

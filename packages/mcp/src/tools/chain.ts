@@ -9,9 +9,13 @@ import {
   findContractByAddress,
   getContractAbi,
   getContractAddress,
+  iterateAllAbis,
 } from '../contracts.js'
 import { coerceArgs, serializeValue } from '../serialize.js'
 import type { ProjectContext } from '../types.js'
+
+const SOURCE_DESCRIPTION =
+  'Optional: where the contract comes from — "project" (default when project has a matching name) or a plugin package name (e.g. "@underscore/dappql"). Required when the contract name exists in multiple sources.'
 
 type BlockTag = 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized'
 const BLOCK_TAGS = new Set<BlockTag>(['latest', 'earliest', 'pending', 'safe', 'finalized'])
@@ -27,11 +31,12 @@ type CallSpec = {
   method: string
   args?: unknown[]
   address?: Address
+  source?: string
 }
 
 function resolveCall(ctx: ProjectContext, spec: CallSpec) {
-  const abi = getContractAbi(ctx.config, spec.contract)
-  const address = getContractAddress(ctx.config, spec.contract, spec.address)
+  const abi = getContractAbi(ctx, spec.contract, spec.source)
+  const address = getContractAddress(ctx, spec.contract, spec.source, spec.address)
   const fn = findAbiFunction(abi, spec.method, spec.args?.length)
   const args = coerceArgs(spec.args ?? [], fn.inputs ?? [])
   return { abi, address, fn, args }
@@ -62,7 +67,8 @@ export const callReadTool = {
   inputSchema: {
     type: 'object',
     properties: {
-      contract: { type: 'string', description: 'Contract name from dapp.config.js' },
+      contract: { type: 'string', description: 'Contract name from dapp.config.js or a plugin' },
+      source: { type: 'string', description: SOURCE_DESCRIPTION },
       method: { type: 'string', description: 'Method name (view or pure)' },
       args: { type: 'array', description: 'Arguments in order, raw JSON. uint/int types accept numbers or stringified bigints.' },
       address: { type: 'string', description: 'Override deploy address (required for template contracts).' },
@@ -105,6 +111,7 @@ export const multicallTool = {
           properties: {
             key: { type: 'string', description: 'Optional label echoed back on the result entry.' },
             contract: { type: 'string' },
+            source: { type: 'string', description: SOURCE_DESCRIPTION },
             method: { type: 'string' },
             args: { type: 'array' },
             address: { type: 'string' },
@@ -175,6 +182,7 @@ export const simulateWriteTool = {
     type: 'object',
     properties: {
       contract: { type: 'string' },
+      source: { type: 'string', description: SOURCE_DESCRIPTION },
       method: { type: 'string' },
       args: { type: 'array' },
       address: { type: 'string', description: 'Override deploy address (required for template contracts).' },
@@ -248,6 +256,7 @@ export const callWriteTool = {
     type: 'object',
     properties: {
       contract: { type: 'string' },
+      source: { type: 'string', description: SOURCE_DESCRIPTION },
       method: { type: 'string' },
       args: { type: 'array' },
       address: { type: 'string' },
@@ -317,7 +326,8 @@ export const getEventsTool = {
   inputSchema: {
     type: 'object',
     properties: {
-      contract: { type: 'string', description: 'Contract name from dapp.config.js' },
+      contract: { type: 'string', description: 'Contract name from dapp.config.js or a plugin' },
+      source: { type: 'string', description: SOURCE_DESCRIPTION },
       event: { type: 'string', description: 'Event name as declared in the ABI' },
       address: {
         type: 'string',
@@ -352,6 +362,7 @@ export const getEventsTool = {
   handler: async (
     args: {
       contract: string
+      source?: string
       event: string
       address?: Address
       fromBlock?: string
@@ -361,8 +372,8 @@ export const getEventsTool = {
     },
     ctx: ProjectContext,
   ) => {
-    const abi = getContractAbi(ctx.config, args.contract)
-    const address = getContractAddress(ctx.config, args.contract, args.address)
+    const abi = getContractAbi(ctx, args.contract, args.source)
+    const address = getContractAddress(ctx, args.contract, args.source, args.address)
     const eventAbi = findAbiEvent(abi, args.event)
     const client = createPublic(ctx)
 
@@ -421,11 +432,12 @@ export const getTransactionTool = {
 
     let decodedInput: {
       contract: string
+      source: string
       method: string
       args: unknown
     } | null = null
 
-    const toContract = findContractByAddress(ctx.config, tx.to)
+    const toContract = findContractByAddress(ctx, tx.to)
     if (toContract && tx.input && tx.input.length >= 10) {
       try {
         const decoded = decodeFunctionData({
@@ -434,6 +446,7 @@ export const getTransactionTool = {
         })
         decodedInput = {
           contract: toContract.name,
+          source: toContract.source,
           method: decoded.functionName,
           args: serializeValue(decoded.args ?? []),
         }
@@ -445,8 +458,9 @@ export const getTransactionTool = {
     type DecodedEvent = { eventName: string; args: readonly unknown[] | Record<string, unknown> }
 
     const decodedLogs = receipt.logs.map((log) => {
-      // First try the contract at the log's own address (most accurate)
-      const source = findContractByAddress(ctx.config, log.address)
+      // First try the contract at the log's own address (most accurate).
+      // findContractByAddress searches project + plugins.
+      const matched = findContractByAddress(ctx, log.address)
       const tryAbi = (abi: AbiFunction[]): DecodedEvent | null => {
         try {
           return decodeEventLog({
@@ -459,19 +473,19 @@ export const getTransactionTool = {
         }
       }
 
-      let decoded: DecodedEvent | null = source ? tryAbi(source.abi) : null
-      let decodedBy: string | null = source && decoded ? source.name : null
+      let decoded: DecodedEvent | null = matched ? tryAbi(matched.abi) : null
+      let decodedBy: { name: string; source: string } | null =
+        matched && decoded ? { name: matched.name, source: matched.source } : null
 
-      // Fall back: iterate all contracts until something decodes (useful for templates,
-      // which have ABIs in config but no pinned address — e.g. ERC20 Transfer events
-      // emitted by arbitrary tokens).
+      // Fall back: iterate every known ABI (project + plugins). Useful for
+      // templates, which have ABIs but no pinned address — e.g. ERC20 Transfer
+      // events emitted by arbitrary tokens.
       if (!decoded) {
-        for (const [name, contract] of Object.entries(ctx.config.contracts)) {
-          if (!contract.abi) continue
-          const result = tryAbi(contract.abi)
+        for (const entry of iterateAllAbis(ctx)) {
+          const result = tryAbi(entry.abi)
           if (result) {
             decoded = result
-            decodedBy = name
+            decodedBy = { name: entry.name, source: entry.source }
             break
           }
         }
@@ -482,9 +496,10 @@ export const getTransactionTool = {
         logIndex: log.logIndex,
         topics: log.topics,
         data: log.data,
-        decoded: decoded
+        decoded: decoded && decodedBy
           ? {
-              contract: decodedBy,
+              contract: decodedBy.name,
+              source: decodedBy.source,
               eventName: decoded.eventName,
               args: serializeValue(decoded.args ?? {}),
             }
@@ -508,7 +523,7 @@ export const getTransactionTool = {
       logs: decodedLogs,
       note:
         decodedInput === null && tx.to
-          ? 'Target address is not in dapp.config.js — input kept as raw hex. Add the contract to decode.'
+          ? 'Target address is not in dapp.config.js or any installed DappQL plugin — input kept as raw hex. Add the contract to decode.'
           : undefined,
     }
   },

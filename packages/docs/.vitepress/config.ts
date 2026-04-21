@@ -4,7 +4,6 @@ export default defineConfig({
   title: 'DappQL',
   description:
     'Make smart contracts fluent for humans and agents. An agent-native data layer on wagmi + viem.',
-  appearance: 'dark',
   cleanUrls: true,
   // TODO: drop once all sidebar pages are filled in. Content is being written
   // progressively; this unblocks CI while pages land.
@@ -12,7 +11,7 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: '/icon.png' }],
     ['meta', { name: 'theme-color', content: '#057aff' }],
-    ['meta', { property: 'og:title', content: 'DappQL: make smart contracts fluent for humans and agents' }],
+    ['meta', { property: 'og:title', content: 'DappQL: Make smart contracts fluent for humans and agents' }],
     ['meta', {
       property: 'og:description',
       content: 'An agent-native data layer on wagmi + viem. Typed codegen, React hooks, publishable SDKs, live MCP server.',
@@ -22,16 +21,16 @@ export default defineConfig({
     ['meta', { property: 'og:image', content: 'https://dappql.com/og.png' }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { property: 'og:image:alt', content: 'DappQL — make smart contracts fluent for humans and agents' }],
+    ['meta', { property: 'og:image:alt', content: 'DappQL: Make smart contracts fluent for humans and agents' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:site', content: '@DappQL' }],
-    ['meta', { name: 'twitter:title', content: 'DappQL: make smart contracts fluent for humans and agents' }],
+    ['meta', { name: 'twitter:title', content: 'DappQL: Make smart contracts fluent for humans and agents' }],
     ['meta', {
       name: 'twitter:description',
       content: 'An agent-native data layer on wagmi + viem.',
     }],
     ['meta', { name: 'twitter:image', content: 'https://dappql.com/og.png' }],
-    ['meta', { name: 'twitter:image:alt', content: 'DappQL — make smart contracts fluent for humans and agents' }],
+    ['meta', { name: 'twitter:image:alt', content: 'DappQL: Make smart contracts fluent for humans and agents' }],
   ],
   themeConfig: {
     logo: '/logo-dappql.svg',
@@ -93,6 +92,7 @@ export default defineConfig({
           items: [
             { text: 'Outside React (@dappql/async)', link: '/guide/outside-react' },
             { text: 'SDK generation', link: '/guide/sdk-generation' },
+            { text: 'Publishing as a plugin', link: '/guide/publishing' },
           ],
         },
         {
@@ -117,6 +117,7 @@ export default defineConfig({
             { text: 'Setup', link: '/agents/mcp/setup' },
             { text: 'Tools', link: '/agents/mcp/tools' },
             { text: 'Resources', link: '/agents/mcp/resources' },
+            { text: 'Plugins', link: '/agents/mcp/plugins' },
             { text: 'Safety model', link: '/agents/mcp/safety' },
           ],
         },

@@ -198,8 +198,13 @@ You get all the React benefits, cross-component batching, per-block reactivity, 
 
 For most dApp frontends: start without `isSdk`. Flip it on when you find yourself copy-pasting `createSdk`-style boilerplate or shipping a separate npm package.
 
+## Shipping it as an npm package
+
+Once the SDK is working, `dappql pack` turns it into a self-contained, publishable npm package that both humans and AI agents consume. See [Publishing as a plugin](/guide/publishing).
+
 ## Related
 
+- [Publishing as a plugin](/guide/publishing), the `dappql pack` command and the manifest format.
 - [Configuration](/guide/configuration), `isSdk`, `isTemplate`, `isModule` flags.
 - [Template contracts](/guide/templates), why templates are function-calls in SDK mode.
 - [Outside React](/guide/outside-react), `@dappql/async` under the hood.
