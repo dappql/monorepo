@@ -19,8 +19,49 @@
       </div>
     </div>
 
-    <div class="features">
-      <a href="/guide/configuration" class="feature-card">
+    <section class="familiar-section">
+      <div class="familiar-inner">
+        <div class="problem-solution">
+          <h2>Sound Familiar?</h2>
+          <div class="ps-grid">
+            <div class="ps-list">
+              <a class="ps-row" href="/guide/configuration">
+                <div class="ps-problem"><span>"ABIs change and my frontend silently breaks."</span></div>
+                <div class="ps-arrow">→</div>
+                <div class="ps-solution"><span>TypeScript lights up every broken call site the moment you regenerate.</span></div>
+              </a>
+              <a class="ps-row" href="/guide/reads/use-context-query">
+                <div class="ps-problem"><span>"Every page fires 20+ RPC calls on mount."</span></div>
+                <div class="ps-arrow">→</div>
+                <div class="ps-solution"><span>All reads across your tree fuse into one multicall per block.</span></div>
+              </a>
+              <a class="ps-row" href="/agents/mcp/setup">
+                <div class="ps-problem"><span>"Agents hallucinate method names on my contracts."</span></div>
+                <div class="ps-arrow">→</div>
+                <div class="ps-solution"><span>Generated <code>AGENTS.md</code> + <code>@dappql/mcp</code> give them live, typed access.</span></div>
+              </a>
+              <a class="ps-row" href="/guide/sdk-generation">
+                <div class="ps-problem"><span>"I need the same contracts on my backend too."</span></div>
+                <div class="ps-arrow">→</div>
+                <div class="ps-solution"><span>One flag, full <code>createSdk</code> factory with events included.</span></div>
+              </a>
+            </div>
+            <a href="/showcase/ripe-finance" class="origin-callout">
+              <div class="origin-copy">
+                <h3>Built in production, then extracted.</h3>
+                <p>DappQL lived inside Ripe Finance for three years. 200+ contracts on testnet, a Base mainnet launch, and a viral day that didn't melt the RPC bill. Read how it got there.</p>
+              </div>
+              <span class="origin-cta">Read the Ripe story →</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-section">
+      <h2>Main Features</h2>
+      <div class="features">
+        <a href="/guide/configuration" class="feature-card">
         <div class="feature-icon">🔐</div>
         <h3>Typed codegen from ABIs</h3>
         <p>Point DappQL at your contracts, get a fully typed SDK. When an ABI changes, TypeScript tells you exactly what broke.</p>
@@ -50,10 +91,11 @@
         <h3>Iterator queries</h3>
         <p>Paginate on-chain arrays with a single hook. Deterministic batching, bigint-safe indexing.</p>
       </a>
-    </div>
+      </div>
+    </section>
 
     <div class="quick-example">
-      <h2>Four reads. One RPC. Fully typed.</h2>
+      <h2>Four Reads. One RPC. Fully Typed.</h2>
       <pre class="hl"><code><span class="k">import</span> { <span class="id">Token</span> } <span class="k">from</span> <span class="s">'./src/contracts'</span>
 <span class="k">import</span> { <span class="id">useContextQuery</span> } <span class="k">from</span> <span class="s">'@dappql/react'</span>
 <span class="k">import</span> { <span class="id">formatUnits</span> } <span class="k">from</span> <span class="s">'viem'</span>
@@ -90,7 +132,7 @@
         Questions, feedback, or want to ship something with DappQL?
         <a href="mailto:contact@dappql.com">contact@dappql.com</a>
         ·
-        <a href="https://x.com/DappQl" target="_blank" rel="noreferrer">@DappQl</a>
+        <a href="https://x.com/DappQL" target="_blank" rel="noreferrer">@DappQL</a>
       </p>
     </div>
   </div>
@@ -174,11 +216,167 @@
   background: transparent;
 }
 
+.familiar-section {
+  background-color: var(--vp-c-bg-alt);
+  padding: 72px 0;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-bottom: 72px;
+}
+.familiar-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.problem-solution {
+  margin-bottom: 0;
+}
+.problem-solution h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.ps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--vp-c-bg-soft);
+}
+.ps-list {
+  display: flex;
+  flex-direction: column;
+}
+.ps-row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) auto minmax(0, 4fr);
+  gap: 0;
+  padding: 0;
+  background-color: transparent;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s;
+}
+.ps-row:hover .ps-solution {
+  color: var(--vp-c-brand);
+}
+.ps-row:focus-visible,
+.origin-callout:focus-visible {
+  outline: 2px solid var(--vp-c-brand);
+  outline-offset: -2px;
+}
+.ps-row:first-child .ps-problem,
+.ps-row:first-child .ps-solution {
+  padding-top: 30px;
+}
+.ps-row:first-child .ps-arrow {
+  padding-top: 30px;
+  padding-bottom: 18px;
+}
+.ps-row:last-child .ps-problem,
+.ps-row:last-child .ps-solution {
+  padding-bottom: 30px;
+}
+.ps-row:last-child .ps-arrow {
+  padding-top: 18px;
+  padding-bottom: 30px;
+}
+.ps-problem {
+  font-size: 15px;
+  color: var(--vp-c-text-2);
+  font-style: italic;
+  line-height: 1.5;
+  background-color: rgba(255, 255, 255, 0.02);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+}
+.ps-arrow {
+  color: var(--vp-c-brand);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  background-color: rgba(5, 122, 255, 0.06);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ps-solution {
+  font-size: 15px;
+  color: var(--vp-c-text-1);
+  line-height: 1.5;
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+}
+.ps-solution code {
+  font-size: 13px;
+  background-color: var(--vp-c-bg-alt);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 400;
+}
+
+.origin-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 28px 32px 40px;
+  background: linear-gradient(135deg, rgba(5, 122, 255, 0.04) 0%, rgba(5, 122, 255, 0.12) 100%);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+.origin-callout:hover {
+  background: linear-gradient(135deg, rgba(5, 122, 255, 0.07) 0%, rgba(5, 122, 255, 0.18) 100%);
+}
+.origin-copy {
+  flex: 1;
+}
+.origin-callout h3 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+  color: var(--vp-c-text-1);
+}
+.origin-callout p {
+  color: var(--vp-c-text-2);
+  line-height: 1.55;
+  font-size: 15px;
+  max-width: 680px;
+  margin: 0;
+}
+.origin-cta {
+  color: var(--vp-c-brand);
+  font-weight: 600;
+  font-size: 15px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.features-section {
+  margin-bottom: 72px;
+}
+.features-section h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+  text-align: left;
+}
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 20px;
-  margin-bottom: 72px;
 }
 
 .feature-card {
@@ -235,8 +433,8 @@
   font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  margin-bottom: 20px;
-  text-align: center;
+  margin-bottom: 40px;
+  text-align: left;
 }
 .quick-example pre {
   background-color: var(--vp-c-bg-alt);
@@ -314,5 +512,44 @@
   .hero-title { font-size: 38px; }
   .hero-tagline { font-size: 17px; }
   .quick-example pre { font-size: 12px; padding: 18px; }
+}
+
+@media (max-width: 720px) {
+  .ps-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 16px 18px;
+  }
+  .ps-list {
+    padding: 20px 0;
+  }
+  .ps-row:first-child .ps-problem,
+  .ps-row:first-child .ps-solution {
+    padding-top: 0;
+  }
+  .ps-row:last-child .ps-problem,
+  .ps-row:last-child .ps-solution {
+    padding-bottom: 0;
+  }
+  .ps-arrow {
+    display: none;
+  }
+  .ps-problem {
+    display: block;
+    background: transparent;
+    padding: 0;
+  }
+  .ps-solution {
+    display: block;
+    background: transparent;
+    padding: 0 0 0 12px;
+    border-left: 2px solid var(--vp-c-brand);
+  }
+  .origin-callout {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+  }
 }
 </style>

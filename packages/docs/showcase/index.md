@@ -19,4 +19,4 @@ Projects building with DappQL in production, and case studies of what that looks
 
 ---
 
-Shipping something with DappQL and want to be listed? Reach out at [contact@dappql.com](mailto:contact@dappql.com) or [@DappQl](https://x.com/DappQl).
+Shipping something with DappQL and want to be listed? Reach out at [contact@dappql.com](mailto:contact@dappql.com) or [@DappQL](https://x.com/DappQL).

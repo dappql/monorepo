@@ -131,7 +131,7 @@ export default defineConfig({
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/dappql/core' },
-      { icon: 'x', link: 'https://x.com/DappQl' },
+      { icon: 'x', link: 'https://x.com/DappQL' },
     ],
     editLink: {
       pattern: 'https://github.com/dappql/core/edit/main/packages/docs/:path',
@@ -139,7 +139,7 @@ export default defineConfig({
     },
     footer: {
       message:
-        'Released under the MIT license · <a href="mailto:contact@dappql.com">contact@dappql.com</a> · <a href="https://x.com/DappQl" target="_blank" rel="noreferrer">@DappQl</a>',
+        'Released under the MIT license · <a href="mailto:contact@dappql.com">contact@dappql.com</a> · <a href="https://x.com/DappQL" target="_blank" rel="noreferrer">@DappQL</a>',
       copyright: 'Copyright © DappQL Team',
     },
   },
