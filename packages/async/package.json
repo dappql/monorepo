@@ -1,6 +1,6 @@
 {
   "name": "@dappql/async",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Streamlined smart contract data fetching library for dApps with TypeScript support",
   "author": "DappQL Team",
   "type": "module",
