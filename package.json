@@ -19,7 +19,7 @@
     "ship:react": "cd packages/react && pnpm ship",
     "ship:cli": "cd packages/cli && pnpm ship",
     "ship:mcp": "cd packages/mcp && pnpm ship",
-    "ship:codegen": "cd packages/mcp && pnpm ship"
+    "ship:codegen": "cd packages/codegen && pnpm ship"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
