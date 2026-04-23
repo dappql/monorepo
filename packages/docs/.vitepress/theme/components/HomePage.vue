@@ -25,6 +25,11 @@
           <h2>Sound Familiar?</h2>
           <div class="ps-grid">
             <div class="ps-list">
+              <div class="ps-header" aria-hidden="true">
+                <div class="ps-header-problem">Without DappQL</div>
+                <div class="ps-header-arrow">→</div>
+                <div class="ps-header-solution">With DappQL</div>
+              </div>
               <a class="ps-row" href="/guide/configuration">
                 <div class="ps-problem"><span>"ABIs change and my frontend silently breaks."</span></div>
                 <div class="ps-arrow">→</div>
@@ -204,7 +209,7 @@
 }
 
 .hero-logo {
-  width: 220px;
+  width: 300px;
   height: auto;
   margin: 16px auto 28px;
   display: block;
@@ -322,13 +327,36 @@
   outline: 2px solid var(--vp-c-brand);
   outline-offset: -2px;
 }
-.ps-row:first-child .ps-problem,
-.ps-row:first-child .ps-solution {
-  padding-top: 30px;
+.ps-header {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) auto minmax(0, 4fr);
+  gap: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
 }
-.ps-row:first-child .ps-arrow {
-  padding-top: 30px;
-  padding-bottom: 18px;
+.ps-header-problem,
+.ps-header-arrow,
+.ps-header-solution {
+  padding: 14px 22px 10px;
+}
+.ps-header-arrow {
+  padding-left: 20px;
+  padding-right: 20px;
+  background-color: var(--ps-arrow-bg);
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+  color: transparent;
+}
+.ps-header-problem {
+  background-color: var(--ps-problem-bg);
+  color: var(--vp-c-text-3);
+}
+.ps-header-solution {
+  background-color: var(--ps-solution-bg);
+  color: var(--vp-c-brand);
 }
 .ps-row:last-child .ps-problem,
 .ps-row:last-child .ps-solution {
@@ -569,6 +597,9 @@
 }
 
 @media (max-width: 720px) {
+  .ps-header {
+    display: none;
+  }
   .ps-row {
     grid-template-columns: 1fr;
     gap: 8px;
