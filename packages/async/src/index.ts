@@ -61,7 +61,7 @@ export async function query<T extends RequestCollection>(
   requests: T,
   options: { blockNumber?: bigint } = {},
   addressResolver?: AddressResolverFunction,
-) {
+): Promise<{ [K in keyof T]: NonNullable<T[K]['defaultValue']> }> {
   const callKeys = Object.keys(requests) as (keyof T)[]
   const calls = Object.values(requests).map((req) => {
     return {
@@ -209,9 +209,9 @@ export async function iteratorQuery<T>(
     firstIndex?: bigint
   } = {},
   addressResolver?: AddressResolverFunction,
-) {
+): Promise<{ value: NonNullable<T>; queryIndex: bigint }[]> {
   const { firstIndex = 0n, ...queryParams } = options
-  if (total === 0n) return [] as { value: NonNullable<T>; queryIndex: bigint }[]
+  if (total === 0n) return []
 
   const result = await query(client, buildIteratorQuery(total, firstIndex, getItem), queryParams, addressResolver)
 
