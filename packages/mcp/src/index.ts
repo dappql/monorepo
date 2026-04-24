@@ -3,16 +3,28 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { loadProjectContext } from './project.js'
 import { createDappqlServer } from './server.js'
 
+// Auto-load `.env` from cwd so users can keep secrets (RPC URL, signing keys)
+// in .env instead of wiring them through the MCP client's env block. Silent
+// no-op when the file is absent or the Node runtime lacks loadEnvFile (<20.12).
+try {
+  if (typeof process.loadEnvFile === 'function') {
+    process.loadEnvFile()
+    process.stderr.write('[@dappql/mcp] Loaded .env from cwd\n')
+  }
+} catch {
+  // .env absent or unreadable — fall back to whatever is already in process.env.
+}
+
 async function main() {
   const ctx = await loadProjectContext()
   if (!ctx) {
     process.stderr.write(
-      '[@dappql/mcp] No dapp.config.js found walking up from cwd. The MCP server needs a DappQL project to introspect.\n',
+      '[@dappql/mcp] Nothing to introspect: no dap.config.js found walking up from cwd, and no DappQL plugins in node_modules. Install a DappQL SDK (e.g. `npm install @underscore-finance/sdk`) or add a dap.config.js to this project.\n',
     )
     process.exit(1)
   }
 
-  process.stderr.write(`[@dappql/mcp] Project: ${ctx.configPath}\n`)
+  process.stderr.write(`[@dappql/mcp] Project: ${ctx.configPath ?? `${ctx.root} (plugin-only, no dap.config.js)`}\n`)
   process.stderr.write(`[@dappql/mcp] Chain: ${ctx.chainId ?? 'unspecified'}\n`)
   process.stderr.write(`[@dappql/mcp] Contracts: ${Object.keys(ctx.config.contracts).length}\n`)
   if (ctx.plugins.length) {

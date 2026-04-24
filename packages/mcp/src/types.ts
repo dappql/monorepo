@@ -16,7 +16,10 @@ export type { ContractConfig }
 
 export type ProjectContext = {
   root: string
-  configPath: string
+  /** Absolute path to the loaded `dap.config.js`. Undefined in plugin-only
+   *  mode — the server was launched in a directory with no local config but
+   *  has plugins in node_modules. */
+  configPath?: string
   config: DappConfig
   rpcUrl: string
   chainId?: number
