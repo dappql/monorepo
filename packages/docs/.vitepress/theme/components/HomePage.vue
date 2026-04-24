@@ -104,6 +104,28 @@
       </div>
     </section>
 
+    <section class="live-example-section">
+      <h2>See It Live.</h2>
+      <a
+        href="https://github.com/underscore-finance/undy-buddy"
+        target="_blank"
+        rel="noreferrer"
+        class="live-card"
+      >
+        <div class="live-card-copy">
+          <div class="live-card-eyebrow">underscore-finance / undy-buddy</div>
+          <h3>Any MCP-aware agent, talking fluently to a live DeFi protocol.</h3>
+          <p>
+            One <code>npm install</code>. Claude Code, Codex, or Cursor instantly gains typed access to
+            Underscore Finance's 76 contracts on Base — live reads, event queries, simulated writes.
+            No codegen, no custom wiring. Just the plugin-discovery flow DappQL unlocks, wrapped in a
+            curated agent persona.
+          </p>
+        </div>
+        <span class="live-card-cta">View on GitHub →</span>
+      </a>
+    </section>
+
     <div class="quick-example">
       <h2>Four Reads. One RPC. Fully Typed.</h2>
       <pre class="hl"><code><span class="k">import</span> { <span class="id">Token</span> } <span class="k">from</span> <span class="s">'./src/contracts'</span>
@@ -454,6 +476,75 @@
   margin-bottom: 40px;
   text-align: left;
 }
+
+.live-example-section {
+  margin-bottom: 72px;
+}
+.live-example-section h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.live-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 36px 40px;
+  border-radius: 14px;
+  background: var(--origin-gradient);
+  border: 1px solid var(--feature-accent-border);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.live-card:hover {
+  background: var(--origin-gradient-hover);
+  border-color: var(--vp-c-brand);
+  transform: translateY(-2px);
+  box-shadow: var(--feature-hover-shadow);
+}
+.live-card-copy {
+  flex: 1;
+  min-width: 0;
+}
+.live-card-eyebrow {
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-c-brand);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+.live-card h3 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+  color: var(--vp-c-text-1);
+}
+.live-card p {
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
+  font-size: 15px;
+  max-width: 680px;
+  margin: 0;
+}
+.live-card p code {
+  font-size: 13px;
+  background-color: var(--vp-c-bg-alt);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.live-card-cta {
+  color: var(--vp-c-brand);
+  font-weight: 600;
+  font-size: 15px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
@@ -635,6 +726,15 @@
     align-items: flex-start;
     gap: 16px;
     padding: 24px;
+  }
+  .live-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+  }
+  .live-card h3 {
+    font-size: 19px;
   }
 }
 </style>
