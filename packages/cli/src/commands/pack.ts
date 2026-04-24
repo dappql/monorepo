@@ -1,6 +1,6 @@
 import { createAgentsFile, createContractsCollection } from '@dappql/codegen'
 import { spawnSync } from 'child_process'
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { dirname, join, relative, resolve } from 'path'
 import { createRequire } from 'module'
 
@@ -10,6 +10,34 @@ import getConfig from '../utils/getConfig.js'
 import logger, { Severity } from '../utils/logger.js'
 
 const require = createRequire(import.meta.url)
+
+type RootPackageJson = {
+  name?: string
+  version?: string
+  description?: string
+  license?: string
+  author?: unknown
+  keywords?: unknown
+  bugs?: unknown
+  homepage?: unknown
+  repository?: unknown
+  dependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+}
+
+/** Best-effort read of the repo's root package.json. Pack uses it as a source
+ *  of truth for metadata (name, version, license, author, bugs, deps, …) so
+ *  maintainers don't have to restate everything in dapp.config.js. Returns an
+ *  empty object for greenfield projects without a package.json. */
+function readRootPackageJson(): RootPackageJson {
+  const path = join(RUNNING_DIRECTORY, 'package.json')
+  if (!existsSync(path)) return {}
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'))
+  } catch {
+    return {}
+  }
+}
 
 function resolveTscBin(cwd: string): string | null {
   try {
@@ -36,18 +64,24 @@ const DEFAULT_OUT_DIR = './dappql-package'
 export default async function pack() {
   logger('Loading config file ...\n', Severity.warning)
   const config = await getConfig()
+  const rootPkg = readRootPackageJson()
 
-  if (!config.package) {
+  // Pack can run with zero config.package so long as the repo's package.json
+  // supplies name + version. This lets existing SDK repos adopt pack without
+  // duplicating metadata. `config.package` overrides anything in rootPkg.
+  const pkgCfg = config.package ?? {}
+  const pkgName = pkgCfg.name ?? rootPkg.name
+  const pkgVersion = pkgCfg.version ?? rootPkg.version
+
+  if (!pkgName) {
     throw new Error(
-      '`pack` requires a `package` field in dapp.config.js.\n' +
-        'Example:\n' +
-        '  package: { name: "@myprotocol/dappql", version: "1.0.0" }',
+      'Package name not found. Set `package.name` in dapp.config.js or add a "name" field to package.json.',
     )
   }
-
-  const pkgCfg = config.package
-  if (!pkgCfg.name || !pkgCfg.version) {
-    throw new Error('`package.name` and `package.version` are required.')
+  if (!pkgVersion) {
+    throw new Error(
+      'Package version not found. Set `package.version` in dapp.config.js or add a "version" field to package.json.',
+    )
   }
 
   const outDir = resolve(RUNNING_DIRECTORY, pkgCfg.outDir ?? DEFAULT_OUT_DIR)
@@ -177,11 +211,29 @@ export default async function pack() {
   const sdkJs = hasSource ? './dist/contracts/sdk.js' : './dist/sdk.js'
   const sdkTypes = hasSource ? './dist/contracts/sdk.d.ts' : './dist/sdk.d.ts'
 
-  // Write package.json with the dappql manifest
-  const pkgJson = {
-    name: pkgCfg.name,
-    version: pkgCfg.version,
-    description: pkgCfg.description ?? (pkgCfg.protocol?.name ? `${pkgCfg.protocol.name} contracts for DappQL` : undefined),
+  // Merge dependencies: repo's package.json is the source of truth. Config can
+  // override, and we always ensure the two runtime deps pack needs are present.
+  const dependencies: Record<string, string> = {
+    ...(rootPkg.dependencies ?? {}),
+  }
+  const peerDependencies: Record<string, string> = {
+    ...(rootPkg.peerDependencies ?? {}),
+  }
+  if (!dependencies['@dappql/async'] && !peerDependencies['@dappql/async']) {
+    dependencies['@dappql/async'] = '^1.0.0'
+  }
+  if (!dependencies.viem && !peerDependencies.viem) {
+    peerDependencies.viem = '^2.0.0'
+  }
+
+  // Build the package.json, merging rootPkg → config → pack defaults.
+  const pkgJson: Record<string, unknown> = {
+    name: pkgName,
+    version: pkgVersion,
+    description:
+      pkgCfg.description ??
+      rootPkg.description ??
+      (pkgCfg.protocol?.name ? `${pkgCfg.protocol.name} contracts for DappQL` : undefined),
     type: 'module',
     main: mainPath,
     types: typesPath,
@@ -203,29 +255,39 @@ export default async function pack() {
       './agents': './AGENTS.md',
     },
     files: ['dist', 'abis.json', 'addresses.json', 'AGENTS.md', 'README.md'],
-    license: pkgCfg.license ?? 'MIT',
-    peerDependencies: {
-      viem: '^2.0.0',
-    },
-    dependencies: {
-      '@dappql/async': '^1.0.0',
-    },
-    dappql: {
-      manifestVersion: 1,
-      chainId: config.chainId,
-      protocol: pkgCfg.protocol,
-      contracts: contractsJs,
-      sdk: sdkJs,
-      abis: './abis.json',
-      addresses: './addresses.json',
-      agents: './AGENTS.md',
-    },
+    license: pkgCfg.license ?? rootPkg.license ?? 'MIT',
   }
+
+  // Pass through standard npm metadata fields when the repo has them. These
+  // don't affect runtime behavior but matter for npm page / consumer tooling.
+  for (const field of ['author', 'keywords', 'bugs', 'homepage', 'repository'] as const) {
+    if (rootPkg[field] !== undefined) pkgJson[field] = rootPkg[field]
+  }
+
+  if (Object.keys(dependencies).length) pkgJson.dependencies = dependencies
+  if (Object.keys(peerDependencies).length) pkgJson.peerDependencies = peerDependencies
+
+  pkgJson.dappql = {
+    manifestVersion: 1,
+    chainId: config.chainId,
+    protocol: pkgCfg.protocol,
+    contracts: contractsJs,
+    sdk: sdkJs,
+    abis: './abis.json',
+    addresses: './addresses.json',
+    agents: './AGENTS.md',
+  }
+
   writeFileSync(join(outDir, 'package.json'), JSON.stringify(pkgJson, null, 2) + '\n')
   logger(`Wrote package.json`, Severity.info)
 
   // Write README
-  const readme = renderReadme(pkgCfg, contractsWithAbis.length)
+  const readme = renderReadme({
+    name: pkgName,
+    description: pkgCfg.description ?? rootPkg.description,
+    protocol: pkgCfg.protocol,
+    contractCount: contractsWithAbis.length,
+  })
   writeFileSync(join(outDir, 'README.md'), readme)
 
   logger('\n\nPacked! 🎉', Severity.success)
@@ -233,22 +295,25 @@ export default async function pack() {
   logger(`  npm publish --access public\n`, Severity.info)
 }
 
-function renderReadme(
-  pkg: NonNullable<Awaited<ReturnType<typeof getConfig>>['package']>,
-  contractCount: number,
-): string {
-  const protocolName = pkg.protocol?.name ?? pkg.name
+function renderReadme(args: {
+  name: string
+  description?: string
+  protocol?: NonNullable<Awaited<ReturnType<typeof getConfig>>['package']>['protocol']
+  contractCount: number
+}): string {
+  const { name, description, protocol, contractCount } = args
+  const protocolName = protocol?.name ?? name
   const lines: string[] = []
-  lines.push(`# ${pkg.name}`)
+  lines.push(`# ${name}`)
   lines.push('')
   lines.push(
-    pkg.description ?? `Typed ${protocolName} contracts for DappQL — ${contractCount} contract${contractCount === 1 ? '' : 's'} packaged for humans and AI agents.`,
+    description ?? `Typed ${protocolName} contracts for DappQL — ${contractCount} contract${contractCount === 1 ? '' : 's'} packaged for humans and AI agents.`,
   )
   lines.push('')
   lines.push('## Install')
   lines.push('')
   lines.push('```bash')
-  lines.push(`pnpm add ${pkg.name}`)
+  lines.push(`pnpm add ${name}`)
   lines.push('```')
   lines.push('')
   lines.push('## Use with DappQL MCP')
@@ -261,20 +326,20 @@ function renderReadme(
   lines.push('## Use the SDK directly')
   lines.push('')
   lines.push('```ts')
-  lines.push(`import createSdk from '${pkg.name}/sdk'`)
+  lines.push(`import createSdk from '${name}/sdk'`)
   lines.push(`import { createPublicClient, http } from 'viem'`)
   lines.push('')
   lines.push(`const publicClient = createPublicClient({ transport: http() })`)
   lines.push(`const sdk = createSdk(publicClient)`)
   lines.push('```')
   lines.push('')
-  if (pkg.protocol?.docs || pkg.protocol?.website || pkg.protocol?.repo) {
+  if (protocol?.docs || protocol?.website || protocol?.repo) {
     lines.push('## Links')
     lines.push('')
-    if (pkg.protocol.website) lines.push(`- Website: ${pkg.protocol.website}`)
-    if (pkg.protocol.docs) lines.push(`- Docs: ${pkg.protocol.docs}`)
-    if (pkg.protocol.explorer) lines.push(`- Explorer: ${pkg.protocol.explorer}`)
-    if (pkg.protocol.repo) lines.push(`- Repo: ${pkg.protocol.repo}`)
+    if (protocol.website) lines.push(`- Website: ${protocol.website}`)
+    if (protocol.docs) lines.push(`- Docs: ${protocol.docs}`)
+    if (protocol.explorer) lines.push(`- Explorer: ${protocol.explorer}`)
+    if (protocol.repo) lines.push(`- Repo: ${protocol.repo}`)
     lines.push('')
   }
   lines.push('---')

@@ -34,8 +34,10 @@ export type ProtocolMeta = {
 }
 
 export type PackageConfig = {
-  name: string
-  version: string
+  /** npm package name. Falls back to the repo's package.json `name` field. */
+  name?: string
+  /** npm package version. Falls back to the repo's package.json `version` field. */
+  version?: string
   description?: string
   license?: string
   outDir?: string
