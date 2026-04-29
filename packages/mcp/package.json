@@ -1,6 +1,6 @@
 {
   "name": "@dappql/mcp",
-  "version": "0.2.3",
+  "version": "0.3.1",
   "description": "MCP server exposing a DappQL project to AI coding agents — contract introspection, multicall reads, write simulation, and optional gated write execution.",
   "author": "DappQL Team",
   "type": "module",
