@@ -127,6 +127,75 @@ DAPPQL_PRIVATE_KEY=0x...      # optional, only if writes are enabled
 
 Gitignore `.env`. Your teammates each keep their own; the committed `DAPPQL_DEFAULT_RPC_URL` is the fallback for anyone who doesn't have one.
 
+## HTTP transport (hosted / remote MCP)
+
+By default `@dappql/mcp` runs over **stdio** — a local subprocess your MCP client spawns. For hosted scenarios where teams or external users connect to one shared MCP server (no install required), the same package also speaks **streamable HTTP**.
+
+### Launching in HTTP mode
+
+```bash
+# port via flag
+npx @dappql/mcp --http=3737
+
+# or via env
+DAPPQL_MCP_HTTP_PORT=3737 npx @dappql/mcp
+```
+
+Endpoints:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/mcp` | Client→server JSON-RPC requests. SSE response stream. |
+| `GET` | `/mcp` | Server-pushed notifications (stateful only). |
+| `DELETE` | `/mcp` | End a session (stateful only). |
+| `GET` | `/health` | JSON status: chain, contract count, plugins, sessions. |
+
+Add it to a remote-MCP-aware client by URL:
+
+```json
+{
+  "mcpServers": {
+    "dappql": {
+      "url": "https://your-host.example.com/mcp"
+    }
+  }
+}
+```
+
+### Stateful vs stateless
+
+The HTTP transport supports two modes — pick one based on where you deploy.
+
+| | Stateful *(default)* | Stateless |
+| --- | --- | --- |
+| Trigger | `--http` alone | `--stateless` flag or `DAPPQL_MCP_STATELESS=true` |
+| Session id | issued on `initialize`, sent in `mcp-session-id` header | none |
+| Server-pushed notifications | ✅ | ❌ |
+| `GET`/`DELETE /mcp` | ✅ | rejected (405) |
+| Per-request overhead | low (transport reused) | slightly higher (fresh transport per call) |
+| Survives across instances | ❌ | ✅ |
+| Right for | long-lived Node servers, single instance (Fly.io, your own VM) | serverless (Vercel, Cloudflare Workers, Lambda) |
+
+For our read-only tool surface (contract reads, multicall, events, simulate), **stateless loses no functionality** — there are no notifications to push and no resources to subscribe to. Pick stateful for slightly lower per-call latency on a long-running process; pick stateless for any serverless deploy.
+
+### Deploying on Vercel
+
+Vercel functions are stateless by nature, so use `--stateless` mode. Minimal sketch:
+
+```ts
+// api/mcp.ts
+import { startHttpServer, loadProjectContext } from '@dappql/mcp'
+// ... wire as a Vercel handler in stateless mode, with @your-org/sdk pinned
+```
+
+A full reference deploy lives at [`underscore-finance/mcp-server`](https://github.com/underscore-finance/mcp-server) (coming soon) — fork that as a starting point.
+
+### Hosted-mode safety
+
+- **Never enable writes on a public/shared instance.** Don't set `DAPPQL_PRIVATE_KEY` / `MNEMONIC` and don't flip `mcp.allowWrites: true`. `simulateWrite` is fine; `callWrite` should be hard off.
+- **Rate-limit at the edge.** Each request is one or more chain reads. Public, unlimited = your RPC bill spirals.
+- **Pin one chain per host.** A single deploy reads from one RPC. For multi-chain protocols, ship one host per chain.
+
 ## Boot log
 
 On startup, the server logs its state to stderr so you can verify everything loaded correctly:
